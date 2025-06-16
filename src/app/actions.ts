@@ -1,9 +1,11 @@
+
 'use server';
 
-import pdf from 'pdf-parse';
+// import pdf from 'pdf-parse'; // Original static import
 
 export async function extractTextFromPdf(fileBuffer: ArrayBuffer): Promise<string> {
   try {
+    const pdf = (await import('pdf-parse')).default; // Dynamically import pdf-parse
     const buffer = Buffer.from(fileBuffer);
     const data = await pdf(buffer);
     if (!data.text || data.text.trim() === '') {
