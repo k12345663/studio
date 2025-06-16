@@ -14,7 +14,6 @@ import { InterviewKitDisplay } from '@/components/interview-kit/InterviewKitDisp
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Image from 'next/image';
 
 export default function Home() {
   const [jobDescriptionText, setJobDescriptionText] = useState<string>(''); // Stores the actual JD text
@@ -208,20 +207,11 @@ export default function Home() {
 
 
           {!isLoading && !interviewKit && !jobDescriptionText && (
-             <Card className="mt-8 text-center p-4 sm:p-6 bg-card shadow-lg">
-              <CardHeader className="p-0">
-                <Image 
-                  src="https://placehold.co/600x400.png" 
-                  alt="Abstract representation of recruitment or interview process" 
-                  width={240} 
-                  height={160} 
-                  className="mx-auto rounded-lg mb-4 shadow-md" 
-                  data-ai-hint="recruitment hiring"
-                  priority
-                />
+             <Card className="mt-8 text-center bg-card shadow-lg">
+              <CardHeader> {/* Default padding will apply, text-center from parent Card will center title */}
                 <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to RecruTake</CardTitle>
               </CardHeader>
-              <CardContent className="p-0 mt-3">
+              <CardContent className="pt-0"> {/* Remove top padding as CardHeader has bottom padding */}
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
                   Streamline your hiring with RecruTake. Paste a job description or upload a PDF to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
                 </CardDescription>

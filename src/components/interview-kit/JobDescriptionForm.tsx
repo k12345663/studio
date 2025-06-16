@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -73,7 +74,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="job-description-pdf" className="text-lg font-medium">
+            <Label htmlFor="job-description-pdf"> {/* Removed text-lg, default Label style will apply (text-sm font-medium) */}
               Upload Job Description PDF
             </Label>
             <div className="flex items-center space-x-2">
@@ -82,7 +83,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
                 type="file"
                 accept=".pdf"
                 onChange={handleFileChange}
-                className="mt-1 flex-grow file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                className="flex-grow file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" /* Removed mt-1 */
                 disabled={isLoading}
                 aria-label="Job Description PDF Upload"
                 />
@@ -97,7 +98,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           </div>
           
           <div>
-            <Label htmlFor="job-description-text" className="text-lg font-medium">
+            <Label htmlFor="job-description-text"> {/* Removed text-lg, default Label style will apply (text-sm font-medium) */}
               Paste Job Description
             </Label>
             <Textarea
