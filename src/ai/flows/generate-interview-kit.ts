@@ -23,7 +23,7 @@ export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInput
 
 const QuestionAnswerPairSchema = z.object({
   question: z.string().describe('The interview question. Should be insightful and highly specific to the job description and the candidate\'s profile (resume/experience context).'),
-  answer: z.string().describe("A model answer as 3-4 concise bullet points. Each bullet point MUST be basic, clear, easy to judge, and demonstrate strong proficiency relevant to the candidate's specific experience level and background (derived from their resume and context). These answers should explicitly reference specific terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight key positive indicators a recruiter should look for."),
+  answer: z.string().describe("A model answer as 3-4 concise bullet points. Each bullet point MUST be basic, clear, easy to judge (serving as a general example of a strong answer), and demonstrate strong proficiency relevant to the candidate's specific experience level and background (derived from their resume and context). These answers MUST explicitly reference specific terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight key positive indicators a recruiter should look for."),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR method).'),
   category: z.enum(['Technical', 'Non-Technical']).describe("The category of the question. 'Technical' for questions assessing specific hard skills or tool knowledge. 'Non-Technical' for questions assessing problem-solving, behavioral traits, scenarios, or soft skills. Infer this primarily from the question type and content."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).describe("The difficulty level of the question, on a 5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'."),
@@ -57,7 +57,7 @@ const generateInterviewKitPrompt = ai.definePrompt({
   name: 'generateInterviewKitPrompt',
   input: {schema: GenerateInterviewKitInputSchema},
   output: {schema: GenerateInterviewKitOutputSchema},
-  prompt: `You are a senior hiring manager and expert interviewer. Your task is to generate a comprehensive interview kit. Thoroughly analyze and synthesize ALL provided information (Job Description, Candidate Resume, and Candidate Experience Context) to create a deeply tailored and highly practical interview kit.
+  prompt: `You are a senior hiring manager and expert interviewer. Your task is to generate a comprehensive interview kit. You MUST thoroughly analyze and synthesize ALL provided information: the Job Description, the Candidate Resume (if available), and any Candidate Experience Context. Your output should be deeply tailored and highly practical, reflecting a complete understanding of these inputs.
 
 Job Description:
 {{{jobDescription}}}
@@ -72,7 +72,7 @@ Candidate Experience Context (additional notes):
 {{{candidateExperienceContext}}}
 {{/if}}
 
-Based on ALL available information (Job Description, Candidate Resume, and Candidate Experience Context):
+Based on a holistic understanding of ALL available information (Job Description, Candidate Resume, and Candidate Experience Context):
 
 1.  Identify 5-7 core competencies crucial for the role as per the Job Description. For each competency, assess its importance (High, Medium, or Low).
 2.  For each competency, create 3 distinct, insightful questions:
@@ -83,15 +83,15 @@ Based on ALL available information (Job Description, Candidate Resume, and Candi
 
 3.  For EACH question, provide the following:
     *   \\\`question\\\`: The text of the question.
-    *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet point MUST be basic, clear, easy to judge, and demonstrate strong proficiency relevant to the candidate's specific experience level and background (derived from their resume and context). These answers should explicitly reference specific terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight key positive indicators a recruiter should look for.
+    *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet point MUST be basic, clear, easy to judge (serving as a general example of a strong answer for this role and candidate profile), and demonstrate strong proficiency relevant to the candidate's specific experience level and background (derived from their resume and context). These answers MUST explicitly reference specific terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight key positive indicators a recruiter should look for.
     *   \\\`type\\\`: The type of question ('Technical', 'Scenario', 'Behavioral').
     *   \\\`category\\\`: The category of the question ('Technical' or 'Non-Technical'). 'Technical' questions assess specific hard skills/tools. 'Non-Technical' questions (typically Scenario or Behavioral) assess problem-solving, behavioral traits, or soft skills.
     *   \\\`difficulty\\\`: The difficulty level from this exact 5-level scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level.
     *   \\\`estimatedTimeMinutes\\\`: A suitable estimated time in minutes a candidate might need for a thorough answer, considering question complexity and the candidate's experience. Default suggestions: Naive(2), Beginner(4), Intermediate(6), Expert(8), Master(10).
-4.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively. Ensure criterion weights sum to 1.0.
+4.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context. The set of criteria MUST provide a broad yet deeply contextual basis for evaluating the candidate comprehensively. Ensure criterion weights sum to 1.0.
 
 Return a JSON object adhering to the specified output schema. Ensure all fields are populated.
-The goal is to produce highly relevant, tailored questions with concise, judgeable model answers, and a deeply contextual scoring rubric, all informed by both the job requirements and the candidate's specific background.
+The goal is to produce highly relevant, tailored questions with concise, judgeable model answers, and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background.
 `,
 });
 
