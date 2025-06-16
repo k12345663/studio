@@ -55,7 +55,7 @@ const GenerateInterviewKitOutputSchema = z.object({
   competencies: z.array(CompetencySchema).describe('An array of 5-7 core competencies for the job. The first competency should ideally cover "Candidate Introduction & Background" including "Tell me about yourself", academic background, and general experience questions. Subsequent competencies should cover skills/projects, with questions sequenced logically. Competencies themselves should be informed by the holistic analysis of JD and candidate profile (including educational background and academic achievements from resume).'),
   scoringRubric: z
     .array(ScoringCriterionSchema)
-    .describe('The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, explicitly referencing key phrases from the Job Description AND/OR Candidate Resume/Context (including specific project details, educational background, academic achievements, and past work experiences) to provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
+    .describe('The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, well-defined, distinct, high-quality, actionable, measurable, and explicitly referencing key phrases from the Job Description AND/OR Candidate Resume/Context (including specific project details, educational background, academic achievements, and past work experiences) to provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
 });
 export type GenerateInterviewKitOutput = z.infer<typeof GenerateInterviewKitOutputSchema>;
 
@@ -117,7 +117,7 @@ Based on a holistic understanding of ALL available information:
 4.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be a **well-defined, distinct, and high-quality** scoring criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate Resume/Context (including specific project details, educational background, academic achievements, or past work experiences). The set of criteria MUST provide a **broad yet deeply contextual** basis for comprehensive candidate evaluation. Ensure criterion weights sum to 1.0.
 
 Return a JSON object adhering to the specified output schema. Ensure all fields are populated.
-The goal is to produce a logically sequenced interview kit with highly relevant, tailored questions (actively drawing from the resume, including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences) with concise, judgeable model answers that serve as general examples of strong responses (and for 'Tell me about yourself', a resume-specific guide outlining what points covered from their resume would indicate a strong answer), and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience (including their past work history, projects, and education).
+The goal is to produce a logically sequenced interview kit with highly relevant, tailored questions (actively drawing from the resume, including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences) with concise, judgeable model answers that serve as general examples of strong responses (and for 'Tell me about yourself', a resume-specific guide outlining what points covered from their resume would indicate a strong answer), and a deeply contextual, well-defined, and comprehensive scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience (including their past work history, projects, and education).
 `,
 });
 
@@ -147,7 +147,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         })),
       })),
       scoringRubric: (output.scoringRubric || []).map(crit => ({
-        criterion: crit.criterion || "Unnamed Criterion (should reference JD/resume/projects/education/context for a broad yet contextual evaluation)",
+        criterion: crit.criterion || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, and contextually reference JD/resume/projects/education/context for comprehensive evaluation). AI should refine this.",
         weight: typeof crit.weight === 'number' ? Math.max(0, Math.min(1, crit.weight)) : 0.2,
       })),
     };

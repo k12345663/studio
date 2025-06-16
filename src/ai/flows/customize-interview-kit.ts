@@ -62,7 +62,7 @@ export type CustomizeInterviewKitInput = z.infer<typeof CustomizeInterviewKitInp
 // Define the output schema for the customization flow
 const CustomizeInterviewKitOutputSchema = z.object({
   competencies: z.array(CompetencySchema).describe('Array of customized core competencies, including importance, and questions with category, difficulty/time. Quality of questions and answers should be maintained or enhanced, with answers as 3-4 bullet points referencing JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context, serving as general examples of strong answers). "Tell me about yourself" model answers should remain tailored to the resume if provided (including educational background and academic achievements). Questions should aim for a logical flow where appropriate.'),
-  rubricCriteria: z.array(RubricCriterionSchema).describe('Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria reference JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context) for a broad yet deeply contextual evaluation.'),
+  rubricCriteria: z.array(RubricCriterionSchema).describe('Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria are well-defined, distinct, high-quality, actionable, measurable, and reference JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context) for a broad yet deeply contextual evaluation.'),
 });
 export type CustomizeInterviewKitOutput = z.infer<typeof CustomizeInterviewKitOutputSchema>;
 
@@ -156,7 +156,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
       })),
       rubricCriteria: output.rubricCriteria.map(rc => ({
           ...rc,
-          name: rc.name || "Unnamed Criterion (should reference JD/resume/projects/education/context for a broad yet contextual evaluation). AI should refine this.",
+          name: rc.name || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, and contextually reference JD/resume/projects/education/context for comprehensive evaluation). AI should refine this.",
           weight: typeof rc.weight === 'number' ? Math.max(0, Math.min(1, rc.weight)) : 0.2,
       }))
     };
