@@ -26,11 +26,14 @@ export default function Home() {
       competencies: output.competencies.map(comp => ({
         id: generateId('comp'),
         name: comp.name,
+        importance: comp.importance || 'Medium',
         questions: comp.questions.map(q => ({
           id: generateId('q'),
           type: q.type,
           text: q.question,
           modelAnswer: q.answer,
+          difficulty: q.difficulty || 'Medium',
+          estimatedTimeMinutes: q.estimatedTimeMinutes || 5,
           score: 3, 
           notes: '',
         })),
@@ -49,18 +52,17 @@ export default function Home() {
       competencies: clientKit.competencies.map(comp => ({
         id: comp.id, 
         name: comp.name,
+        importance: comp.importance,
         questions: comp.questions.map(q => ({
           id: q.id, 
           type: q.type,
           text: q.text,
           modelAnswer: q.modelAnswer,
+          difficulty: q.difficulty,
+          estimatedTimeMinutes: q.estimatedTimeMinutes,
         })),
       })),
       rubricCriteria: clientKit.scoringRubric.map(rubric => ({
-        // id field is not in CustomizeInterviewKitInput.RubricCriterionSchema from the AI flow
-        // but it's fine to have it on the client, we just don't send it if not needed or API handles extra fields.
-        // For matching, the `name` is likely the key for rubric items if AI doesn't use ID.
-        // The AI flow for customize takes rubricCriteria: [{name, weight}]. So ID from client is not used by AI for rubric.
         name: rubric.name,
         weight: rubric.weight,
       })),
@@ -71,15 +73,18 @@ export default function Home() {
     const newCompetencies = output.competencies.map(newComp => {
       const existingComp = existingKit.competencies.find(ec => ec.id === newComp.id);
       return {
-        id: newComp.id, // API returns ID for competency
+        id: newComp.id, 
         name: newComp.name,
+        importance: newComp.importance || existingComp?.importance || 'Medium',
         questions: newComp.questions.map(newQ => {
-          const existingQ = existingComp?.questions.find(eq => eq.id === newQ.id); // API returns ID for question
+          const existingQ = existingComp?.questions.find(eq => eq.id === newQ.id); 
           return {
             id: newQ.id,
             type: newQ.type,
             text: newQ.text,
             modelAnswer: newQ.modelAnswer,
+            difficulty: newQ.difficulty || existingQ?.difficulty || 'Medium',
+            estimatedTimeMinutes: newQ.estimatedTimeMinutes || existingQ?.estimatedTimeMinutes || 5,
             score: existingQ?.score ?? 3,
             notes: existingQ?.notes ?? '',
           };
@@ -87,20 +92,13 @@ export default function Home() {
       };
     });
 
-    const newRubric = output.rubricCriteria.map((newCrit, index) => {
-      // AI returns [{name, weight}]. We need to map to ClientRubricCriterion which has an ID.
-      // Try to match by name, or use existing ID by index if names changed. Fallback to new ID.
+    const newRubric = output.rubricCriteria.map((newCrit) => {
       const existingCritByName = existingKit.scoringRubric.find(er => er.name === newCrit.name);
-      const existingCritByIndex = existingKit.scoringRubric[index];
-      let idToUse = generateId('rubric');
-      if (existingCritByName) {
-        idToUse = existingCritByName.id;
-      } else if (existingCritByIndex) {
-        idToUse = existingCritByIndex.id;
-      }
-      
+      // If names might change, we might need a more robust ID preservation strategy or rely on order.
+      // For now, if AI provides IDs for rubric items in output, use them. If not, generate new or match by name.
+      // The current AI schema for customize output does not include IDs for rubric criteria.
       return {
-        id: idToUse,
+        id: existingCritByName?.id || generateId('rubric'),
         name: newCrit.name,
         weight: newCrit.weight,
       };
@@ -178,18 +176,18 @@ export default function Home() {
               <CardHeader className="p-0 sm:p-2">
                 <Image 
                   src="https://placehold.co/600x400.png" 
-                  alt="Team discussing interview questions" 
+                  alt="Professional setting for interview preparation" 
                   width={300} 
                   height={200} 
                   className="mx-auto rounded-lg mb-6 shadow-md" 
-                  data-ai-hint="team collaboration"
+                  data-ai-hint="interview preparation"
                   priority
                 />
                 <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to InterviewAI</CardTitle>
               </CardHeader>
               <CardContent className="p-0 sm:p-2 mt-4">
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Streamline your hiring process. Paste a job description to instantly generate relevant questions, model answers, and a consistent scoring rubric. Save time and conduct better interviews.
+                  Streamline your hiring process. Paste a job description to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
                 </CardDescription>
               </CardContent>
             </Card>

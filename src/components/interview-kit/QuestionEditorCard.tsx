@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { Wrench, Puzzle, Users, HelpCircle } from 'lucide-react';
+import { Wrench, Puzzle, Users, HelpCircle, AlertTriangle, CheckCircle, Clock3 } from 'lucide-react';
 import type React from 'react';
 
 interface QuestionEditorCardProps {
@@ -31,6 +31,26 @@ const getQuestionTypeIcon = (type: ClientQuestion['type']) => {
   }
 };
 
+const DifficultyBadge: React.FC<{ difficulty: ClientQuestion['difficulty'] }> = ({ difficulty }) => {
+  let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+  let icon: React.ReactNode = null;
+
+  switch (difficulty) {
+    case 'Hard':
+      variant = "destructive";
+      icon = <AlertTriangle className="h-3 w-3 mr-1" />;
+      break;
+    case 'Medium':
+      variant = "default"; // Using primary color for medium
+      icon = <CheckCircle className="h-3 w-3 mr-1" />;
+      break;
+    case 'Easy':
+      variant = "secondary"; // Muted or secondary for easy
+      break;
+  }
+  return <Badge variant={variant} className="text-xs px-1.5 py-0.5">{icon}{difficulty}</Badge>;
+};
+
 
 export function QuestionEditorCard({
   question,
@@ -46,17 +66,38 @@ export function QuestionEditorCard({
     onQuestionChange({ ...question, [field]: value });
   };
 
+  const handleDifficultyChange = (value: ClientQuestion['difficulty']) => {
+    onQuestionChange({ ...question, difficulty: value });
+  };
+
+  const handleTimeChange = (value: string) => {
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue) && numValue >=0) {
+      onQuestionChange({ ...question, estimatedTimeMinutes: numValue });
+    } else if (value === "") {
+       onQuestionChange({ ...question, estimatedTimeMinutes: 0 });
+    }
+  };
+
+
   const uniqueIdPrefix = `competency-${competencyName.replace(/\s+/g, '-').toLowerCase()}-q${questionIndex}`;
 
   return (
     <Card className="mb-4 shadow-md bg-card/80 backdrop-blur-sm border border-border">
       <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <CardTitle className="text-lg font-semibold flex items-center">
             {getQuestionTypeIcon(question.type)}
             Question {questionIndex + 1}
           </CardTitle>
-          <Badge variant="outline" className="text-sm">{question.type}</Badge>
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+            <DifficultyBadge difficulty={question.difficulty} />
+            <Badge variant="outline" className="text-xs px-1.5 py-0.5 flex items-center">
+              <Clock3 className="h-3 w-3 mr-1" />
+              {question.estimatedTimeMinutes} min
+            </Badge>
+            <Badge variant="outline" className="text-sm">{question.type}</Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -86,6 +127,38 @@ export function QuestionEditorCard({
             aria-label={`Model answer for question ${questionIndex + 1}`}
           />
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+           <div>
+            <Label htmlFor={`${uniqueIdPrefix}-difficulty`} className="font-medium">Difficulty</Label>
+            <select
+                id={`${uniqueIdPrefix}-difficulty`}
+                value={question.difficulty}
+                onChange={(e) => handleDifficultyChange(e.target.value as ClientQuestion['difficulty'])}
+                disabled={isLoading}
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-input border rounded-md focus:outline-none focus:ring-ring focus:border-ring sm:text-sm bg-background"
+                aria-label={`Difficulty for question ${questionIndex + 1}`}
+            >
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+          </div>
+          <div>
+            <Label htmlFor={`${uniqueIdPrefix}-time`} className="font-medium">Est. Time (min)</Label>
+            <Input
+              id={`${uniqueIdPrefix}-time`}
+              type="number"
+              value={question.estimatedTimeMinutes}
+              onChange={(e) => handleTimeChange(e.target.value)}
+              min={0}
+              className="mt-1 text-sm"
+              disabled={isLoading}
+              aria-label={`Estimated time for question ${questionIndex + 1}`}
+            />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor={`${uniqueIdPrefix}-score`} className="font-medium">Score (1-5)</Label>

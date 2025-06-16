@@ -1,16 +1,23 @@
 
+export type QuestionType = 'Technical' | 'Scenario' | 'Behavioral';
+export type QuestionDifficulty = 'Easy' | 'Medium' | 'Hard';
+export type CompetencyImportance = 'High' | 'Medium' | 'Low';
+
 export interface ClientQuestion {
   id: string;
-  type: 'Technical' | 'Scenario' | 'Behavioral';
+  type: QuestionType;
   text: string;
   modelAnswer: string;
   score: number;
   notes: string;
+  difficulty: QuestionDifficulty;
+  estimatedTimeMinutes: number;
 }
 
 export interface ClientCompetency {
   id: string;
   name: string;
+  importance: CompetencyImportance;
   questions: ClientQuestion[];
 }
 

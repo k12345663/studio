@@ -22,10 +22,13 @@ const QuestionAnswerPairSchema = z.object({
   question: z.string().describe('The interview question.'),
   answer: z.string().describe('The model answer for the question.'),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question.'),
+  difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe('The difficulty level of the question.'),
+  estimatedTimeMinutes: z.number().describe('Estimated time in minutes to answer this question.'),
 });
 
 const CompetencySchema = z.object({
   name: z.string().describe('The name of the competency.'),
+  importance: z.enum(['High', 'Medium', 'Low']).describe('The importance of this competency for the role.'),
   questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency.'),
 });
 
@@ -35,7 +38,7 @@ const ScoringCriterionSchema = z.object({
 });
 
 const GenerateInterviewKitOutputSchema = z.object({
-  competencies: z.array(CompetencySchema).describe('The core competencies for the job.'),
+  competencies: z.array(CompetencySchema).describe('The core competencies for the job, including their importance.'),
   scoringRubric: z
     .array(ScoringCriterionSchema)
     .describe('The scoring rubric for the interview.'),
@@ -52,11 +55,12 @@ const generateInterviewKitPrompt = ai.definePrompt({
   output: {schema: GenerateInterviewKitOutputSchema},
   prompt: `You are a senior recruiter. Given a job description:
 
-1. Identify 5-7 core competencies (skills, tools, soft-skills, business outcomes).
+1. Identify 5-7 core competencies (skills, tools, soft-skills, business outcomes). For each competency, assess its importance for the role (High, Medium, or Low).
 2. For each competency create:
    * Technical Q&A
    * Scenario Q&A
    * Behavioral Q&A
+   For each question, assign a difficulty level (Easy, Medium, Hard) and estimate the time in minutes a candidate might need to answer it thoroughly.
 3. Provide a rubric with 4-5 weighted criteria (weights sum to 1.0).
 
 Job Description: {{{jobDescription}}}
@@ -64,7 +68,7 @@ Job Description: {{{jobDescription}}}
 Return a JSON object that adheres to the following schema:
 ${GenerateInterviewKitOutputSchema.description}
 
-Ensure that the output is valid JSON and that the weights in the scoring rubric sum to 1.0.`,
+Ensure that the output is valid JSON and that the weights in the scoring rubric sum to 1.0. Also ensure importance, difficulty, and estimatedTimeMinutes are provided for competencies and questions respectively.`,
 });
 
 const generateInterviewKitFlow = ai.defineFlow(
