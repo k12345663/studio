@@ -1,10 +1,11 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'InterviewAI',
-  description: 'Generate interview kits from job descriptions using AI',
+  title: 'RecruTake',
+  description: 'AI-powered interview kit generation for efficient hiring by RecruTake.',
 };
 
 export default function RootLayout({

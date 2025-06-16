@@ -1,3 +1,4 @@
+
 import { FileText } from 'lucide-react';
 
 export function AppHeader() {
@@ -8,7 +9,7 @@ export function AppHeader() {
           <div className="flex items-center">
             <FileText className="h-8 w-8 text-primary" />
             <h1 className="ml-3 text-2xl font-headline font-semibold text-foreground">
-              InterviewAI
+              RecruTake
             </h1>
           </div>
           {/* Future placeholder for nav items or user profile */}

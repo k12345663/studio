@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useCallback } from 'react';
@@ -207,22 +208,22 @@ export default function Home() {
 
 
           {!isLoading && !interviewKit && !jobDescriptionText && (
-             <Card className="mt-8 text-center p-6 sm:p-8 bg-card shadow-lg">
-              <CardHeader className="p-0 sm:p-2">
+             <Card className="mt-8 text-center p-4 sm:p-6 bg-card shadow-lg">
+              <CardHeader className="p-0">
                 <Image 
                   src="https://placehold.co/600x400.png" 
-                  alt="Professional setting for interview preparation" 
-                  width={300} 
-                  height={200} 
-                  className="mx-auto rounded-lg mb-6 shadow-md" 
-                  data-ai-hint="interview office"
+                  alt="Abstract representation of recruitment or interview process" 
+                  width={240} 
+                  height={160} 
+                  className="mx-auto rounded-lg mb-4 shadow-md" 
+                  data-ai-hint="recruitment hiring"
                   priority
                 />
-                <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to InterviewAI</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to RecruTake</CardTitle>
               </CardHeader>
-              <CardContent className="p-0 sm:p-2 mt-4">
+              <CardContent className="p-0 mt-3">
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Streamline your hiring process. Paste a job description or upload a PDF to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
+                  Streamline your hiring with RecruTake. Paste a job description or upload a PDF to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -239,7 +240,7 @@ export default function Home() {
         </div>
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border mt-auto">
-        © {new Date().getFullYear()} InterviewAI. All rights reserved.
+        © {new Date().getFullYear()} RecruTake by Unstop. All rights reserved.
       </footer>
     </div>
   );
