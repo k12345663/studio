@@ -1,11 +1,12 @@
+
 "use client";
 
+import React from 'react'; // Added this line
 import type { ClientCompetency, ClientQuestion } from '@/types/interview-kit';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { QuestionEditorCard } from './QuestionEditorCard';
 import { Brain, Lightbulb, Zap, Target, Settings, Briefcase, Star, ShieldAlert, ShieldCheck, Shield } from 'lucide-react'; 
-import type React from 'react';
 
 interface CompetencyAccordionProps {
   competencies: ClientCompetency[];
