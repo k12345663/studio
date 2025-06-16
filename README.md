@@ -1,6 +1,7 @@
+
 # RecruTake: AI-Powered Interview Kit Generator
 
-RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description, and the application will produce a structured set of competencies, interview questions (technical, scenario-based, behavioral) with model answers, difficulty levels, estimated answering times, and a weighted scoring rubric. Users can then edit this kit and have the AI refine their changes.
+RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, and the application will produce a structured set of competencies, interview questions (technical, scenario-based, behavioral) with model answers, difficulty levels, estimated answering times, and a weighted scoring rubric. Users can then edit this kit and have the AI refine their changes.
 
 ## Tech Stack
 

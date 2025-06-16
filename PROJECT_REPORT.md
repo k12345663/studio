@@ -15,7 +15,7 @@ The application is built with a modern, server-centric approach:
 *   **Styling**: Tailwind CSS - A utility-first CSS framework for rapid UI development. Global styles and theme variables (CSS HSL) are managed in `src/app/globals.css`.
 *   **AI Integration**: Genkit - An open-source framework from Google for building AI-powered applications. It's used here to connect to Google's Gemini models.
 *   **State Management**: Primarily React's built-in state (`useState`, `useCallback`) and context where appropriate (e.g., `useToast`).
-*   **Form Handling**: Standard React form handling, previously with `react-hook-form` and `zod` for validation (though simplified in recent iterations).
+*   **Form Handling**: Standard React form handling.
 *   **Linting/Formatting**: ESLint, Prettier (implicitly, through Next.js defaults).
 *   **Package Manager**: npm
 
@@ -33,8 +33,7 @@ The project follows a standard Next.js App Router structure:
 │   │   │   └── generate-interview-kit.ts
 │   │   └── genkit.ts           # Genkit initialization
 │   ├── app/                    # Next.js App Router (pages, layouts)
-│   │   ├── (default)/          # Default route group (example)
-│   │   │   └── page.tsx        # Main application page component
+│   │   ├── page.tsx            # Main application page component
 │   │   ├── layout.tsx          # Root layout component
 │   │   └── globals.css         # Global styles and Tailwind theme
 │   │   └── actions.ts          # Server actions (currently minimal)
@@ -65,13 +64,14 @@ The project follows a standard Next.js App Router structure:
     *   **`customize-interview-kit.ts`**: Defines the AI flow for taking a user-modified interview kit and refining it using AI. It also uses Zod schemas and a specific prompt.
 *   **`src/ai/genkit.ts`**: Initializes Genkit with the Google AI plugin and configures the default model (Gemini 2.0 Flash).
 *   **`src/components/interview-kit/`**: Houses all components related to displaying and editing the interview kit, such as:
-    *   `JobDescriptionForm.tsx`: For user input of the job description.
+    *   `JobDescriptionForm.tsx`: For user input of the job description (text-based).
     *   `InterviewKitDisplay.tsx`: The main component for showing the generated kit.
     *   `CompetencyAccordion.tsx`: Displays competencies and their questions in an accordion.
     *   `QuestionEditorCard.tsx`: Allows editing individual questions, their model answers, difficulty, etc.
     *   `RubricEditor.tsx`: Allows editing scoring rubric criteria and weights.
 *   **`src/types/interview-kit.ts`**: Defines the TypeScript interfaces for `ClientQuestion`, `ClientCompetency`, `ClientRubricCriterion`, and `InterviewKit`, which are used throughout the client-side application.
 *   **`src/app/globals.css`**: Contains global CSS, Tailwind directives, and the HSL color variables for theming.
+*   **`src/app/actions.ts`**: Currently holds minimal server-side logic, ready for future expansion if needed.
 
 ## 4. AI Integration
 
@@ -83,7 +83,7 @@ AI capabilities are central to RecruTake and are implemented using **Genkit**.
 
 *   **Core AI Flows (`src/ai/flows/`)**:
     1.  **`generateInterviewKit`**:
-        *   **Input**: `jobDescription` (string).
+        *   **Input**: `jobDescription` (string, pasted by the user).
         *   **Process**:
             *   A detailed prompt instructs the AI (Gemini model) to act as a senior hiring manager.
             *   The AI identifies 5-7 core competencies from the job description, assigning importance (High, Medium, Low).
@@ -177,12 +177,11 @@ The primary user workflow is as follows:
 
 *   **User Authentication**: To allow users to save and manage their interview kits.
 *   **Database Integration**: To persist interview kits and user data.
-*   **Advanced PDF Parsing**: Revisit PDF uploads with a more robust client-side or serverless function approach to avoid previous issues.
+*   **Advanced PDF Parsing**: As a *new* feature, allow PDF uploads for job descriptions, potentially using a robust client-side or serverless function approach.
 *   **Export Options**: Allow exporting the interview kit (e.g., to PDF, DOCX).
 *   **Version History**: Track changes to interview kits.
 *   **Team Collaboration**: Features for teams to share and work on interview kits together.
 *   **More Granular AI Controls**: Allow users to regenerate specific questions or sections rather than the whole kit during customization.
-*   **Image Generation for Placeholders**: (If desired) Use Genkit for generating contextually relevant placeholder images.
 *   **Interview Mode**: A dedicated UI for conducting the interview, marking scores, and taking notes in real-time.
 *   **Candidate Comparison**: Tools to compare feedback across multiple candidates for the same role.
 
