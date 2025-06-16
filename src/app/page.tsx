@@ -5,6 +5,7 @@ import { generateInterviewKit, type GenerateInterviewKitInput, type GenerateInte
 import { customizeInterviewKit, type CustomizeInterviewKitInput, type CustomizeInterviewKitOutput } from '@/ai/flows/customize-interview-kit';
 import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion } from '@/types/interview-kit';
 import { generateId } from '@/types/interview-kit';
+import { extractTextFromPdf } from '@/app/actions';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { JobDescriptionForm } from '@/components/interview-kit/JobDescriptionForm';
@@ -15,14 +16,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Image from 'next/image';
 
 export default function Home() {
-  const [jobDescription, setJobDescription] = useState<string>('');
+  const [jobDescriptionText, setJobDescriptionText] = useState<string>(''); // Stores the actual JD text
   const [interviewKit, setInterviewKit] = useState<InterviewKit | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jd: string): InterviewKit => {
+  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string): InterviewKit => {
     return {
-      jobDescription: jd,
+      jobDescription: jdToStore,
       competencies: output.competencies.map(comp => ({
         id: generateId('comp'),
         name: comp.name,
@@ -94,9 +95,6 @@ export default function Home() {
 
     const newRubric = output.rubricCriteria.map((newCrit) => {
       const existingCritByName = existingKit.scoringRubric.find(er => er.name === newCrit.name);
-      // If names might change, we might need a more robust ID preservation strategy or rely on order.
-      // For now, if AI provides IDs for rubric items in output, use them. If not, generate new or match by name.
-      // The current AI schema for customize output does not include IDs for rubric criteria.
       return {
         id: existingCritByName?.id || generateId('rubric'),
         name: newCrit.name,
@@ -112,15 +110,36 @@ export default function Home() {
   }, []);
 
 
-  const handleGenerateKit = useCallback(async (jd: string) => {
+  const handleGenerateKit = useCallback(async (data: string | File) => {
     setIsLoading(true);
-    setJobDescription(jd);
     setInterviewKit(null); 
+    let currentJdText = '';
+
     try {
-      const input: GenerateInterviewKitInput = { jobDescription: jd };
+      if (typeof data === 'string') {
+        currentJdText = data;
+        setJobDescriptionText(data);
+      } else {
+        // It's a File object, extract text
+        toast({ title: "Processing PDF...", description: "Extracting text from your PDF." });
+        const arrayBuffer = await data.arrayBuffer();
+        const extractedText = await extractTextFromPdf(arrayBuffer);
+        if (!extractedText.trim()) {
+            throw new Error("PDF is empty or contains no extractable text.");
+        }
+        currentJdText = extractedText;
+        setJobDescriptionText(extractedText); // Store the extracted text
+        toast({ title: "PDF Processed!", description: "Text extracted, now generating kit." });
+      }
+
+      if (!currentJdText.trim()) {
+        throw new Error("Job description is empty.");
+      }
+
+      const input: GenerateInterviewKitInput = { jobDescription: currentJdText };
       const output = await generateInterviewKit(input);
       if (output && output.competencies && output.scoringRubric) {
-        setInterviewKit(mapOutputToClientKit(output, jd));
+        setInterviewKit(mapOutputToClientKit(output, currentJdText));
         toast({ title: "Success!", description: "Interview kit generated." });
       } else {
         throw new Error("AI response was empty or malformed.");
@@ -129,6 +148,7 @@ export default function Home() {
       console.error("Error generating interview kit:", error);
       toast({ variant: "destructive", title: "Error", description: `Failed to generate kit: ${error instanceof Error ? error.message : String(error)}` });
       setInterviewKit(null);
+      setJobDescriptionText(''); // Clear if error
     } finally {
       setIsLoading(false);
     }
@@ -170,8 +190,23 @@ export default function Home() {
               <LoadingIndicator text="Generating your interview kit, please wait..." />
             </div>
           )}
+          
+          {/* Display jobDescriptionText if it exists and no kit is loaded yet, useful for PDF preview */}
+          {!isLoading && !interviewKit && jobDescriptionText && (
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Processed Job Description</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-60 overflow-y-auto p-4 border rounded-md bg-muted/50">
+                  {jobDescriptionText}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
 
-          {!isLoading && !interviewKit && (
+
+          {!isLoading && !interviewKit && !jobDescriptionText && (
              <Card className="mt-8 text-center p-6 sm:p-8 bg-card shadow-lg">
               <CardHeader className="p-0 sm:p-2">
                 <Image 
@@ -180,14 +215,14 @@ export default function Home() {
                   width={300} 
                   height={200} 
                   className="mx-auto rounded-lg mb-6 shadow-md" 
-                  data-ai-hint="interview preparation"
+                  data-ai-hint="interview office"
                   priority
                 />
                 <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to InterviewAI</CardTitle>
               </CardHeader>
               <CardContent className="p-0 sm:p-2 mt-4">
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Streamline your hiring process. Paste a job description to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
+                  Streamline your hiring process. Paste a job description or upload a PDF to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
                 </CardDescription>
               </CardContent>
             </Card>
