@@ -1,12 +1,13 @@
 
 "use client";
 
-import type { InterviewKit, ClientCompetency, ClientRubricCriterion } from '@/types/interview-kit';
+import type { InterviewKit, ClientCompetency, ClientRubricCriterion, ClientQuestion } from '@/types/interview-kit';
 import { CompetencyAccordion } from './CompetencyAccordion';
 import { RubricEditor } from './RubricEditor';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw, ListChecks, Percent } from 'lucide-react';
+import { RefreshCcw, ListChecks, Percent, BarChart3, Star } from 'lucide-react';
 import type React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface InterviewKitDisplayProps {
   kit: InterviewKit;
@@ -25,6 +26,21 @@ export function InterviewKitDisplay({ kit, onKitChange, onCustomizeKit, isLoadin
   const handleRubricChange = (updatedRubric: ClientRubricCriterion[]) => {
     onKitChange({ ...kit, scoringRubric: updatedRubric });
   };
+
+  const calculateOverallScore = (): { score: number | null; totalQuestions: number } => {
+    let totalScore = 0;
+    let questionCount = 0;
+    kit.competencies.forEach(comp => {
+      comp.questions.forEach(q => {
+        totalScore += q.score;
+        questionCount++;
+      });
+    });
+    if (questionCount === 0) return { score: null, totalQuestions: 0 };
+    return { score: parseFloat((totalScore / questionCount).toFixed(2)), totalQuestions: questionCount };
+  };
+
+  const { score: overallScore, totalQuestions } = calculateOverallScore();
 
   return (
     <div className="space-y-10 mt-8">
@@ -55,6 +71,27 @@ export function InterviewKitDisplay({ kit, onKitChange, onCustomizeKit, isLoadin
           isLoading={isLoading}
         />
       </div>
+
+      {totalQuestions > 0 && (
+        <Card className="shadow-xl border-primary/20">
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl text-primary flex items-center">
+              <BarChart3 className="mr-3 h-7 w-7" /> Overall Interview Score
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {overallScore !== null ? (
+              <div className="text-4xl font-bold text-foreground flex items-center">
+                <Star className="mr-2 h-8 w-8 text-yellow-400 fill-yellow-400" />
+                {overallScore.toFixed(1)} / 10
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No scores entered yet.</p>
+            )}
+            <p className="text-sm text-muted-foreground mt-1">Based on {totalQuestions} scored question(s).</p>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mt-10 pt-8 border-t border-border flex justify-end">
         <Button onClick={onCustomizeKit} disabled={isLoading} size="lg" className="text-base py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
