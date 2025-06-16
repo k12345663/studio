@@ -3,7 +3,7 @@
 
 ## 1. Overview
 
-RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, and optionally provide a candidate's resume and additional context about the target candidate's experience level (e.g., years of experience, current role, past tech stack). The application will then produce a structured set of competencies, interview questions (categorized as Technical or Non-Technical), model answers (formatted as 3-4 concise bullet points referencing JD/resume/context), a 5-level difficulty rating ('Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), estimated answering times (auto-suggested based on difficulty: 2/4/6/8/10 mins), and a weighted scoring rubric that is contextually derived from the job details and candidate profile (referencing key phrases from JD/resume/context). Users can then edit this kit, including question category, difficulty, time, and content, and have the AI refine their changes. Panelists can use a 1-10 score slider for each question.
+RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, and optionally provide a candidate's resume and additional context about the target candidate's experience level (e.g., years of experience, current role, past tech stack). The application will then produce a structured set of competencies, interview questions (categorized as Technical or Non-Technical), model answers (formatted as 3-4 concise, judgeable bullet points referencing JD/resume/context), a 5-level difficulty rating ('Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), estimated answering times (auto-suggested based on difficulty: 2/4/6/8/10 mins), and a weighted scoring rubric that is contextually derived from the job details and candidate profile (referencing key phrases from JD/resume/context for comprehensive evaluation). Users can then edit this kit, including question category, difficulty, time, and content, and have the AI refine their changes. Panelists can use a 1-10 score slider for each question.
 
 ## 2. Tech Stack
 
@@ -59,7 +59,7 @@ The project follows a standard Next.js App Router structure:
 
 *   **`src/app/page.tsx`**: The main entry point for the application's UI. It handles state for the job description, candidate resume, candidate experience context, the generated interview kit, loading states, and orchestrates calls to AI flows.
 *   **`src/ai/flows/`**: Contains the Genkit flows.
-    *   **`generate-interview-kit.ts`**: Defines the AI flow for generating an interview kit. It instructs the AI to use the job description, candidate resume, and candidate context to create 3-4 bullet model answers, assign question categories (Technical/Non-Technical), use a 5-level difficulty scale, suggest estimated times, and build a rubric referencing all provided context.
+    *   **`generate-interview-kit.ts`**: Defines the AI flow for generating an interview kit. It instructs the AI to use the job description, candidate resume, and candidate context to create 3-4 concise, judgeable bullet model answers referencing JD/resume/context, assign question categories (Technical/Non-Technical), use a 5-level difficulty scale, suggest estimated times, and build a rubric referencing all provided context for comprehensive evaluation.
     *   **`customize-interview-kit.ts`**: Defines the AI flow for refining a user-modified interview kit, accounting for all the new fields and constraints, and using the original JD, resume, and context.
 *   **`src/ai/genkit.ts`**: Initializes Genkit with the Google AI plugin and configures the default model.
 *   **`src/components/interview-kit/`**: Houses all components related to displaying and editing the interview kit:
@@ -83,26 +83,26 @@ AI capabilities are central to RecruTake and are implemented using **Genkit**.
     1.  **`generateInterviewKit`**:
         *   **Input**: `jobDescription` (string, pasted by the user), `candidateResume` (optional string, pasted by user), `candidateExperienceContext` (optional string).
         *   **Process**:
-            *   A detailed prompt instructs the AI (Gemini model) to act as a senior hiring manager, using the JD, candidate resume, and candidate context.
+            *   A detailed prompt instructs the AI (Gemini model) to act as a senior hiring manager, thoroughly analyzing and synthesizing the JD, candidate resume, and candidate context.
             *   It identifies 5-7 core competencies, assigning importance (High, Medium, Low).
             *   For each competency, it generates 3 types of questions (Technical, Scenario, Behavioral).
             *   For each question, it provides:
-                *   A model answer (3-4 concise bullet points, referencing JD/resume/context).
+                *   A model answer (3-4 concise, judgeable bullet points, referencing JD/resume/context, highlighting positive indicators).
                 *   A `category` ('Technical' or 'Non-Technical').
                 *   A `difficulty` level ('Naive', 'Beginner', 'Intermediate', 'Expert', 'Master').
                 *   An `estimatedTimeMinutes` (AI suggests, e.g., Naive:2, Master:10).
-            *   It also generates a scoring rubric with 3-5 weighted criteria (summing to 1.0), with criteria explicitly referencing key phrases from the JD, resume, or candidate context.
+            *   It also generates a scoring rubric with 3-5 weighted criteria (summing to 1.0), with criteria explicitly referencing key phrases from the JD, resume, or candidate context for a broad yet deeply contextual evaluation.
         *   **Output Schema (`GenerateInterviewKitOutputSchema` using Zod)**: A structured JSON object. Zod descriptions guide the AI.
         *   **Error Handling**: Basic error checking and default-filling ensures the AI output is usable. Post-processing normalizes rubric weights and applies default times if AI misses them.
 
     2.  **`customizeInterviewKit`**:
         *   **Input**: `jobDescription`, `candidateResume`, `candidateExperienceContext`, `competencies` (potentially user-edited, including IDs, importance, questions with category, IDs, 5-level difficulty, time), and `rubricCriteria` (potentially user-edited).
         *   **Process**:
-            *   The prompt instructs the AI to review recruiter edits, considering JD, resume, and context.
+            *   The prompt instructs the AI to review recruiter edits, thoroughly considering JD, resume, context, and the edits.
             *   It must preserve existing IDs.
-            *   It refines modified question text/answers (ensuring 3-4 bullet format, JD/resume/context reference).
+            *   It refines modified question text/answers (ensuring 3-4 concise, judgeable bullet format, JD/resume/context reference).
             *   It reflects changes to importance, category, difficulty, or time, and assigns these if new questions seem to be implicitly added.
-            *   It reflects changes to rubric criteria (ensuring contextual references using JD/resume/context and weights sum to 1.0).
+            *   It reflects changes to rubric criteria (ensuring contextual references using JD/resume/context for broad evaluation and weights sum to 1.0).
             *   It ensures all output fields are present.
         *   **Output Schema (`CustomizeInterviewKitOutputSchema` using Zod)**: A refined version of the interview kit.
         *   **Error Handling & Validation**: Includes logic to ensure output fields are present, rubric weights are normalized, and default times are applied.

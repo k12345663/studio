@@ -34,7 +34,7 @@ const CompetencySchema = z.object({
 });
 
 const RubricCriterionSchema = z.object({
-  name: z.string().describe('Name of the criterion, demonstrating contextual understanding and ideally referencing key phrases from the job title/description, candidate resume or context.'),
+  name: z.string().describe('Name of the criterion, demonstrating contextual understanding and ideally referencing key phrases from the job title/description, candidate resume or context. The set of criteria should provide a broad yet deeply contextual basis for evaluation.'),
   weight: z.number().describe('Weight of the criterion (should sum to 1.0).'),
 });
 
@@ -65,7 +65,7 @@ const customizeInterviewKitPrompt = ai.definePrompt({
   name: 'customizeInterviewKitPrompt',
   input: {schema: CustomizeInterviewKitInputSchema},
   output: {schema: CustomizeInterviewKitOutputSchema},
-  prompt: `You are a senior recruiter. You will be given an interview kit previously generated from a Job Description, and potentially a Candidate Resume and/or Candidate Experience Context. This kit includes questions, model answers (as 3-4 bullet points referencing JD/resume/context), competency importance, question categories ('Technical'/'Non-Technical'), a 5-level question difficulty ('Naive' to 'Master'), and estimated times. The recruiter has made edits. Your task is to review these edits and refine the entire kit, ensuring it remains highly contextual to all provided inputs.
+  prompt: `You are a senior recruiter. You will be given an interview kit previously generated from a Job Description, and potentially a Candidate Resume and/or Candidate Experience Context. This kit includes questions, model answers (as 3-4 bullet points referencing JD/resume/context), competency importance, question categories ('Technical'/'Non-Technical'), a 5-level question difficulty ('Naive' to 'Master'), and estimated times. The recruiter has made edits. Your task is to review these edits and refine the entire kit, ensuring it remains highly contextual to all provided inputs. Thoroughly analyze all inputs: the original JD, resume, context, AND the recruiter's edits.
 
 Job Description (for context):
 {{{jobDescription}}}
@@ -100,9 +100,9 @@ Rubric Criteria:
 
 Based on the recruiter's modifications and the original Job Description, Candidate Resume, and Candidate Experience Context:
 1.  Preserve all existing IDs for competencies and questions.
-2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/context). Model answers MUST be 3-4 concise bullet points, clear, easy to judge, and EXPLICITLY reference specific terms, skills, or experiences from the Job Description AND/OR Candidate Resume/Context. If a question seems significantly altered, subtly improve it respecting recruiter's intent and maintaining contextual links.
+2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/context). Model answers MUST be 3-4 concise bullet points, basic, clear, easy to judge, and EXPLICITLY reference specific terms, skills, or experiences from the Job Description AND/OR Candidate Resume/Context. If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links, and ensuring the 3-4 bullet point format for answers.
 3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/context).
-4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are contextually relevant, EXPLICITLY referencing key phrases from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/context, while staying close to recruiter's weights.
+4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are contextually relevant, EXPLICITLY referencing key phrases from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/context, while staying close to recruiter's weights.
 5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/context) are present for all competencies and questions.
 
 Return the fully customized and refined interview kit in the specified JSON format. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements based on the JD, resume, and any other candidate context.
