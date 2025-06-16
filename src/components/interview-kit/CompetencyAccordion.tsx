@@ -6,7 +6,7 @@ import type { ClientCompetency, ClientQuestion } from '@/types/interview-kit';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { QuestionEditorCard } from './QuestionEditorCard';
-import { Brain, Lightbulb, Zap, Target, Settings, Briefcase, Star, ShieldAlert, ShieldCheck, Shield, Code2, MessageSquare } from 'lucide-react'; 
+import { Brain, Lightbulb, Zap, Target, Settings, Briefcase, Star, ShieldAlert, ShieldCheck, Shield, Code2, MessageSquare, ChevronRight } from 'lucide-react'; 
 
 interface CompetencyAccordionProps {
   competencies: ClientCompetency[];
@@ -15,39 +15,43 @@ interface CompetencyAccordionProps {
 }
 
 const competencyIcons = [
-  <Brain key="brain" className="mr-2 h-5 w-5 text-primary" />,
-  <Lightbulb key="lightbulb" className="mr-2 h-5 w-5 text-primary" />,
-  <Zap key="zap" className="mr-2 h-5 w-5 text-primary" />,
-  <Target key="target" className="mr-2 h-5 w-5 text-primary" />,
-  <Settings key="settings" className="mr-2 h-5 w-5 text-primary" />,
-  <Briefcase key="briefcase" className="mr-2 h-5 w-5 text-primary" />,
+  <Brain key="brain" className="mr-3 h-6 w-6 text-primary/80" />,
+  <Lightbulb key="lightbulb" className="mr-3 h-6 w-6 text-primary/80" />,
+  <Zap key="zap" className="mr-3 h-6 w-6 text-primary/80" />,
+  <Target key="target" className="mr-3 h-6 w-6 text-primary/80" />,
+  <Settings key="settings" className="mr-3 h-6 w-6 text-primary/80" />,
+  <Briefcase key="briefcase" className="mr-3 h-6 w-6 text-primary/80" />,
 ];
 
 const ImportanceIndicator: React.FC<{ importance: ClientCompetency['importance'] }> = ({ importance }) => {
-  let icon = <Star className="mr-1 h-3 w-3" />;
+  let icon = <Star className="mr-1.5 h-4 w-4" />;
   let variant: "default" | "secondary" | "destructive" | "outline" = "default";
   let text = importance;
+  let textColor = "text-primary-foreground";
 
   switch (importance) {
     case 'High':
-      icon = <ShieldAlert className="mr-1 h-3 w-3" />;
+      icon = <ShieldAlert className="mr-1.5 h-4 w-4" />;
       variant = "destructive"; 
-      text = "High Importance";
+      text = "High";
+      textColor = "text-destructive-foreground";
       break;
     case 'Medium':
-      icon = <ShieldCheck className="mr-1 h-3 w-3" />;
+      icon = <ShieldCheck className="mr-1.5 h-4 w-4" />;
       variant = "default"; 
-      text = "Medium Importance";
+      textColor = "text-primary-foreground";
+      text = "Medium";
       break;
     case 'Low':
-      icon = <Shield className="mr-1 h-3 w-3" />;
+      icon = <Shield className="mr-1.5 h-4 w-4" />;
       variant = "secondary";
-      text = "Low Importance";
+      textColor = "text-secondary-foreground";
+      text = "Low";
       break;
   }
 
   return (
-    <Badge variant={variant} className="ml-3 text-xs px-2 py-0.5">
+    <Badge variant={variant} className={`ml-3 text-xs px-2.5 py-1 ${textColor} shadow-sm`}>
       {icon}
       {text}
     </Badge>
@@ -59,10 +63,9 @@ export function CompetencyAccordion({ competencies, onCompetencyChange, isLoadin
   const handleQuestionChange = (
     updatedQuestion: ClientQuestion,
     competencyIndex: number,
-    originalQuestionIndex: number // This needs to be the index in the original competency.questions array
+    originalQuestionIndex: number 
   ) => {
     const updatedCompetency = { ...competencies[competencyIndex] };
-    // Find the actual question by ID to update it, as its index in filtered arrays might differ
     const actualQuestionIndexInCompetency = updatedCompetency.questions.findIndex(q => q.id === updatedQuestion.id);
     if (actualQuestionIndexInCompetency !== -1) {
       updatedCompetency.questions[actualQuestionIndexInCompetency] = updatedQuestion;
@@ -72,35 +75,38 @@ export function CompetencyAccordion({ competencies, onCompetencyChange, isLoadin
   
 
   if (!competencies || competencies.length === 0) {
-    return <p className="text-muted-foreground text-center py-4">No competencies to display.</p>;
+    return <p className="text-muted-foreground text-center py-6 text-lg">No competencies to display.</p>;
   }
   
   return (
-    <Accordion type="multiple" defaultValue={competencies.map(c => c.id)} className="w-full space-y-3">
+    <Accordion type="multiple" defaultValue={competencies.map(c => c.id)} className="w-full space-y-4">
       {competencies.map((competency, compIndex) => {
         const technicalQuestions = competency.questions.filter(q => q.category === 'Technical');
         const nonTechnicalQuestions = competency.questions.filter(q => q.category === 'Non-Technical');
         
-        // Find original index for mapping
         const findOriginalIndex = (questionId: string) => competency.questions.findIndex(q => q.id === questionId);
 
         return (
-          <AccordionItem value={competency.id} key={competency.id} className="border border-border rounded-lg shadow-sm bg-card overflow-hidden">
-            <AccordionTrigger className="p-4 hover:no-underline text-xl font-headline font-medium data-[state=open]:border-b data-[state=open]:border-border">
+          <AccordionItem value={competency.id} key={competency.id} className="border border-border/70 rounded-xl shadow-lg bg-card overflow-hidden transition-shadow hover:shadow-xl">
+            <AccordionTrigger className="p-5 hover:no-underline text-xl font-headline font-semibold data-[state=open]:border-b data-[state=open]:border-border/50 data-[state=open]:bg-muted/30 hover:bg-muted/20 transition-colors">
               <div className="flex items-center justify-between w-full">
-                <div className="flex items-center">
+                <div className="flex items-center text-foreground">
                   {React.cloneElement(competencyIcons[compIndex % competencyIcons.length], { 'aria-label': `${competency.name} competency icon` })}
                   {competency.name}
                 </div>
-                <ImportanceIndicator importance={competency.importance} />
+                <div className="flex items-center">
+                  <ImportanceIndicator importance={competency.importance} />
+                  <ChevronRight className="h-5 w-5 ml-3 text-muted-foreground transition-transform duration-200 group-[[data-state=open]]:rotate-90" />
+                </div>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="p-4 pt-2 bg-background/30 space-y-6">
+            <AccordionContent className="p-5 pt-3 bg-background/50 space-y-6">
               {technicalQuestions.length > 0 && (
-                <div>
-                  <h3 className="text-md font-semibold mb-3 flex items-center text-primary">
+                <div className="mt-2">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center text-primary border-b pb-2 border-primary/20">
                     <Code2 className="mr-2 h-5 w-5" /> Technical Questions
                   </h3>
+                  <div className="space-y-4">
                   {technicalQuestions.map((question) => (
                     <QuestionEditorCard
                       key={question.id}
@@ -113,14 +119,16 @@ export function CompetencyAccordion({ competencies, onCompetencyChange, isLoadin
                       isLoading={isLoading}
                     />
                   ))}
+                  </div>
                 </div>
               )}
 
               {nonTechnicalQuestions.length > 0 && (
-                <div>
-                  <h3 className="text-md font-semibold mb-3 flex items-center text-accent">
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center text-accent border-b pb-2 border-accent/20">
                     <MessageSquare className="mr-2 h-5 w-5" /> Non-Technical Questions
                   </h3>
+                   <div className="space-y-4">
                   {nonTechnicalQuestions.map((question) => (
                     <QuestionEditorCard
                       key={question.id}
@@ -133,11 +141,12 @@ export function CompetencyAccordion({ competencies, onCompetencyChange, isLoadin
                       isLoading={isLoading}
                     />
                   ))}
+                  </div>
                 </div>
               )}
               
               {competency.questions.length === 0 && (
-                <p className="text-muted-foreground text-sm py-2">No questions for this competency.</p>
+                <p className="text-muted-foreground text-sm py-3 text-center">No questions currently for this competency.</p>
               )}
             </AccordionContent>
           </AccordionItem>

@@ -1,10 +1,11 @@
+
 "use client";
 
 import type { InterviewKit, ClientCompetency, ClientRubricCriterion } from '@/types/interview-kit';
 import { CompetencyAccordion } from './CompetencyAccordion';
 import { RubricEditor } from './RubricEditor';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw } from 'lucide-react';
+import { RefreshCcw, ListChecks, Percent } from 'lucide-react';
 import type React from 'react';
 
 interface InterviewKitDisplayProps {
@@ -26,11 +27,14 @@ export function InterviewKitDisplay({ kit, onKitChange, onCustomizeKit, isLoadin
   };
 
   return (
-    <div className="space-y-8 mt-8">
+    <div className="space-y-10 mt-8">
       <div>
-        <h2 className="text-2xl font-headline font-semibold mb-4 text-foreground">
-          Core Competencies & Questions
-        </h2>
+        <div className="flex items-center mb-5">
+          <ListChecks className="mr-3 h-7 w-7 text-primary" />
+          <h2 className="text-3xl font-headline font-bold text-foreground tracking-tight">
+            Core Competencies & Questions
+          </h2>
+        </div>
         <CompetencyAccordion
           competencies={kit.competencies}
           onCompetencyChange={handleCompetencyChange}
@@ -39,9 +43,12 @@ export function InterviewKitDisplay({ kit, onKitChange, onCustomizeKit, isLoadin
       </div>
       
       <div>
-        <h2 className="text-2xl font-headline font-semibold mb-4 text-foreground">
-          Scoring Rubric
-        </h2>
+         <div className="flex items-center mb-5">
+            <Percent className="mr-3 h-7 w-7 text-accent" />
+            <h2 className="text-3xl font-headline font-bold text-foreground tracking-tight">
+              Scoring Rubric
+            </h2>
+        </div>
         <RubricEditor
           rubricCriteria={kit.scoringRubric}
           onRubricChange={handleRubricChange}
@@ -49,8 +56,8 @@ export function InterviewKitDisplay({ kit, onKitChange, onCustomizeKit, isLoadin
         />
       </div>
 
-      <div className="mt-8 pt-6 border-t border-border flex justify-end">
-        <Button onClick={onCustomizeKit} disabled={isLoading} size="lg" className="text-base">
+      <div className="mt-10 pt-8 border-t border-border flex justify-end">
+        <Button onClick={onCustomizeKit} disabled={isLoading} size="lg" className="text-base py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
           <RefreshCcw className="mr-2 h-5 w-5" />
           {isLoading ? 'Updating Kit...' : 'Update & Regenerate Kit with Edits'}
         </Button>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -14,7 +15,7 @@ const AccordionItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
     ref={ref}
-    className={cn("border-b", className)}
+    className={cn("border-b", className)} // Removed default border-b to allow custom styling on the item itself
     {...props}
   />
 ))
@@ -28,13 +29,19 @@ const AccordionTrigger = React.forwardRef<
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
+        "group flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg.accordion-chevron]:rotate-180",
         className
       )}
       {...props}
     >
       {children}
-      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+      {/* Ensure ChevronDown is used by default if not overridden by parent via children */}
+      {!React.Children.toArray(children).some(
+        // @ts-ignore
+        (child) => React.isValidElement(child) && child.type === ChevronDown && child.props.className?.includes('accordion-chevron')
+      ) && (
+        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 accordion-chevron text-muted-foreground group-hover:text-foreground" />
+      )}
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ))

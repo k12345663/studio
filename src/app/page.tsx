@@ -13,6 +13,7 @@ import { InterviewKitDisplay } from '@/components/interview-kit/InterviewKitDisp
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText, Briefcase, UserCircle } from 'lucide-react';
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>('');
@@ -179,42 +180,52 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-muted/30 dark:bg-muted/10">
       <AppHeader />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <JobDescriptionForm onSubmit={handleGenerateKit} isLoading={isLoading && !interviewKit} />
 
           {isLoading && !interviewKit && (
-            <div className="flex justify-center">
+            <div className="flex justify-center py-10">
               <LoadingIndicator text="Generating your interview kit, please wait..." />
             </div>
           )}
 
           {!isLoading && !interviewKit && jobDescription && (
-             <Card className="mt-8">
+             <Card className="mt-8 shadow-lg">
               <CardHeader>
-                <CardTitle>Processed Inputs</CardTitle>
+                <CardTitle className="flex items-center text-xl font-semibold">
+                  <Briefcase className="mr-2 h-5 w-5 text-primary" />
+                  Processed Inputs
+                </CardTitle>
+                <CardDescription>Review the information used to generate the kit.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 text-sm">
                 <div>
-                  <h3 className="font-semibold mb-1">Job Description:</h3>
-                  <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-muted/50">
+                  <h3 className="font-semibold mb-1 text-foreground flex items-center">
+                     <FileText size={16} className="mr-2 text-muted-foreground"/> Job Description:
+                  </h3>
+                  <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner">
                     {jobDescription}
                   </pre>
                 </div>
                 {candidateResume && (
                   <div>
-                    <h3 className="font-semibold mb-1">Candidate Resume:</h3>
-                    <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-muted/50">
+                    <h3 className="font-semibold mb-1 text-foreground flex items-center">
+                      <UserCircle size={16} className="mr-2 text-muted-foreground"/> Candidate Resume:
+                    </h3>
+                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner">
                       {candidateResume}
                     </pre>
                   </div>
                 )}
                 {candidateExperienceContext && (
                   <div>
-                    <h3 className="font-semibold mb-1">Additional Candidate Context:</h3>
-                    <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-32 overflow-y-auto p-3 border rounded-md bg-muted/50">
+                    <h3 className="font-semibold mb-1 text-foreground flex items-center">
+                      <FileText size={16} className="mr-2 text-muted-foreground"/> Additional Context:
+                    </h3>
+                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-background shadow-inner">
                       {candidateExperienceContext}
                     </pre>
                   </div>
@@ -224,14 +235,17 @@ export default function Home() {
           )}
 
           {!isLoading && !interviewKit && !jobDescription && (
-             <Card className="text-center bg-card shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to RecruTake</CardTitle>
+             <Card className="text-center bg-card shadow-xl border border-primary/20">
+              <CardHeader className="pt-8">
+                <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">
+                  Welcome to RecruTake
+                </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                 Paste a job description, candidate resume (optional), and any additional candidate context to instantly generate relevant questions, model answers, difficulty, timings, categories, and a consistent scoring rubric.
+              <CardContent className="pb-8 pt-2">
+                <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto">
+                 Paste a job description, candidate's resume (optional), and any additional candidate context. RecruTake will instantly generate relevant questions, model answers, difficulty ratings, timings, categories, and a consistent scoring rubric tailored for your interview.
                 </CardDescription>
+                 <img src="https://placehold.co/300x200.png" alt="Recruitment illustration" data-ai-hint="recruitment hiring" className="mt-6 mx-auto rounded-lg shadow-md opacity-75"/>
               </CardContent>
             </Card>
           )}
@@ -246,7 +260,7 @@ export default function Home() {
           )}
         </div>
       </main>
-      <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border mt-auto">
+      <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border bg-card">
         © {new Date().getFullYear()} RecruTake by Unstop. All rights reserved.
       </footer>
     </div>

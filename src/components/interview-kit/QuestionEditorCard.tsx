@@ -10,8 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Wrench, Puzzle, Users, HelpCircle, ThermometerSnowflake, Thermometer, Activity, Sparkles, Gem, Clock3, Tag } from 'lucide-react';
-import type React from 'react'; // Ensured React is imported
+import { Wrench, Puzzle, Users, HelpCircle, ThermometerSnowflake, Thermometer, Activity, Sparkles, Gem, Clock3, Tag, Type, MessageCircle, Star, Edit3 } from 'lucide-react';
+import type React from 'react'; 
 import { useEffect } from 'react';
 
 
@@ -26,51 +26,35 @@ interface QuestionEditorCardProps {
 const getQuestionTypeIcon = (type: ClientQuestion['type']) => {
   switch (type) {
     case 'Technical':
-      return <Wrench className="h-4 w-4 mr-2 text-primary" aria-label="Technical Question" />;
+      return <Wrench className="h-4 w-4 mr-2 text-blue-500" aria-label="Technical Question" />;
     case 'Scenario':
-      return <Puzzle className="h-4 w-4 mr-2 text-accent" aria-label="Scenario Question" />;
+      return <Puzzle className="h-4 w-4 mr-2 text-purple-500" aria-label="Scenario Question" />;
     case 'Behavioral':
-      return <Users className="h-4 w-4 mr-2 text-foreground" aria-label="Behavioral Question" />;
+      return <Users className="h-4 w-4 mr-2 text-green-500" aria-label="Behavioral Question" />;
     default:
-      return <HelpCircle className="h-4 w-4 mr-2" aria-label="Generic Question" />;
+      return <HelpCircle className="h-4 w-4 mr-2 text-gray-500" aria-label="Generic Question" />;
   }
 };
 
 const DifficultyBadge: React.FC<{ difficulty: ClientQuestion['difficulty'] }> = ({ difficulty }) => {
-  let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-  let icon: React.ReactNode = null;
-  let text = difficulty;
-
+  let badgeClass = "bg-gray-100 text-gray-700";
+  let icon: React.ReactNode = <HelpCircle className="h-3 w-3 mr-1" />;
+  
   switch (difficulty) {
-    case 'Naive':
-      variant = "outline";
-      icon = <ThermometerSnowflake className="h-3 w-3 mr-1" />;
-      break;
-    case 'Beginner':
-      variant = "secondary";
-      icon = <Thermometer className="h-3 w-3 mr-1" />;
-      break;
-    case 'Intermediate':
-      variant = "default"; 
-      icon = <Activity className="h-3 w-3 mr-1" />;
-      break;
-    case 'Expert':
-      return <Badge variant="default" className="text-xs px-1.5 py-0.5 bg-accent text-accent-foreground hover:bg-accent/90"><Sparkles className="h-3 w-3 mr-1" />{text}</Badge>;
-    case 'Master':
-      variant = "destructive";
-      icon = <Gem className="h-3 w-3 mr-1" />;
-      break;
-    default:
-      icon = <HelpCircle className="h-3 w-3 mr-1" />;
-      break;
+    case 'Naive': badgeClass = "bg-blue-100 text-blue-700"; icon = <ThermometerSnowflake className="h-3 w-3 mr-1" />; break;
+    case 'Beginner': badgeClass = "bg-green-100 text-green-700"; icon = <Thermometer className="h-3 w-3 mr-1" />; break;
+    case 'Intermediate': badgeClass = "bg-yellow-100 text-yellow-700"; icon = <Activity className="h-3 w-3 mr-1" />; break;
+    case 'Expert': badgeClass = "bg-orange-100 text-orange-700"; icon = <Sparkles className="h-3 w-3 mr-1" />; break;
+    case 'Master': badgeClass = "bg-red-100 text-red-700"; icon = <Gem className="h-3 w-3 mr-1" />; break;
   }
-  return <Badge variant={variant} className="text-xs px-1.5 py-0.5">{icon}{text}</Badge>;
+  return <Badge className={`text-xs px-2 py-1 ${badgeClass} shadow-sm`}>{icon}{difficulty}</Badge>;
 };
 
 const CategoryBadge: React.FC<{ category: QuestionCategory }> = ({ category }) => {
   const isTechnical = category === 'Technical';
+  const badgeClass = isTechnical ? "bg-indigo-100 text-indigo-700" : "bg-pink-100 text-pink-700";
   return (
-    <Badge variant={isTechnical ? "default" : "secondary"} className="text-xs px-1.5 py-0.5 flex items-center">
+    <Badge className={`text-xs px-2 py-1 flex items-center ${badgeClass} shadow-sm`}>
       <Tag className="h-3 w-3 mr-1" />
       {category}
     </Badge>
@@ -87,7 +71,6 @@ export function QuestionEditorCard({
 }: QuestionEditorCardProps) {
   
   useEffect(() => {
-    // Auto-fill estimated time when difficulty changes, if the time is currently at a default for another difficulty or 0/undefined
     const newTime = difficultyTimeMap[question.difficulty];
     const currentMappedTimeForOldDifficulty = Object.values(difficultyTimeMap).includes(question.estimatedTimeMinutes);
     
@@ -128,61 +111,67 @@ export function QuestionEditorCard({
   const categoryLevels: QuestionCategory[] = ['Technical', 'Non-Technical'];
 
   return (
-    <Card className="mb-4 shadow-md bg-card/80 backdrop-blur-sm border border-border">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg font-semibold flex items-center">
+    <Card className="shadow-lg bg-card border border-border/60 rounded-lg overflow-hidden transition-all hover:shadow-xl">
+      <CardHeader className="pb-4 pt-4 px-5 bg-muted/20 border-b border-border/50">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <CardTitle className="text-lg font-semibold flex items-center text-foreground">
             {getQuestionTypeIcon(question.type)}
-            Question {questionIndex + 1}
+            Question {questionIndex + 1} 
+            <Badge variant="outline" className="ml-3 text-xs">{question.type}</Badge>
           </CardTitle>
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             <CategoryBadge category={question.category} />
             <DifficultyBadge difficulty={question.difficulty} />
-            <Badge variant="outline" className="text-xs px-1.5 py-0.5 flex items-center">
-              <Clock3 className="h-3 w-3 mr-1" />
+            <Badge variant="outline" className="text-xs px-2 py-1 flex items-center shadow-sm">
+              <Clock3 className="h-3 w-3 mr-1.5 text-muted-foreground" />
               {question.estimatedTimeMinutes} min
             </Badge>
-            <Badge variant="outline" className="text-sm">{question.type}</Badge>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor={`${uniqueIdPrefix}-text`} className="font-medium">Question Text</Label>
+      <CardContent className="p-5 space-y-5">
+        <div className="space-y-1.5">
+          <Label htmlFor={`${uniqueIdPrefix}-text`} className="font-semibold text-md flex items-center text-foreground">
+            <MessageCircle size={16} className="mr-2 text-primary"/> Question Text
+          </Label>
           <Textarea
             id={`${uniqueIdPrefix}-text`}
             value={question.text}
             onChange={(e) => handleInputChange('text', e.target.value)}
             placeholder="Enter question text"
-            className="mt-1 text-sm"
+            className="mt-1 text-sm p-3 rounded-md shadow-inner bg-background/70"
             rows={3}
             disabled={isLoading}
             aria-label={`Question text for question ${questionIndex + 1} of competency ${competencyName}`}
           />
         </div>
-        <div>
-          <Label htmlFor={`${uniqueIdPrefix}-modelAnswer`} className="font-medium">Model Answer (3-4 bullet points)</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor={`${uniqueIdPrefix}-modelAnswer`} className="font-semibold text-md flex items-center text-foreground">
+             <Type size={16} className="mr-2 text-primary"/> Model Answer (3-4 bullet points)
+          </Label>
           <Textarea
             id={`${uniqueIdPrefix}-modelAnswer`}
             value={question.modelAnswer}
             onChange={(e) => handleInputChange('modelAnswer', e.target.value)}
-            placeholder="Enter model answer as 3-4 bullet points..."
-            className="mt-1 text-sm"
+            placeholder="Enter model answer as 3-4 concise bullet points, referencing JD/resume/context..."
+            className="mt-1 text-sm p-3 rounded-md shadow-inner bg-background/70"
             rows={4}
             disabled={isLoading}
             aria-label={`Model answer for question ${questionIndex + 1}`}
           />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-           <div>
-            <Label htmlFor={`${uniqueIdPrefix}-category`} className="font-medium">Category</Label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-5 gap-y-4 items-end pt-2">
+           <div className="space-y-1.5">
+            <Label htmlFor={`${uniqueIdPrefix}-category`} className="font-medium text-sm flex items-center text-foreground">
+              <Tag size={14} className="mr-1.5 text-muted-foreground"/>Category
+            </Label>
              <Select
                 value={question.category}
                 onValueChange={(value: QuestionCategory) => handleCategoryChange(value)}
                 disabled={isLoading}
               >
-                <SelectTrigger id={`${uniqueIdPrefix}-category`} className="mt-1" aria-label={`Category for question ${questionIndex + 1}`}>
+                <SelectTrigger id={`${uniqueIdPrefix}-category`} className="mt-1 shadow-sm bg-background/70" aria-label={`Category for question ${questionIndex + 1}`}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -192,14 +181,16 @@ export function QuestionEditorCard({
                 </SelectContent>
               </Select>
           </div>
-          <div>
-            <Label htmlFor={`${uniqueIdPrefix}-difficulty`} className="font-medium">Difficulty</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor={`${uniqueIdPrefix}-difficulty`} className="font-medium text-sm flex items-center text-foreground">
+               <Sparkles size={14} className="mr-1.5 text-muted-foreground"/>Difficulty
+            </Label>
             <Select
                 value={question.difficulty}
                 onValueChange={(value: QuestionDifficulty) => handleDifficultyChange(value)}
                 disabled={isLoading}
               >
-                <SelectTrigger id={`${uniqueIdPrefix}-difficulty`} className="mt-1" aria-label={`Difficulty for question ${questionIndex + 1}`}>
+                <SelectTrigger id={`${uniqueIdPrefix}-difficulty`} className="mt-1 shadow-sm bg-background/70" aria-label={`Difficulty for question ${questionIndex + 1}`}>
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
                 <SelectContent>
@@ -209,24 +200,28 @@ export function QuestionEditorCard({
                 </SelectContent>
               </Select>
           </div>
-          <div>
-            <Label htmlFor={`${uniqueIdPrefix}-time`} className="font-medium">Est. Time (min)</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor={`${uniqueIdPrefix}-time`} className="font-medium text-sm flex items-center text-foreground">
+              <Clock3 size={14} className="mr-1.5 text-muted-foreground"/>Est. Time (min)
+            </Label>
             <Input
               id={`${uniqueIdPrefix}-time`}
               type="number"
               value={question.estimatedTimeMinutes}
               onChange={(e) => handleTimeChange(e.target.value)}
               min={0}
-              className="mt-1 text-sm"
+              className="mt-1 text-sm p-2 shadow-sm bg-background/70"
               disabled={isLoading}
               aria-label={`Estimated time for question ${questionIndex + 1}`}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor={`${uniqueIdPrefix}-score`} className="font-medium">Score (1-10)</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4 pt-3">
+          <div className="space-y-1.5">
+            <Label htmlFor={`${uniqueIdPrefix}-score`} className="font-medium text-sm flex items-center text-foreground">
+              <Star size={14} className="mr-1.5 text-muted-foreground"/>Panelist Score (1-10)
+            </Label>
             <div className="flex items-center space-x-3 mt-1">
               <Slider
                 id={`${uniqueIdPrefix}-score`}
@@ -245,7 +240,7 @@ export function QuestionEditorCard({
                 onChange={(e) => {
                     const val = parseInt(e.target.value, 10);
                     if (e.target.value === "") {
-                      handleInputChange('score', 1); // Default to 1 if empty
+                      handleInputChange('score', 1); 
                     } else if (!isNaN(val) && val >= 1 && val <=10) {
                       handleInputChange('score', val);
                     } else if (!isNaN(val) && val < 1) {
@@ -255,20 +250,22 @@ export function QuestionEditorCard({
                     }
                 }}
                 min={1} max={10}
-                className="w-20 text-center"
+                className="w-20 text-center shadow-sm bg-background/70"
                 disabled={isLoading}
                 aria-label={`Score input field for question ${questionIndex + 1}`}
               />
             </div>
           </div>
-          <div>
-            <Label htmlFor={`${uniqueIdPrefix}-notes`} className="font-medium">Panelist Notes</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor={`${uniqueIdPrefix}-notes`} className="font-medium text-sm flex items-center text-foreground">
+              <Edit3 size={14} className="mr-1.5 text-muted-foreground"/>Panelist Notes
+            </Label>
             <Textarea
               id={`${uniqueIdPrefix}-notes`}
               value={question.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Your notes during the interview..."
-              className="mt-1 text-sm"
+              className="mt-1 text-sm p-3 rounded-md shadow-inner bg-background/70"
               rows={2}
               disabled={isLoading}
               aria-label={`Notes for question ${questionIndex + 1}`}

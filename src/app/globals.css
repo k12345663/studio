@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -41,7 +42,7 @@ body {
     --chart-3: 25 80% 60%;
     --chart-4: 280 50% 60%;
     --chart-5: 45 70% 55%;
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* Increased radius for modern feel */
 
     --sidebar-background: 220 30% 96%;
     --sidebar-foreground: 220 20% 35%;
@@ -54,48 +55,48 @@ body {
   }
 
   .dark {
-    --background: 220 20% 12%; /* Dark Slate Blue */
-    --foreground: 220 30% 90%; /* Light Gray for Dark Mode Text */
+    --background: 220 20% 10%; /* Darker Slate Blue for background */
+    --foreground: 220 30% 92%; /* Lighter Gray for Dark Mode Text */
 
-    --card: 220 20% 15%; /* Darker Card Background */
-    --card-foreground: 220 30% 90%;
+    --card: 220 20% 13%; /* Darker Card Background */
+    --card-foreground: 220 30% 92%;
 
-    --popover: 220 20% 10%; /* Dark Popover */
-    --popover-foreground: 220 30% 90%;
+    --popover: 220 20% 8%; 
+    --popover-foreground: 220 30% 92%;
 
-    --primary: 210 70% 55%; /* Brighter Professional Blue for Dark Mode */
+    --primary: 210 75% 60%; /* Brighter Professional Blue for Dark Mode */
     --primary-foreground: 0 0% 100%; 
 
-    --secondary: 220 20% 25%; /* Darker Secondary */
-    --secondary-foreground: 220 30% 85%;
+    --secondary: 220 20% 22%; 
+    --secondary-foreground: 220 30% 88%;
 
-    --muted: 220 20% 20%; /* Dark Muted */
-    --muted-foreground: 220 20% 65%;
+    --muted: 220 20% 18%; /* Dark Muted */
+    --muted-foreground: 220 20% 68%;
 
-    --accent: 180 30% 50%; /* Muted Teal for Dark Mode */
+    --accent: 180 40% 55%; /* Brighter Teal for Dark Mode */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 60% 50%; /* Destructive for Dark Mode */
+    --destructive: 0 65% 55%; 
     --destructive-foreground: 0 0% 95%;
 
-    --border: 220 20% 30%; /* Dark Border */
-    --input: 220 20% 28%; /* Dark Input */
-    --ring: 210 70% 55%;
+    --border: 220 20% 25%; /* Dark Border */
+    --input: 220 20% 20%; /* Dark Input */
+    --ring: 210 75% 60%;
 
-    --chart-1: 210 70% 60%;
-    --chart-2: 180 40% 55%;
-    --chart-3: 30 70% 60%;
-    --chart-4: 280 50% 65%;
-    --chart-5: 45 70% 60%;
+    --chart-1: 210 70% 65%;
+    --chart-2: 180 40% 60%;
+    --chart-3: 30 70% 65%;
+    --chart-4: 280 50% 70%;
+    --chart-5: 45 70% 65%;
 
-    --sidebar-background: 220 20% 10%;
-    --sidebar-foreground: 220 30% 88%;
-    --sidebar-primary: 210 70% 55%;
+    --sidebar-background: 220 20% 9%;
+    --sidebar-foreground: 220 30% 90%;
+    --sidebar-primary: 210 75% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 30% 45%; 
+    --sidebar-accent: 180 40% 50%; 
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 20% 25%;
-    --sidebar-ring: 210 70% 55%;
+    --sidebar-border: 220 20% 22%;
+    --sidebar-ring: 210 75% 60%;
   }
 }
 
@@ -105,5 +106,38 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* Custom scrollbar for a more modern feel */
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-muted/50 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-primary/50 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/70;
+  }
+  .max-h-40 { max-height: 10rem; }
+  .max-h-48 { max-height: 12rem; }
+}
+
+html {
+  @apply custom-scrollbar;
+}
+
+pre {
+   @apply custom-scrollbar;
+}
+
+textarea {
+   @apply custom-scrollbar;
 }
