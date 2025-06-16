@@ -1,7 +1,7 @@
 
 # RecruTake: AI-Powered Interview Kit Generator
 
-RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, optionally paste a candidate's resume (including project details and work history, which is deeply analyzed by the AI), and provide additional context about the target candidate's experience level (e.g., years of experience, current role, past tech stack). The application will then produce a structured set of competencies, interview questions (categorized as Technical or Non-Technical, and directly derived from analyzing the resume's projects/skills/past experiences and JD requirements), model answers (formatted as 3-4 concise, judgeable bullet points explicitly referencing JD/resume/projects/context, serving as general examples of strong answers that consider candidate's work and past experiences), a 5-level difficulty rating ('Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), estimated answering times (auto-suggested based on difficulty), and a weighted scoring rubric (contextually derived from JD/resume/projects/context for comprehensive evaluation, with criteria weights summing to 1.0). Users can edit this kit and have the AI refine their changes. Panelists use a 1-10 score slider for individual questions.
+RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, optionally paste a candidate's resume (including project details, tech stack, goals, accomplishments, challenges, and work history, which is deeply analyzed by the AI), and provide additional context about the target candidate's experience level (e.g., years of experience, current role, past tech stack). The application will then produce a structured set of competencies, interview questions (categorized as Technical or Non-Technical, and directly derived from analyzing the resume's projects/skills/past experiences including their specifics and JD requirements; includes a "Tell me about yourself" question with a resume-tailored model answer), model answers (formatted as 3-4 concise, judgeable bullet points explicitly referencing JD/resume/projects/context, serving as general examples of strong answers that consider candidate's work and past experiences), a 5-level difficulty rating ('Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), estimated answering times (auto-suggested based on difficulty), and a weighted scoring rubric (contextually derived from JD/resume/projects/context including specific project details and past work experiences for comprehensive evaluation, with criteria weights summing to 1.0). Users can edit this kit and have the AI refine their changes. Panelists use a 1-10 score slider for individual questions.
 
 ## Tech Stack
 
@@ -10,11 +10,11 @@ RecruTake is a Next.js web application designed to assist recruiters and hiring 
 *   **UI Components**: ShadCN UI
 *   **Styling**: Tailwind CSS (`src/app/globals.css` for theme)
 *   **AI Integration**: Genkit (Google's Gemini models). Prompts are designed for:
-    *   Critically analyzing and synthesizing Job Description, Candidate Resume (including specific projects and past work experiences, as a primary source for questions), and Candidate Experience Context. The AI is instructed to thoroughly understand all user-provided details before generating content.
-    *   Generating questions with categories (Technical/Non-Technical) by directly probing resume details (including projects and past experiences) and JD requirements.
-    *   Producing concise 3-4 judgeable bullet model answers explicitly referencing JD/resume/projects/context, serving as general examples of strong answers that reflect the candidate's work and past experiences.
+    *   Critically analyzing and synthesizing Job Description, Candidate Resume (including specific projects, their tech stack, goals, accomplishments, challenges, and past work experiences, as a primary source for questions), and Candidate Experience Context. The AI is instructed to thoroughly understand all user-provided details before generating content.
+    *   Generating questions with categories (Technical/Non-Technical) by directly probing resume details (including projects, their specifics, and past experiences) and JD requirements. This includes a "Tell me about yourself" question with a model answer tailored to the candidate's resume.
+    *   Producing concise 3-4 judgeable bullet model answers explicitly referencing JD/resume/projects/context (including project specifics), serving as general examples of strong answers that reflect the candidate's work and past experiences.
     *   Using a 5-level difficulty scale ('Naive' to 'Master') with auto-suggested times (2/4/6/8/10 mins).
-    *   Creating scoring rubrics with well-defined, high-quality, actionable, measurable criteria explicitly referencing key phrases from JD/resume/projects/context for a broad yet deeply contextual evaluation. Rubric criteria weights sum to 1.0.
+    *   Creating scoring rubrics with well-defined, high-quality, actionable, measurable criteria explicitly referencing key phrases from JD/resume/projects/context (including project specifics and past work experiences) for a broad yet deeply contextual evaluation. Rubric criteria weights sum to 1.0.
 *   **State Management**: React state (`useState`, `useCallback`), `useToast`.
 *   **Form Handling**: Standard React forms.
 *   **Package Manager**: npm
@@ -53,11 +53,11 @@ RecruTake is a Next.js web application designed to assist recruiters and hiring 
 **Key Files & Features:**
 
 *   **`src/app/page.tsx`**: Manages main state, calls AI flows. Features a welcome screen (no placeholder image).
-*   **`src/ai/flows/`**: Genkit flows for initial generation and AI-assisted customization of interview kits. Prompts instruct the AI to deeply understand and synthesize all provided inputs (JD, resume with project details and past experiences as primary source, context) to generate questions with categories, 5-level difficulty, judgeable bullet-point model answers (serving as general examples of strong answers that reflect candidate's work and past experiences) explicitly referencing context including resume projects, and context-aware rubrics (weights summing to 1.0) for comprehensive evaluation.
-*   **`src/components/interview-kit/JobDescriptionForm.tsx`**: Text input for JD, candidate resume (optional, including project details and work history, key for AI tailoring), and additional candidate experience context.
+*   **`src/ai/flows/`**: Genkit flows for initial generation and AI-assisted customization of interview kits. Prompts instruct the AI to deeply understand and synthesize all provided inputs (JD, resume with project details including tech stack, goals, accomplishments, challenges, and past experiences as primary source, context) to generate questions (including resume-project specific questions and a resume-tailored "Tell me about yourself") with categories, 5-level difficulty, judgeable bullet-point model answers (serving as general examples of strong answers that reflect candidate's work and past experiences) explicitly referencing context including resume projects and their specifics, and context-aware rubrics (weights summing to 1.0) for comprehensive evaluation.
+*   **`src/components/interview-kit/JobDescriptionForm.tsx`**: Text input for JD, candidate resume (optional, including project details, tech stack, goals, accomplishments, challenges, and work history, key for AI tailoring), and additional candidate experience context.
 *   **`src/components/interview-kit/CompetencyAccordion.tsx`**: Displays competencies with questions grouped into "Technical" and "Non-Technical" sections.
 *   **`src/components/interview-kit/QuestionEditorCard.tsx`**: UI for editing questions, model answers, category, 5-level difficulty (with auto-time), estimated time, and 1-10 panelist score.
-*   **`src/components/interview-kit/RubricEditor.tsx`**: UI for editing rubric criteria (well-defined, high-quality, contextual) and their weights (which sum to 1.0).
+*   **`src/components/interview-kit/RubricEditor.tsx`**: UI for editing rubric criteria (well-defined, high-quality, contextual, based on resume project specifics and past work experiences) and their weights (which sum to 1.0).
 *   **`src/types/interview-kit.ts`**: Defines core data types, including `QuestionCategory`, 5-level `QuestionDifficulty`, `candidateResume`, `ClientRubricCriterion` (with weights), and `difficultyTimeMap`. Individual question scores are 1-10.
 
 ## Getting Started
@@ -68,4 +68,6 @@ RecruTake is a Next.js web application designed to assist recruiters and hiring 
 4.  **Run Genkit Dev Server** (optional): `npm run genkit:dev` (Genkit UI `http://localhost:4000`)
 
 Refer to `PROJECT_REPORT.md` for a more detailed breakdown.
+    
+
     
