@@ -17,14 +17,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>('');
   const [candidateExperienceContext, setCandidateExperienceContext] = useState<string | undefined>(undefined);
+  const [candidateResume, setCandidateResume] = useState<string | undefined>(undefined);
   const [interviewKit, setInterviewKit] = useState<InterviewKit | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, expContext?: string): InterviewKit => {
+  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, resumeToStore?: string, expContext?: string): InterviewKit => {
     return {
       jobDescription: jdToStore,
       candidateExperienceContext: expContext,
+      candidateResume: resumeToStore,
       competencies: output.competencies.map(comp => ({
         id: generateId('comp'),
         name: comp.name,
@@ -48,17 +50,18 @@ export default function Home() {
       })),
     };
   }, []);
-  
+
   const mapClientKitToCustomizeInput = useCallback((clientKit: InterviewKit): CustomizeInterviewKitInput => {
     return {
       jobDescription: clientKit.jobDescription,
       candidateExperienceContext: clientKit.candidateExperienceContext,
+      candidateResume: clientKit.candidateResume,
       competencies: clientKit.competencies.map(comp => ({
-        id: comp.id, 
+        id: comp.id,
         name: comp.name,
         importance: comp.importance,
         questions: comp.questions.map(q => ({
-          id: q.id, 
+          id: q.id,
           type: q.type,
           category: q.category,
           text: q.text,
@@ -78,11 +81,11 @@ export default function Home() {
     const newCompetencies = output.competencies.map(newComp => {
       const existingComp = existingKit.competencies.find(ec => ec.id === newComp.id);
       return {
-        id: newComp.id, 
+        id: newComp.id,
         name: newComp.name,
         importance: newComp.importance || existingComp?.importance || 'Medium',
         questions: newComp.questions.map(newQ => {
-          const existingQ = existingComp?.questions.find(eq => eq.id === newQ.id); 
+          const existingQ = existingComp?.questions.find(eq => eq.id === newQ.id);
           return {
             id: newQ.id,
             type: newQ.type,
@@ -106,10 +109,11 @@ export default function Home() {
         weight: newCrit.weight,
       };
     });
-    
+
     return {
       jobDescription: existingKit.jobDescription,
       candidateExperienceContext: existingKit.candidateExperienceContext,
+      candidateResume: existingKit.candidateResume, // Preserve candidate resume
       competencies: newCompetencies,
       scoringRubric: newRubric,
     };
@@ -118,22 +122,25 @@ export default function Home() {
 
   const handleGenerateKit = useCallback(async (data: JobDescriptionFormSubmitData) => {
     setIsLoading(true);
-    setInterviewKit(null); 
+    setInterviewKit(null);
     setJobDescription(data.jobDescription);
     setCandidateExperienceContext(data.candidateExperienceContext);
+    setCandidateResume(data.candidateResume);
+
 
     try {
       if (!data.jobDescription.trim()) {
         throw new Error("Job description is empty.");
       }
 
-      const input: GenerateInterviewKitInput = { 
+      const input: GenerateInterviewKitInput = {
         jobDescription: data.jobDescription,
-        candidateExperienceContext: data.candidateExperienceContext 
+        candidateExperienceContext: data.candidateExperienceContext,
+        candidateResume: data.candidateResume,
       };
       const output = await generateInterviewKit(input);
       if (output && output.competencies && output.scoringRubric) {
-        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.candidateExperienceContext));
+        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.candidateResume, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
       } else {
         throw new Error("AI response was empty or malformed.");
@@ -183,11 +190,11 @@ export default function Home() {
               <LoadingIndicator text="Generating your interview kit, please wait..." />
             </div>
           )}
-          
+
           {!isLoading && !interviewKit && jobDescription && (
              <Card className="mt-8">
               <CardHeader>
-                <CardTitle>Processed Job Description & Context</CardTitle>
+                <CardTitle>Processed Inputs</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -196,9 +203,17 @@ export default function Home() {
                     {jobDescription}
                   </pre>
                 </div>
+                {candidateResume && (
+                  <div>
+                    <h3 className="font-semibold mb-1">Candidate Resume:</h3>
+                    <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-muted/50">
+                      {candidateResume}
+                    </pre>
+                  </div>
+                )}
                 {candidateExperienceContext && (
                   <div>
-                    <h3 className="font-semibold mb-1">Candidate Experience Context:</h3>
+                    <h3 className="font-semibold mb-1">Additional Candidate Context:</h3>
                     <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-32 overflow-y-auto p-3 border rounded-md bg-muted/50">
                       {candidateExperienceContext}
                     </pre>
@@ -215,7 +230,7 @@ export default function Home() {
               </CardHeader>
               <CardContent className="pt-0">
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                 Paste a job description and optionally provide candidate experience context to instantly generate relevant questions, model answers, difficulty, timings, categories, and a consistent scoring rubric.
+                 Paste a job description, candidate resume (optional), and any additional candidate context to instantly generate relevant questions, model answers, difficulty, timings, categories, and a consistent scoring rubric.
                 </CardDescription>
               </CardContent>
             </Card>

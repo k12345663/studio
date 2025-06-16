@@ -16,27 +16,28 @@ const GenerateInterviewKitInputSchema = z.object({
   jobDescription: z
     .string()
     .describe('The job description to generate an interview kit for.'),
-  candidateExperienceContext: z.string().optional().describe('Optional context about the target candidate’s experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience."'),
+  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience." This supplements the resume if provided.'),
+  candidateResume: z.string().optional().describe('The full text of the candidate\'s resume, if provided. This should be a primary source for tailoring questions and model answers, alongside the job description.'),
 });
 export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInputSchema>;
 
 const QuestionAnswerPairSchema = z.object({
-  question: z.string().describe('The interview question. Should be insightful and specific to the job description and candidate experience level.'),
-  answer: z.string().describe('The model answer for the question, presented as 3-4 concise bullet points. Each bullet should be basic, clear, easy to judge, demonstrate strong proficiency relevant to the experience level, and reference terms from the Job Description or candidateContext where appropriate. Highlight key positive indicators.'),
-  type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR).'),
+  question: z.string().describe('The interview question. Should be insightful and highly specific to the job description and the candidate\'s profile (resume/experience context).'),
+  answer: z.string().describe('The model answer for the question, presented as 3-4 concise bullet points. Each bullet must be basic, clear, easy to judge, demonstrate strong proficiency relevant to the candidate\'s profile, and explicitly reference specific terms, skills, or experiences from the Job Description and Candidate Resume/Context.'),
+  type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR method).'),
   category: z.enum(['Technical', 'Non-Technical']).describe("The category of the question. 'Technical' for questions assessing specific hard skills or tool knowledge. 'Non-Technical' for questions assessing problem-solving, behavioral traits, scenarios, or soft skills. Infer this primarily from the question type and content."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).describe("The difficulty level of the question, on a 5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'."),
   estimatedTimeMinutes: z.number().describe('Suitable estimated time in minutes a candidate might need for a thorough answer, considering question complexity and experience level. Default suggestions: Naive(2), Beginner(4), Intermediate(6), Expert(8), Master(10).'),
 });
 
 const CompetencySchema = z.object({
-  name: z.string().describe('The name of the competency.'),
-  importance: z.enum(['High', 'Medium', 'Low']).describe('The importance of this competency for the role.'),
-  questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency. Aim for a mix of Technical, Scenario, and Behavioral questions, tailored to the candidate experience context.'),
+  name: z.string().describe('The name of the competency, derived from the job description.'),
+  importance: z.enum(['High', 'Medium', 'Low']).describe('The importance of this competency for the role, based on the job description.'),
+  questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency. Aim for a mix of Technical, Scenario, and Behavioral questions, tailored to the job description and candidate profile.'),
 });
 
 const ScoringCriterionSchema = z.object({
-  criterion: z.string().describe('The scoring criterion. Should be actionable, clearly linked to job requirements, and explicitly mention key phrases or concepts from the Job Description or candidateContext.'),
+  criterion: z.string().describe('The scoring criterion. Should be actionable, clearly linked to job requirements, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR Candidate Resume/Context to ensure strong contextual relevance.'),
   weight: z.number().describe('The weight of the criterion (must sum to 1.0).'),
 });
 
@@ -44,7 +45,7 @@ const GenerateInterviewKitOutputSchema = z.object({
   competencies: z.array(CompetencySchema).describe('The 5-7 core competencies for the job, including their importance and tailored questions.'),
   scoringRubric: z
     .array(ScoringCriterionSchema)
-    .describe('The 3-5 weighted scoring rubric criteria for the interview, contextually derived and referencing key phrases from the Job Description or candidateContext.'),
+    .describe('The 3-5 weighted scoring rubric criteria for the interview, contextually derived and referencing key phrases from the Job Description AND/OR Candidate Resume/Context.'),
 });
 export type GenerateInterviewKitOutput = z.infer<typeof GenerateInterviewKitOutputSchema>;
 
@@ -56,35 +57,41 @@ const generateInterviewKitPrompt = ai.definePrompt({
   name: 'generateInterviewKitPrompt',
   input: {schema: GenerateInterviewKitInputSchema},
   output: {schema: GenerateInterviewKitOutputSchema},
-  prompt: `You are a senior hiring manager and expert interviewer. You will be given a Job Description and, optionally, a Candidate Profile (candidateContext). Your task is to generate a comprehensive interview kit.
+  prompt: `You are a senior hiring manager and expert interviewer. You will be given a Job Description, and optionally, a Candidate Resume and/or brief Candidate Experience Context. Your task is to generate a comprehensive interview kit.
 
 Job Description:
 {{{jobDescription}}}
 
+{{#if candidateResume}}
+Candidate Resume:
+{{{candidateResume}}}
+{{/if}}
+
 {{#if candidateExperienceContext}}
-Candidate Profile / Context:
+Candidate Experience Context (additional notes):
 {{{candidateExperienceContext}}}
 {{/if}}
 
-Based on the Job Description and Candidate Profile/Context:
+Based on the Job Description AND the Candidate's Profile (Resume and/or Context if provided):
 
-1.  Identify 5-7 core competencies crucial for the role. For each competency, assess its importance (High, Medium, or Low).
+1.  Identify 5-7 core competencies crucial for the role as per the Job Description. For each competency, assess its importance (High, Medium, or Low).
 2.  For each competency, create 3 distinct, insightful questions:
-    *   One Technical Question: Probes specific technical skills, tools, or platform knowledge.
-    *   One Scenario-based Question: Presents a realistic work-related challenge.
-    *   One Behavioral Question: Assesses past behavior (STAR method).
-    These questions should be sharply tailored to the specifics of the Job Description and the Candidate Profile/Context.
+    *   One Technical Question: Probes specific technical skills, tools, or platform knowledge relevant to the JD and candidate's background.
+    *   One Scenario-based Question: Presents a realistic work-related challenge reflecting the JD's demands and candidate's experience level.
+    *   One Behavioral Question: Assesses past behavior (STAR method), ideally probing experiences mentioned in the resume or required by the JD.
+    These questions must be sharply tailored to the specifics of BOTH the Job Description and the Candidate's Profile.
+
 3.  For EACH question, provide the following:
     *   \\\`question\\\`: The text of the question.
-    *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet must be basic, clear, easy to judge, demonstrate proficiency relevant to the candidate's experience level, and ideally reference specific terms or concepts from the Job Description or Candidate Profile/Context.
+    *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet point MUST be basic, clear, easy to judge, demonstrate proficiency relevant to the candidate's specific experience level and background (from resume/context), and EXPLICITLY reference specific terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight key positive indicators.
     *   \\\`type\\\`: The type of question ('Technical', 'Scenario', 'Behavioral').
     *   \\\`category\\\`: The category of the question ('Technical' or 'Non-Technical'). 'Technical' questions assess specific hard skills/tools. 'Non-Technical' questions (typically Scenario or Behavioral) assess problem-solving, behavioral traits, or soft skills.
-    *   \\\`difficulty\\\`: The difficulty level from this exact 5-level scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'.
-    *   \\\`estimatedTimeMinutes\\\`: A suitable estimated time in minutes a candidate might need for a thorough answer, considering question complexity and experience level. Default suggestions: Naive(2), Beginner(4), Intermediate(6), Expert(8), Master(10).
-4.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be actionable, measurable, and explicitly mention key phrases or concepts from the Job Description or Candidate Profile/Context to ensure strong contextual relevance. Ensure criterion weights sum to 1.0.
+    *   \\\`difficulty\\\`: The difficulty level from this exact 5-level scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level.
+    *   \\\`estimatedTimeMinutes\\\`: A suitable estimated time in minutes a candidate might need for a thorough answer, considering question complexity and the candidate's experience. Default suggestions: Naive(2), Beginner(4), Intermediate(6), Expert(8), Master(10).
+4.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context to ensure strong contextual relevance. Ensure criterion weights sum to 1.0. The rubric should address a broad yet contextual perspective for evaluation.
 
 Return a JSON object adhering to the specified output schema. Ensure all fields are populated.
-The goal is to produce highly relevant, tailored questions with concise, judgeable model answers, and a deeply contextual scoring rubric.
+The goal is to produce highly relevant, tailored questions with concise, judgeable model answers, and a deeply contextual scoring rubric, all informed by both the job requirements and the candidate's specific background.
 `,
 });
 
@@ -109,7 +116,7 @@ const generateInterviewKitFlow = ai.defineFlow(
           answer: q.answer || "Missing model answer (should be 3-4 bullet points).",
           type: q.type || "Behavioral",
           category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical'),
-          difficulty: q.difficulty || "Intermediate", 
+          difficulty: q.difficulty || "Intermediate",
           estimatedTimeMinutes: q.estimatedTimeMinutes || (q.difficulty === 'Naive' ? 2 : q.difficulty === 'Beginner' ? 4 : q.difficulty === 'Intermediate' ? 6 : q.difficulty === 'Expert' ? 8 : q.difficulty === 'Master' ? 10 : 5),
         })),
       })),
@@ -127,7 +134,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         if (index < arr.length -1) {
           crit.weight = parseFloat((crit.weight * factor).toFixed(2));
           sumOfNormalizedWeights += crit.weight;
-        } else { 
+        } else {
           crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
         }
       });
@@ -152,4 +159,3 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-

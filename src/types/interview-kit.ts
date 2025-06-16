@@ -7,7 +7,7 @@ export type QuestionCategory = 'Technical' | 'Non-Technical';
 export interface ClientQuestion {
   id: string;
   type: QuestionType;
-  category: QuestionCategory; // Added
+  category: QuestionCategory;
   text: string;
   modelAnswer: string;
   score: number; // Will be 1-10
@@ -32,6 +32,7 @@ export interface ClientRubricCriterion {
 export interface InterviewKit {
   jobDescription: string;
   candidateExperienceContext?: string;
+  candidateResume?: string; // Added
   competencies: ClientCompetency[];
   scoringRubric: ClientRubricCriterion[];
 }
