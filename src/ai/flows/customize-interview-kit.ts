@@ -32,7 +32,7 @@ const QuestionSchema = z.object({
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('Type of question.'),
   category: z.enum(['Technical', 'Non-Technical']).optional().describe("Category of the question ('Technical' or 'Non-Technical'). Preserve or update if changed by user."),
   text: z.string().describe('The text of the question. Ensure it is insightful and specific, considering JD and candidate profile (resume including projects & context).'),
-  modelAnswer: z.string().describe("An example answer for the question, presented as 3-4 concise bullet points. Each bullet MUST serve as a general example of a strong answer, be basic, clear, and easy to judge, demonstrate proficiency for the target experience level, and EXPLICITLY reference terms, skills, projects, or experiences from the Job Description, Candidate Resume, or context if appropriate. Ensure this format is maintained if modified."),
+  modelAnswer: z.string().describe("An example answer for the question, presented as 3-4 concise bullet points. Each bullet MUST serve as a general example of a strong answer, be basic, clear, and easy to judge, demonstrate proficiency for the target experience level (drawing from candidate's specific work experience, past experiences from resume/context), and EXPLICITLY reference terms, skills, projects, or experiences from the Job Description, Candidate Resume, or context if appropriate. Ensure this format is maintained if modified. The candidate's resume (including projects) should be a key reference for validating and refining model answers."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).optional().describe("The difficulty level of the question (5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master')."),
   estimatedTimeMinutes: z.number().optional().describe('Suitable estimated time in minutes to answer this question.'),
 });
@@ -53,7 +53,7 @@ const RubricCriterionSchema = z.object({
 const CustomizeInterviewKitInputSchema = z.object({
   jobDescription: z.string().describe('The job description used to generate the interview kit.'),
   candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements (e.g., years of experience, current role, past tech stack).'),
-  candidateResume: z.string().optional().describe('The full text of the candidate\'s resume that was used and should be considered for refinements. This is a key document for tailoring, including specific projects mentioned.'),
+  candidateResume: z.string().optional().describe('The full text of the candidate\'s resume that was used and should be considered for refinements. This is a key reference document for tailoring, including specific projects mentioned.'),
   competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here.'),
   rubricCriteria: z.array(RubricCriterionSchema).describe('Array of rubric criteria with weights. User edits are reflected here.'),
 });
@@ -78,13 +78,13 @@ const customizeInterviewKitPrompt = ai.definePrompt({
   output: {schema: CustomizeInterviewKitOutputSchema},
   prompt: `Critical: Before refining any content, take the time to thoroughly analyze and synthesize ALL provided details about the job, the candidate (from their resume, if provided, which should be treated as a primary reference, including specific projects), any specific experience context, AND the recruiter's edits. Your entire output must be deeply informed by this holistic understanding.
 
-You are a senior recruiter. You will be given an interview kit previously generated from a Job Description, and potentially a Candidate Resume and/or Candidate Experience Context. This kit includes questions, model answers (as 3-4 bullet points referencing JD/resume/projects/context), competency importance, question categories ('Technical'/'Non-Technical'), a 5-level question difficulty ('Naive' to 'Master'), and estimated times. The recruiter has made edits. Your task is to review these edits and refine the entire kit, ensuring it remains highly contextual to all provided inputs. You MUST thoroughly analyze all inputs: the original Job Description, Candidate Resume (if available - analyze it deeply, including projects), Candidate Experience Context, AND the recruiter's edits.
+You are a senior recruiter. You will be given an interview kit previously generated from a Job Description, and potentially a Candidate Resume and/or Candidate Experience Context. This kit includes questions, model answers (as 3-4 bullet points referencing JD/resume/projects/context), competency importance, question categories ('Technical'/'Non-Technical'), a 5-level question difficulty ('Naive' to 'Master'), and estimated times. The recruiter has made edits. Your task is to review these edits and refine the entire kit, ensuring it remains highly contextual to all provided inputs. You MUST thoroughly analyze all inputs: the original Job Description, Candidate Resume (if available - analyze it deeply, including projects, as a key reference document), Candidate Experience Context (considering candidate's work experience and past experiences), AND the recruiter's edits.
 
 Job Description (for context):
 {{{jobDescription}}}
 
 {{#if candidateResume}}
-Candidate Resume (for context and primary reference, including projects):
+Candidate Resume (for context and primary reference, including projects and past experiences):
 {{{candidateResume}}}
 {{/if}}
 
@@ -111,14 +111,14 @@ Rubric Criteria:
 - Name: "{{name}}", Weight: {{weight}}
 {{/each}}
 
-Based on the recruiter's modifications and a holistic understanding of the original Job Description, Candidate Resume (as a key reference, including projects), and Candidate Experience Context:
+Based on the recruiter's modifications and a holistic understanding of the original Job Description, Candidate Resume (as a key reference, including projects and past experiences), and Candidate Experience Context:
 1.  Preserve all existing IDs for competencies and questions.
-2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/projects/context). Model answers MUST be 3-4 concise bullet points, serving as general examples of strong answers, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, projects, or experiences from the Job Description AND/OR Candidate Resume/Context. The candidate's resume (including projects) should be a key reference for validating and refining model answers. If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links (especially to the resume/projects), and ensuring the 3-4 bullet point format for answers.
+2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/projects/context). Model answers MUST be 3-4 concise bullet points, serving as general examples of strong answers, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, projects, or experiences from the Job Description AND/OR Candidate Resume/Context (reflecting candidate's work and past experiences). The candidate's resume (including projects) should be a key reference for validating and refining model answers. If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links (especially to the resume/projects), and ensuring the 3-4 bullet point format for answers.
 3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/projects/context).
 4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are high-quality, well-defined, distinct evaluation parameters, contextually relevant, EXPLICITLY referencing key phrases, skills, concepts, or project types from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/projects/context, while staying close to recruiter's weights.
 5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/projects/context, serving as general examples of strong answers) are present for all competencies and questions.
 
-Return the fully customized and refined interview kit in the specified JSON format. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements based on the JD, resume (including projects), and any other candidate context.
+Return the fully customized and refined interview kit in the specified JSON format. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements based on the JD, resume (including projects and past experiences), and any other candidate context.
 `,
 });
 
