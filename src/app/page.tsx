@@ -4,8 +4,8 @@
 import { useState, useCallback } from 'react';
 import { generateInterviewKit, type GenerateInterviewKitInput, type GenerateInterviewKitOutput } from '@/ai/flows/generate-interview-kit';
 import { customizeInterviewKit, type CustomizeInterviewKitInput, type CustomizeInterviewKitOutput } from '@/ai/flows/customize-interview-kit';
-import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty } from '@/types/interview-kit';
-import { generateId } from '@/types/interview-kit';
+import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty, QuestionCategory } from '@/types/interview-kit';
+import { generateId, difficultyTimeMap } from '@/types/interview-kit';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { JobDescriptionForm, type JobDescriptionFormSubmitData } from '@/components/interview-kit/JobDescriptionForm';
@@ -32,11 +32,12 @@ export default function Home() {
         questions: comp.questions.map(q => ({
           id: generateId('q'),
           type: q.type,
+          category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical') as QuestionCategory,
           text: q.question,
           modelAnswer: q.answer,
           difficulty: q.difficulty || 'Intermediate',
-          estimatedTimeMinutes: q.estimatedTimeMinutes || 5,
-          score: 3, 
+          estimatedTimeMinutes: q.estimatedTimeMinutes || difficultyTimeMap[q.difficulty || 'Intermediate'],
+          score: 5, // Default score for 1-10 scale
           notes: '',
         })),
       })),
@@ -59,6 +60,7 @@ export default function Home() {
         questions: comp.questions.map(q => ({
           id: q.id, 
           type: q.type,
+          category: q.category,
           text: q.text,
           modelAnswer: q.modelAnswer,
           difficulty: q.difficulty,
@@ -84,11 +86,12 @@ export default function Home() {
           return {
             id: newQ.id,
             type: newQ.type,
+            category: newQ.category || existingQ?.category || (newQ.type === 'Technical' ? 'Technical' : 'Non-Technical') as QuestionCategory,
             text: newQ.text,
             modelAnswer: newQ.modelAnswer,
             difficulty: newQ.difficulty || existingQ?.difficulty || 'Intermediate',
-            estimatedTimeMinutes: newQ.estimatedTimeMinutes || existingQ?.estimatedTimeMinutes || 5,
-            score: existingQ?.score ?? 3,
+            estimatedTimeMinutes: newQ.estimatedTimeMinutes || existingQ?.estimatedTimeMinutes || difficultyTimeMap[newQ.difficulty || existingQ?.difficulty || 'Intermediate'],
+            score: existingQ?.score ?? 5, // Default score 5 for 1-10 scale
             notes: existingQ?.notes ?? '',
           };
         }),
@@ -96,11 +99,7 @@ export default function Home() {
     });
 
     const newRubric = output.rubricCriteria.map((newCrit) => {
-      // Try to find existing rubric by ID first, then by name if ID isn't matching (e.g. if AI changed IDs which it shouldn't)
-      let existingCrit = existingKit.scoringRubric.find(er => er.id === generateId('rubric_placeholder')); // Placeholder to avoid accidental match with new IDs if AI changes them
-      if(!existingCrit){
-        existingCrit = existingKit.scoringRubric.find(er => er.name === newCrit.name);
-      }
+      let existingCrit = existingKit.scoringRubric.find(er => er.name === newCrit.name); // Try to match by name
       return {
         id: existingCrit?.id || generateId('rubric'),
         name: newCrit.name,
@@ -216,7 +215,7 @@ export default function Home() {
               </CardHeader>
               <CardContent className="pt-0">
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                 Paste a job description and optionally provide candidate experience context to instantly generate relevant questions, model answers, difficulty, timings, and a consistent scoring rubric.
+                 Paste a job description and optionally provide candidate experience context to instantly generate relevant questions, model answers, difficulty, timings, categories, and a consistent scoring rubric.
                 </CardDescription>
               </CardContent>
             </Card>
