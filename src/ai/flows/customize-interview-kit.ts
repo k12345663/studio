@@ -45,7 +45,7 @@ const CompetencySchema = z.object({
 });
 
 const RubricCriterionSchema = z.object({
-  name: z.string().describe('Name of the high-quality, distinct criterion. It MUST be actionable, measurable, and explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively.'),
+  name: z.string().describe('Name of the well-defined, distinct, and high-quality criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively.'),
   weight: z.number().describe('Weight of the criterion (a value between 0.0 and 1.0, should sum to 1.0 across all criteria).'),
 });
 
@@ -115,7 +115,7 @@ Based on the recruiter's modifications and a holistic understanding of the origi
 1.  Preserve all existing IDs for competencies and questions.
 2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/projects/context). Model answers MUST be 3-4 concise bullet points, serving as general examples of strong answers, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, projects, or experiences from the Job Description AND/OR Candidate Resume/Context. The candidate's resume (including projects) should be a key reference for validating and refining model answers. If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links (especially to the resume/projects), and ensuring the 3-4 bullet point format for answers.
 3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/projects/context).
-4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are high-quality, distinct evaluation parameters, contextually relevant, EXPLICITLY referencing key phrases, skills, concepts, or project types from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/projects/context, while staying close to recruiter's weights.
+4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are high-quality, well-defined, distinct evaluation parameters, contextually relevant, EXPLICITLY referencing key phrases, skills, concepts, or project types from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/projects/context, while staying close to recruiter's weights.
 5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/projects/context, serving as general examples of strong answers) are present for all competencies and questions.
 
 Return the fully customized and refined interview kit in the specified JSON format. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements based on the JD, resume (including projects), and any other candidate context.
@@ -195,17 +195,11 @@ const customizeInterviewKitFlow = ai.defineFlow(
             let currentTotal = validatedOutput.rubricCriteria.reduce((s,c) => s + c.weight, 0);
              if (currentTotal < 1.0 && validatedOutput.rubricCriteria.length > 1) {
                  const remainingDiff = parseFloat((1.0 - currentTotal).toFixed(2));
-                 const otherCrits = validatedOutput.rubricCriteria.filter(c => c !== lastCrit && c.weight > 0); // Consider only crits with existing weight
-                 if (otherCrits.length > 0) {
-                    const adjustmentPerCrit = parseFloat((remainingDiff / otherCrits.length).toFixed(2));
-                    otherCrits.forEach(c => c.weight = parseFloat(Math.max(0, c.weight + adjustmentPerCrit).toFixed(2)));
-                 } else if (validatedOutput.rubricCriteria.length > 0) { // If no other crits with weight, give all to first if possible
-                    const firstCrit = validatedOutput.rubricCriteria[0];
-                    if (firstCrit !== lastCrit) {
-                        firstCrit.weight = parseFloat(Math.max(0, firstCrit.weight + remainingDiff).toFixed(2));
-                    } else if (validatedOutput.rubricCriteria.length > 1) { // if lastCrit was the only one, give to second
-                         validatedOutput.rubricCriteria[1].weight = parseFloat(Math.max(0, validatedOutput.rubricCriteria[1].weight + remainingDiff).toFixed(2));
-                    }
+                 let targetCrit = validatedOutput.rubricCriteria.find(c => c !== lastCrit && c.weight > 0) || validatedOutput.rubricCriteria.find(c => c !== lastCrit); // Prefer one with existing weight
+                 if (targetCrit) {
+                     targetCrit.weight = parseFloat(Math.max(0, targetCrit.weight + remainingDiff).toFixed(2));
+                 } else if (validatedOutput.rubricCriteria.length > 0) { // If truly only one crit left (unlikely but safe)
+                    validatedOutput.rubricCriteria[0].weight = 1.0; 
                  }
             }
         }
@@ -213,7 +207,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
         finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
         if (finalSum !== 1.0 && validatedOutput.rubricCriteria.length > 0) {
             const finalDiff = parseFloat((1.0 - finalSum).toFixed(2));
-            let targetCrit = validatedOutput.rubricCriteria.reduce((prev, current) => (prev.weight > current.weight) ? prev : current); // find crit with largest weight
+            let targetCrit = validatedOutput.rubricCriteria.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.rubricCriteria[0]); // find crit with largest weight or first
             targetCrit.weight = parseFloat(Math.max(0, targetCrit.weight + finalDiff).toFixed(2));
         }
     }

@@ -59,17 +59,17 @@ The project follows a standard Next.js App Router structure:
 
 *   **`src/app/page.tsx`**: The main entry point for the application's UI. It handles state for the job description, candidate resume, candidate experience context, the generated interview kit, loading states, and orchestrates calls to AI flows. The initial welcome screen does not display a placeholder image.
 *   **`src/ai/flows/`**: Contains the Genkit flows.
-    *   **`generate-interview-kit.ts`**: Defines the AI flow for generating an interview kit. The prompt instructs the AI to *critically analyze and synthesize all provided user inputs*, with a strong emphasis on using the Candidate Resume (including specific projects and experiences) and Job Description as primary sources to derive questions. It generates questions with categories (Technical/Non-Technical), a 5-level difficulty, model answers (3-4 concise, judgeable bullet points explicitly referencing JD/resume/projects/context, serving as general examples of strong answers), suggested estimated times, and a scoring rubric with criteria explicitly referencing key phrases from all provided inputs for a broad yet deeply contextual evaluation.
-    *   **`customize-interview-kit.ts`**: Defines the AI flow for refining a user-modified interview kit. The prompt emphasizes *thorough analysis of all inputs including recruiter edits*, with the Candidate Resume (including projects) as a key reference. It ensures model answers adhere to the 3-4 bullet point format and contextual referencing (serving as general examples of strong answers), and rubric criteria maintain deep contextual relevance.
+    *   **`generate-interview-kit.ts`**: Defines the AI flow for generating an interview kit. The prompt instructs the AI to *critically analyze and synthesize all provided user inputs*, with a strong emphasis on using the Candidate Resume (including specific projects and experiences) and Job Description as primary sources to derive questions. It generates questions with categories (Technical/Non-Technical), a 5-level difficulty, model answers (3-4 concise, judgeable bullet points explicitly referencing JD/resume/projects/context, serving as general examples of strong answers), suggested estimated times, and a scoring rubric with criteria explicitly referencing key phrases from all provided inputs for a broad yet deeply contextual evaluation. Rubric criteria weights sum to 1.0.
+    *   **`customize-interview-kit.ts`**: Defines the AI flow for refining a user-modified interview kit. The prompt emphasizes *thorough analysis of all inputs including recruiter edits*, with the Candidate Resume (including projects) as a key reference. It ensures model answers adhere to the 3-4 bullet point format and contextual referencing (serving as general examples of strong answers), and rubric criteria maintain deep contextual relevance and quality. Rubric criteria weights are normalized to sum to 1.0.
 *   **`src/ai/genkit.ts`**: Initializes Genkit with the Google AI plugin and configures the default model.
 *   **`src/components/interview-kit/`**: Houses all components related to displaying and editing the interview kit:
     *   `JobDescriptionForm.tsx`: For user input of the job description (text-based), candidate resume (text-based, optional, including project details), and optional candidate experience context.
     *   `InterviewKitDisplay.tsx`: The main component for showing the generated kit.
     *   `CompetencyAccordion.tsx`: Displays competencies, with questions grouped into "Technical Questions" and "Non-Technical Questions" sub-sections based on their category.
     *   `QuestionEditorCard.tsx`: Allows editing individual questions, their model answers, category (Technical/Non-Technical), 5-level difficulty (Naive to Master, with auto-time suggestion), estimated time, and a 1-10 panelist score slider.
-    *   `RubricEditor.tsx`: Allows editing scoring rubric criteria and weights.
+    *   `RubricEditor.tsx`: Allows editing scoring rubric criteria and their weights (which sum to 1.0).
 *   **`src/components/common/LoadingIndicator.tsx`**: An enhanced loading indicator for better visual feedback during processing.
-*   **`src/types/interview-kit.ts`**: Defines the TypeScript interfaces for `ClientQuestion` (including `category`, 5-level `QuestionDifficulty`, 1-10 `score`), `ClientCompetency`, `ClientRubricCriterion`, and `InterviewKit` (including `candidateResume`). Includes `difficultyTimeMap`.
+*   **`src/types/interview-kit.ts`**: Defines the TypeScript interfaces for `ClientQuestion` (including `category`, 5-level `QuestionDifficulty`, 1-10 `score`), `ClientCompetency`, `ClientRubricCriterion` (with weights summing to 1.0), and `InterviewKit` (including `candidateResume`). Includes `difficultyTimeMap`.
 *   **`src/app/globals.css`**: Contains global CSS, Tailwind directives, and the HSL color variables for theming. Includes custom scrollbar styling.
 
 ## 4. AI Integration
@@ -94,9 +94,9 @@ AI capabilities are central to RecruTake and are implemented using **Genkit**.
                 *   A `category` ('Technical' or 'Non-Technical').
                 *   A `difficulty` level ('Naive', 'Beginner', 'Intermediate', 'Expert', 'Master').
                 *   An `estimatedTimeMinutes` (AI suggests based on difficulty, e.g., Naive:2, Master:10).
-            *   It also generates a scoring rubric with 3-5 weighted criteria (summing to 1.0), with criteria explicitly referencing key phrases from the JD, resume (including projects), or candidate context for a broad yet deeply contextual evaluation.
+            *   It also generates a scoring rubric with 3-5 weighted criteria (summing to 1.0). Criteria are well-defined, distinct, high-quality, actionable, measurable, and explicitly reference key phrases from the JD, resume (including projects), or candidate context for a broad yet deeply contextual evaluation.
         *   **Output Schema (`GenerateInterviewKitOutputSchema` using Zod)**: A structured JSON object. Zod descriptions guide the AI.
-        *   **Error Handling**: Basic error checking and default-filling ensures the AI output is usable. Post-processing normalizes rubric weights and applies default times if AI misses them.
+        *   **Error Handling**: Basic error checking and default-filling ensures the AI output is usable. Post-processing normalizes rubric weights to sum to 1.0 and applies default times if AI misses them.
 
     2.  **`customizeInterviewKit`**:
         *   **Input**: `jobDescription`, `candidateResume` (key reference document, including projects), `candidateExperienceContext`, `competencies` (potentially user-edited, including IDs, importance, questions with category, IDs, 5-level difficulty, time), and `rubricCriteria` (potentially user-edited).
@@ -105,12 +105,12 @@ AI capabilities are central to RecruTake and are implemented using **Genkit**.
             *   It must preserve existing IDs.
             *   It refines modified question text/answers (ensuring 3-4 concise, judgeable bullet format serving as general examples of strong answers, explicitly referencing JD/resume/projects/context, with resume as a validation source).
             *   It reflects changes to importance, category, difficulty, or time, and assigns these if new questions seem to be implicitly added.
-            *   It reflects changes to rubric criteria (ensuring criteria explicitly reference key phrases from JD/resume/projects/context for a broad yet contextual evaluation, and weights sum to 1.0).
+            *   It reflects changes to rubric criteria (ensuring criteria are well-defined, distinct, high-quality, actionable, measurable, and explicitly reference key phrases from JD/resume/projects/context for a broad yet contextual evaluation, and weights sum to 1.0).
             *   It ensures all output fields are present.
         *   **Output Schema (`CustomizeInterviewKitOutputSchema` using Zod)**: A refined version of the interview kit.
-        *   **Error Handling & Validation**: Includes logic to ensure output fields are present, rubric weights are normalized, and default times are applied.
+        *   **Error Handling & Validation**: Includes logic to ensure output fields are present, rubric weights are normalized to sum to 1.0, and default times are applied.
 
-*   **Schema Enforcement**: Zod schemas are used extensively for type safety and to guide the AI model on its response format, ensuring model answers are judgeable (serving as general examples of strong answers) and rubrics offer a broad yet deeply contextual perspective for evaluation.
+*   **Schema Enforcement**: Zod schemas are used extensively for type safety and to guide the AI model on its response format, ensuring model answers are judgeable (serving as general examples of strong answers) and rubrics offer well-defined, high-quality, broad yet deeply contextual parameters for evaluation.
 
 ## 5. Workflow
 
@@ -121,7 +121,7 @@ AI capabilities are central to RecruTake and are implemented using **Genkit**.
 2.  **Initial Kit Generation**:
     *   `handleGenerateKit` in `page.tsx` calls `generateInterviewKit` flow with all provided inputs.
     *   AI returns structured data after *deeply analyzing the context and resume (including projects)*.
-    *   Response is mapped to `InterviewKit` client type (generating client IDs, setting default score to 5 for 1-10 slider, applying default times based on difficulty if needed).
+    *   Response is mapped to `InterviewKit` client type (generating client IDs, setting default question score to 5 for 1-10 slider, applying default times based on difficulty if needed, ensuring rubric weights sum to 1.0).
     *   `interviewKit` state is updated.
 
 3.  **Display and Interaction**:
@@ -134,14 +134,14 @@ AI capabilities are central to RecruTake and are implemented using **Genkit**.
         *   Estimated time (editable number input).
         *   Panelist score (1-10 slider and number input).
         *   Panelist notes.
-    *   `RubricEditor.tsx` displays rubric criteria for editing.
+    *   `RubricEditor.tsx` displays rubric criteria for editing (weights sum to 1.0).
 
 4.  **Kit Customization & Refinement**:
     *   User modifies the kit. Changes update local `interviewKit` state.
     *   User clicks "Update & Regenerate Kit with Edits."
     *   `handleCustomizeKit` in `page.tsx` calls `customizeInterviewKit` flow with current client kit data (including JD, resume with projects, context).
     *   AI refines the kit, again based on *deep contextual analysis of all inputs (especially the resume including projects) and edits*.
-    *   Response is mapped back, preserving user scores/notes and applying defaults for new AI fields if necessary.
+    *   Response is mapped back, preserving user scores/notes and applying defaults for new AI fields if necessary (ensuring rubric weights sum to 1.0).
     *   `interviewKit` state is updated.
 
 ## 6. Running the Application

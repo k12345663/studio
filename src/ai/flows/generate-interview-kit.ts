@@ -47,7 +47,7 @@ const CompetencySchema = z.object({
 });
 
 const ScoringCriterionSchema = z.object({
-  criterion: z.string().describe('A high-quality, distinct scoring criterion that is actionable and measurable. It MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context. The set of criteria MUST provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
+  criterion: z.string().describe('A well-defined, distinct, and high-quality scoring criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context. The set of criteria MUST provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
   weight: z.number().describe('The weight of this criterion (a value between 0.0 and 1.0). All criterion weights in the rubric must sum to 1.0.'),
 });
 
@@ -184,10 +184,10 @@ const generateInterviewKitFlow = ai.defineFlow(
                  }
             }
             finalSum = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
-            if (finalSum !== 1.0) {
-                const finalDiff = 1.0 - finalSum;
-                const primaryTarget = validatedOutput.scoringRubric.find(c => c.weight > 0 && c !== lastCrit) || validatedOutput.scoringRubric[0];
-                primaryTarget.weight = parseFloat(Math.max(0, primaryTarget.weight + finalDiff).toFixed(2));
+            if (finalSum !== 1.0) { // If still not 1.0, adjust the one with most weight or first.
+                const finalDiffToAdjust = parseFloat((1.0-finalSum).toFixed(2));
+                let targetCrit = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
+                targetCrit.weight = parseFloat(Math.max(0, targetCrit.weight + finalDiffToAdjust).toFixed(2));
             }
 
         }
