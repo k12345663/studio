@@ -23,7 +23,7 @@ export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInput
 
 const QuestionAnswerPairSchema = z.object({
   question: z.string().describe('The interview question. Should be insightful and highly specific to the job description and the candidate\'s profile (resume/experience context).'),
-  answer: z.string().describe("A model answer as 3-4 concise bullet points. Each bullet point MUST be basic, clear, and easy to judge (serving as a general example of a strong answer for this role and candidate profile), and demonstrate strong proficiency relevant to the candidate's specific experience level and background (derived from their resume and context). These answers MUST explicitly reference specific terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight key positive indicators a recruiter should look for."),
+  answer: z.string().describe("A model answer as 3-4 concise bullet points. Each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific experience level and background by EXPLICITLY referencing key terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for."),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR method).'),
   category: z.enum(['Technical', 'Non-Technical']).describe("The category of the question. 'Technical' for questions assessing specific hard skills or tool knowledge. 'Non-Technical' for questions assessing problem-solving, behavioral traits, scenarios, or soft skills. Infer this primarily from the question type and content."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).describe("The difficulty level of the question, on a 5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'."),
@@ -37,7 +37,7 @@ const CompetencySchema = z.object({
 });
 
 const ScoringCriterionSchema = z.object({
-  criterion: z.string().describe('The scoring criterion. Each criterion MUST be actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively.'),
+  criterion: z.string().describe('The scoring criterion. Each criterion MUST be actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context. The set of criteria MUST provide a broad yet deeply contextual basis for evaluating the candidate comprehensively.'),
   weight: z.number().describe('The weight of the criterion (must sum to 1.0).'),
 });
 
@@ -85,7 +85,7 @@ Based on a holistic understanding of ALL available information (Job Description,
 
 3.  For EACH question, provide the following:
     *   \\\`question\\\`: The text of the question.
-    *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet point MUST be basic, clear, and easy to judge (serving as a general example of a strong answer for this role and candidate profile), and demonstrate strong proficiency relevant to the candidate's specific experience level and background (derived from their resume and context). These answers MUST explicitly reference specific terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight key positive indicators a recruiter should look for.
+    *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific experience level and background by EXPLICITLY referencing key terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for.
     *   \\\`type\\\`: The type of question ('Technical', 'Scenario', 'Behavioral').
     *   \\\`category\\\`: The category of the question ('Technical' or 'Non-Technical'). 'Technical' questions assess specific hard skills/tools. 'Non-Technical' questions (typically Scenario or Behavioral) assess problem-solving, behavioral traits, or soft skills.
     *   \\\`difficulty\\\`: The difficulty level from this exact 5-level scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level.
@@ -115,7 +115,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         importance: comp.importance || "Medium",
         questions: (comp.questions || []).map(q => ({
           question: q.question || "Missing question text",
-          answer: q.answer || "Missing model answer (should be 3-4 bullet points referencing JD/resume/context).",
+          answer: q.answer || "Missing model answer (should be 3-4 bullet points referencing JD/resume/context, serving as a general example of a strong answer).",
           type: q.type || "Behavioral",
           category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical'),
           difficulty: q.difficulty || "Intermediate",
@@ -123,7 +123,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         })),
       })),
       scoringRubric: (output.scoringRubric || []).map(crit => ({
-        criterion: crit.criterion || "Unnamed Criterion (should reference JD/resume/context)",
+        criterion: crit.criterion || "Unnamed Criterion (should reference JD/resume/context for a broad yet contextual evaluation)",
         weight: typeof crit.weight === 'number' ? Math.max(0, Math.min(1, crit.weight)) : 0.2,
       })),
     };

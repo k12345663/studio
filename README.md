@@ -1,7 +1,7 @@
 
 # RecruTake: AI-Powered Interview Kit Generator
 
-RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, optionally paste a candidate's resume, and provide additional context about the target candidate's experience level (e.g., years of experience, current role, past tech stack). The application will then produce a structured set of competencies, interview questions (categorized as Technical or Non-Technical), model answers (formatted as 3-4 concise, judgeable bullet points explicitly referencing JD/resume/context), a 5-level difficulty rating ('Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), estimated answering times (auto-suggested based on difficulty), and a weighted scoring rubric (contextually derived from JD/resume/context for comprehensive evaluation). Users can edit this kit and have the AI refine their changes. Panelists use a 1-10 score slider.
+RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, optionally paste a candidate's resume, and provide additional context about the target candidate's experience level (e.g., years of experience, current role, past tech stack). The application will then produce a structured set of competencies, interview questions (categorized as Technical or Non-Technical), model answers (formatted as 3-4 concise, judgeable bullet points explicitly referencing JD/resume/context, serving as general examples of strong answers), a 5-level difficulty rating ('Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), estimated answering times (auto-suggested based on difficulty), and a weighted scoring rubric (contextually derived from JD/resume/context for comprehensive evaluation). Users can edit this kit and have the AI refine their changes. Panelists use a 1-10 score slider.
 
 ## Tech Stack
 
@@ -52,8 +52,8 @@ RecruTake is a Next.js web application designed to assist recruiters and hiring 
 
 **Key Files & Features:**
 
-*   **`src/app/page.tsx`**: Manages main state, calls AI flows. Features a welcome screen with an illustrative image.
-*   **`src/ai/flows/`**: Genkit flows for initial generation and AI-assisted customization of interview kits. Prompts instruct the AI to deeply understand and synthesize all provided inputs (JD, resume, context) to generate questions with categories, 5-level difficulty, judgeable bullet-point model answers explicitly referencing context, and context-aware rubrics for comprehensive evaluation.
+*   **`src/app/page.tsx`**: Manages main state, calls AI flows. Features a welcome screen (no placeholder image).
+*   **`src/ai/flows/`**: Genkit flows for initial generation and AI-assisted customization of interview kits. Prompts instruct the AI to deeply understand and synthesize all provided inputs (JD, resume, context) to generate questions with categories, 5-level difficulty, judgeable bullet-point model answers (serving as general examples of strong answers) explicitly referencing context, and context-aware rubrics for comprehensive evaluation.
 *   **`src/components/interview-kit/JobDescriptionForm.tsx`**: Text input for JD, candidate resume (optional), and additional candidate experience context.
 *   **`src/components/interview-kit/CompetencyAccordion.tsx`**: Displays competencies with questions grouped into "Technical" and "Non-Technical" sections.
 *   **`src/components/interview-kit/QuestionEditorCard.tsx`**: UI for editing questions, model answers, category, 5-level difficulty (with auto-time), estimated time, and 1-10 panelist score.

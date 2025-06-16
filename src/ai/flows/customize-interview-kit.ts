@@ -21,7 +21,7 @@ const QuestionSchema = z.object({
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('Type of question.'),
   category: z.enum(['Technical', 'Non-Technical']).optional().describe("Category of the question ('Technical' or 'Non-Technical'). Preserve or update if changed by user."),
   text: z.string().describe('The text of the question. Ensure it is insightful and specific, considering JD and candidate profile.'),
-  modelAnswer: z.string().describe("An example answer for the question, presented as 3-4 concise bullet points. Each bullet MUST be basic, clear, and easy to judge (serving as a general example of a strong answer), demonstrate proficiency for the target experience level, and explicitly reference terms from the Job Description, Candidate Resume, or context if appropriate. Ensure this format is maintained if modified."),
+  modelAnswer: z.string().describe("An example answer for the question, presented as 3-4 concise bullet points. Each bullet MUST serve as a general example of a strong answer, be basic, clear, and easy to judge, demonstrate proficiency for the target experience level, and EXPLICITLY reference terms from the Job Description, Candidate Resume, or context if appropriate. Ensure this format is maintained if modified."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).optional().describe("The difficulty level of the question (5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master')."),
   estimatedTimeMinutes: z.number().optional().describe('Suitable estimated time in minutes to answer this question.'),
 });
@@ -102,7 +102,7 @@ Rubric Criteria:
 
 Based on the recruiter's modifications and a holistic understanding of the original Job Description, Candidate Resume, and Candidate Experience Context:
 1.  Preserve all existing IDs for competencies and questions.
-2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/context). Model answers MUST be 3-4 concise bullet points, basic, clear, and easy to judge (serving as general examples of strong answers), and EXPLICITLY reference specific terms, skills, or experiences from the Job Description AND/OR Candidate Resume/Context. If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links, and ensuring the 3-4 bullet point format for answers.
+2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/context). Model answers MUST be 3-4 concise bullet points, serving as general examples of strong answers, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, or experiences from the Job Description AND/OR Candidate Resume/Context. If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links, and ensuring the 3-4 bullet point format for answers.
 3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/context).
 4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are contextually relevant, EXPLICITLY referencing key phrases from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/context, while staying close to recruiter's weights.
 5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/context) are present for all competencies and questions.
@@ -135,12 +135,12 @@ const customizeInterviewKitFlow = ai.defineFlow(
           difficulty: q.difficulty || 'Intermediate',
           estimatedTimeMinutes: q.estimatedTimeMinutes || (difficultyTimeMap[q.difficulty || 'Intermediate']),
           text: q.text || "Missing question text",
-          modelAnswer: q.modelAnswer || "Missing model answer (should be 3-4 bullet points referencing JD/resume/context).",
+          modelAnswer: q.modelAnswer || "Missing model answer (should be 3-4 bullet points referencing JD/resume/context, serving as a general example).",
         })),
       })),
       rubricCriteria: output.rubricCriteria.map(rc => ({
           ...rc,
-          name: rc.name || "Unnamed Criterion (should reference JD/resume/context)",
+          name: rc.name || "Unnamed Criterion (should reference JD/resume/context for a broad yet contextual evaluation)",
           weight: typeof rc.weight === 'number' ? Math.max(0, Math.min(1, rc.weight)) : 0.2,
       }))
     };

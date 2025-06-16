@@ -13,7 +13,7 @@ import { InterviewKitDisplay } from '@/components/interview-kit/InterviewKitDisp
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase, UserCircle } from 'lucide-react';
+import { FileText, Briefcase, UserCircle, Zap } from 'lucide-react';
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>('');
@@ -193,7 +193,7 @@ export default function Home() {
           )}
 
           {!isLoading && !interviewKit && jobDescription && (
-             <Card className="mt-8 shadow-lg">
+             <Card className="mt-8 shadow-lg transition-shadow hover:shadow-xl">
               <CardHeader>
                 <CardTitle className="flex items-center text-xl font-semibold">
                   <Briefcase className="mr-2 h-5 w-5 text-primary" />
@@ -235,17 +235,17 @@ export default function Home() {
           )}
 
           {!isLoading && !interviewKit && !jobDescription && (
-             <Card className="text-center bg-card shadow-xl border border-primary/20">
+             <Card className="text-center bg-card shadow-xl border border-primary/20 transition-shadow hover:shadow-2xl">
               <CardHeader className="pt-8">
-                <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">
-                  Welcome to RecruTake
+                <CardTitle className="text-2xl sm:text-3xl font-headline text-primary flex items-center justify-center">
+                 <Zap className="mr-3 h-8 w-8 text-primary/90" /> Welcome to RecruTake
                 </CardTitle>
               </CardHeader>
               <CardContent className="pb-8 pt-2">
-                <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto">
+                <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto mb-6">
                  Paste a job description, candidate's resume (optional), and any additional candidate context. RecruTake will instantly generate relevant questions, model answers, difficulty ratings, timings, categories, and a consistent scoring rubric tailored for your interview.
                 </CardDescription>
-                 <img src="https://placehold.co/600x400.png" alt="Recruitment illustration" data-ai-hint="interview preparation" className="mt-6 mx-auto rounded-lg shadow-md opacity-75"/>
+                {/* Image removed as requested */}
               </CardContent>
             </Card>
           )}
