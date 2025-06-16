@@ -5,6 +5,7 @@ import type { ClientRubricCriterion } from '@/types/interview-kit';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea'; // Import Textarea
 import { Scale, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type React from 'react';
 import { useState, useEffect } from 'react';
@@ -60,12 +61,13 @@ export function RubricEditor({ rubricCriteria, onRubricChange, isLoading = false
           <div key={criterion.id} className="space-y-3 p-4 border rounded-lg bg-background/50 shadow-sm">
             <div className="space-y-1.5">
               <Label htmlFor={`criterion-name-${criterion.id}`} className="font-medium text-sm text-foreground">Criterion Name</Label>
-              <Input
+              <Textarea // Changed from Input to Textarea
                 id={`criterion-name-${criterion.id}`}
                 value={criterion.name}
                 onChange={(e) => handleCriterionChange(index, 'name', e.target.value)}
-                placeholder="e.g., Technical Proficiency, Problem Solving"
+                placeholder="e.g., Technical Proficiency, Problem Solving - ensure it's well-defined, distinct, high-quality, actionable, measurable, and contextually references JD/resume/projects/education/context for comprehensive evaluation."
                 className="mt-1 text-sm p-2 shadow-sm w-full"
+                rows={2} // Allow for two lines by default
                 disabled={isLoading}
                 aria-label={`Criterion name for ${criterion.name || `criterion ${index + 1}`}`}
               />
