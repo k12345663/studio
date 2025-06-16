@@ -57,7 +57,7 @@ export function RubricEditor({ rubricCriteria, onRubricChange, isLoading = false
       </CardHeader>
       <CardContent className="space-y-5 pt-3">
         {internalCriteria.map((criterion, index) => (
-          <div key={criterion.id} className="grid grid-cols-1 md:grid-cols-[1fr_auto] items-end gap-x-4 gap-y-3 p-4 border rounded-lg bg-background/50 shadow-sm">
+          <div key={criterion.id} className="space-y-3 p-4 border rounded-lg bg-background/50 shadow-sm">
             <div className="space-y-1.5">
               <Label htmlFor={`criterion-name-${criterion.id}`} className="font-medium text-sm text-foreground">Criterion Name</Label>
               <Input
@@ -65,12 +65,12 @@ export function RubricEditor({ rubricCriteria, onRubricChange, isLoading = false
                 value={criterion.name}
                 onChange={(e) => handleCriterionChange(index, 'name', e.target.value)}
                 placeholder="e.g., Technical Proficiency, Problem Solving"
-                className="mt-1 text-sm p-2 shadow-sm"
+                className="mt-1 text-sm p-2 shadow-sm w-full"
                 disabled={isLoading}
                 aria-label={`Criterion name for ${criterion.name || `criterion ${index + 1}`}`}
               />
             </div>
-            <div className="space-y-1.5 w-full md:w-32">
+            <div className="space-y-1.5">
               <Label htmlFor={`criterion-weight-${criterion.id}`} className="font-medium text-sm text-foreground">Weight (0-1)</Label>
               <Input
                 id={`criterion-weight-${criterion.id}`}
@@ -81,7 +81,7 @@ export function RubricEditor({ rubricCriteria, onRubricChange, isLoading = false
                 step="0.01"
                 min="0"
                 max="1"
-                className="mt-1 text-sm p-2 shadow-sm text-center"
+                className="mt-1 text-sm p-2 shadow-sm w-full md:w-40" // Kept md:w-40 for weight for a bit narrower field, but it's on its own line
                 disabled={isLoading}
                 aria-label={`Weight for ${criterion.name || `criterion ${index + 1}`}`}
               />
