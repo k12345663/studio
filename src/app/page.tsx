@@ -6,7 +6,6 @@ import { generateInterviewKit, type GenerateInterviewKitInput, type GenerateInte
 import { customizeInterviewKit, type CustomizeInterviewKitInput, type CustomizeInterviewKitOutput } from '@/ai/flows/customize-interview-kit';
 import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion } from '@/types/interview-kit';
 import { generateId } from '@/types/interview-kit';
-import { extractTextFromPdf } from '@/app/actions';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { JobDescriptionForm } from '@/components/interview-kit/JobDescriptionForm';
@@ -110,35 +109,20 @@ export default function Home() {
   }, []);
 
 
-  const handleGenerateKit = useCallback(async (data: string | File) => {
+  const handleGenerateKit = useCallback(async (jdText: string) => {
     setIsLoading(true);
     setInterviewKit(null); 
-    let currentJdText = '';
+    setJobDescriptionText(jdText);
 
     try {
-      if (typeof data === 'string') {
-        currentJdText = data;
-        setJobDescriptionText(data);
-      } else {
-        toast({ title: "Processing PDF...", description: "Extracting text from your PDF." });
-        const arrayBuffer = await data.arrayBuffer();
-        const extractedText = await extractTextFromPdf(arrayBuffer);
-        if (!extractedText.trim()) {
-            throw new Error("PDF is empty or contains no extractable text.");
-        }
-        currentJdText = extractedText;
-        setJobDescriptionText(extractedText); 
-        toast({ title: "PDF Processed!", description: "Text extracted, now generating kit." });
-      }
-
-      if (!currentJdText.trim()) {
+      if (!jdText.trim()) {
         throw new Error("Job description is empty.");
       }
 
-      const input: GenerateInterviewKitInput = { jobDescription: currentJdText };
+      const input: GenerateInterviewKitInput = { jobDescription: jdText };
       const output = await generateInterviewKit(input);
       if (output && output.competencies && output.scoringRubric) {
-        setInterviewKit(mapOutputToClientKit(output, currentJdText));
+        setInterviewKit(mapOutputToClientKit(output, jdText));
         toast({ title: "Success!", description: "Interview kit generated." });
       } else {
         throw new Error("AI response was empty or malformed.");
@@ -147,7 +131,7 @@ export default function Home() {
       console.error("Error generating interview kit:", error);
       toast({ variant: "destructive", title: "Error", description: `Failed to generate kit: ${error instanceof Error ? error.message : String(error)}` });
       setInterviewKit(null);
-      setJobDescriptionText(''); 
+      // setJobDescriptionText(''); Keep the JD text for user reference
     } finally {
       setIsLoading(false);
     }
@@ -210,7 +194,7 @@ export default function Home() {
               </CardHeader>
               <CardContent className="pt-0">
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Streamline your hiring with RecruTake. Paste a job description or upload a PDF to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
+                  Streamline your hiring with RecruTake. Paste a job description to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
                 </CardDescription>
               </CardContent>
             </Card>
