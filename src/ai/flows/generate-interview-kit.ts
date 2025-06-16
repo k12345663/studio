@@ -27,13 +27,13 @@ const GenerateInterviewKitInputSchema = z.object({
     .string()
     .describe('The job description to generate an interview kit for.'),
   candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience." This supplements the resume if provided.'),
-  candidateResume: z.string().optional().describe('The full text of the candidate\'s resume, if provided. This should be a primary source for tailoring questions and model answers, alongside the job description.'),
+  candidateResume: z.string().optional().describe('The full text of the candidate\'s resume, if provided. This should be a primary source for tailoring questions and model answers, alongside the job description. Analyze the resume deeply to extract skills, experiences, and projects to ask about.'),
 });
 export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInputSchema>;
 
 const QuestionAnswerPairSchema = z.object({
-  question: z.string().describe('The interview question. Should be insightful and highly specific to the job description and the candidate\'s profile (resume/experience context).'),
-  answer: z.string().describe("A model answer as 3-4 concise bullet points. Each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific experience level and background by EXPLICITLY referencing key terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for."),
+  question: z.string().describe('The interview question. Should be insightful and highly specific, directly derived from or probing into experiences, skills, and claims made in the Candidate\'s Resume (if provided) and the Job Description, as well as any Candidate Experience Context.'),
+  answer: z.string().describe("A model answer as 3-4 concise bullet points. Each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific experience level and background by EXPLICITLY referencing key terms, skills, projects, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for."),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR method).'),
   category: z.enum(['Technical', 'Non-Technical']).describe("The category of the question. 'Technical' for questions assessing specific hard skills or tool knowledge. 'Non-Technical' for questions assessing problem-solving, behavioral traits, scenarios, or soft skills. Infer this primarily from the question type and content."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).describe("The difficulty level of the question, on a 5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'."),
@@ -43,7 +43,7 @@ const QuestionAnswerPairSchema = z.object({
 const CompetencySchema = z.object({
   name: z.string().describe('The name of the competency, derived from the job description.'),
   importance: z.enum(['High', 'Medium', 'Low']).describe('The importance of this competency for the role, based on the job description.'),
-  questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency. Aim for a mix of Technical, Scenario, and Behavioral questions, tailored to the job description and candidate profile.'),
+  questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency. Aim for a mix of Technical, Scenario, and Behavioral questions, tailored to the job description and candidate profile. Questions should actively probe claims and details found in the candidate\'s resume.'),
 });
 
 const ScoringCriterionSchema = z.object({
@@ -67,9 +67,9 @@ const generateInterviewKitPrompt = ai.definePrompt({
   name: 'generateInterviewKitPrompt',
   input: {schema: GenerateInterviewKitInputSchema},
   output: {schema: GenerateInterviewKitOutputSchema},
-  prompt: `Critical: Before generating any content, take the time to thoroughly analyze and synthesize ALL provided details about the job, the candidate (from their resume, if provided), and any specific experience context. Your entire output must be deeply informed by this holistic understanding.
+  prompt: `Critical: Before generating any content, take the time to thoroughly analyze and synthesize ALL provided details about the job, the candidate (from their resume, if provided, which should be treated as a primary source for question inspiration), and any specific experience context. Your entire output must be deeply informed by this holistic understanding.
 
-You are a senior hiring manager and expert interviewer. Your task is to generate a comprehensive interview kit. You MUST thoroughly analyze and synthesize ALL provided information: the Job Description, the Candidate Resume (if available), and any Candidate Experience Context. Your output should be deeply tailored and highly practical, reflecting a complete understanding of these inputs.
+You are a senior hiring manager and expert interviewer. Your task is to generate a comprehensive interview kit. You MUST thoroughly analyze and synthesize ALL provided information: the Job Description, the Candidate Resume (if available - analyze it deeply to extract skills, experiences, and projects to ask about), and any Candidate Experience Context. Your output should be deeply tailored and highly practical, reflecting a complete understanding of these inputs.
 
 Job Description:
 {{{jobDescription}}}
@@ -91,11 +91,11 @@ Based on a holistic understanding of ALL available information (Job Description,
     *   One Technical Question: Probes specific technical skills, tools, or platform knowledge relevant to the JD and candidate's background (from resume/context).
     *   One Scenario-based Question: Presents a realistic work-related challenge reflecting the JD's demands and candidate's experience level (from resume/context).
     *   One Behavioral Question: Assesses past behavior (STAR method), ideally probing experiences mentioned in the resume or required by the JD.
-    These questions must be sharply tailored to the specifics of BOTH the Job Description and the Candidate's Profile (Resume and/or Context).
+    These questions must be sharply tailored to the specifics of the Job Description and **directly derived from or probe into experiences, skills, and claims made in the Candidate's Resume (if provided) and any Candidate Experience Context.**
 
 3.  For EACH question, provide all the fields as specified in the output schema, paying close attention to the descriptions:
     *   \\\`question\\\`: The text of the question.
-    *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific experience level and background by EXPLICITLY referencing key terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for.
+    *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific experience level and background by EXPLICITLY referencing key terms, skills, projects, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for.
     *   \\\`type\\\`: The type of question ('Technical', 'Scenario', 'Behavioral').
     *   \\\`category\\\`: The category of the question ('Technical' or 'Non-Technical'). 'Technical' questions assess specific hard skills/tools. 'Non-Technical' questions (typically Scenario or Behavioral) assess problem-solving, behavioral traits, or soft skills. Assign based on question type and content.
     *   \\\`difficulty\\\`: The difficulty level from this exact 5-level scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level.
@@ -103,7 +103,7 @@ Based on a holistic understanding of ALL available information (Job Description,
 4.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be a high-quality, distinct evaluation parameter, actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context. The set of criteria MUST provide a broad yet deeply contextual basis for evaluating the candidate comprehensively. Ensure criterion weights sum to 1.0.
 
 Return a JSON object adhering to the specified output schema. Ensure all fields are populated.
-The goal is to produce highly relevant, tailored questions with concise, judgeable model answers that serve as general examples of strong responses, and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience.
+The goal is to produce highly relevant, tailored questions (actively drawing from the resume where possible) with concise, judgeable model answers that serve as general examples of strong responses, and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience.
 `,
 });
 
@@ -173,8 +173,6 @@ const generateInterviewKitFlow = ai.defineFlow(
         lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diff).toFixed(2));
          // Ensure no weight is negative after adjustment
         if (lastCrit.weight < 0) {
-            // This case should ideally not happen with prior logic, but as a safeguard
-            // Re-distribute remaining positive diff if last weight becomes negative
             lastCrit.weight = 0;
             let currentTotal = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
             if (currentTotal < 1.0 && validatedOutput.scoringRubric.length > 1) {
@@ -185,7 +183,6 @@ const generateInterviewKitFlow = ai.defineFlow(
                     otherCrits.forEach(c => c.weight = parseFloat(Math.max(0, c.weight + adjustmentPerCrit).toFixed(2)));
                  }
             }
-            // Recalculate and adjust the last item again if necessary
             finalSum = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
             if (finalSum !== 1.0) {
                 const finalDiff = 1.0 - finalSum;
