@@ -57,7 +57,9 @@ const generateInterviewKitPrompt = ai.definePrompt({
   name: 'generateInterviewKitPrompt',
   input: {schema: GenerateInterviewKitInputSchema},
   output: {schema: GenerateInterviewKitOutputSchema},
-  prompt: `You are a senior hiring manager and expert interviewer. Your task is to generate a comprehensive interview kit. You MUST thoroughly analyze and synthesize ALL provided information: the Job Description, the Candidate Resume (if available), and any Candidate Experience Context. Your output should be deeply tailored and highly practical, reflecting a complete understanding of these inputs.
+  prompt: `Critical: Before generating any content, take the time to thoroughly analyze and synthesize ALL provided details about the job, the candidate (from their resume, if provided), and any specific experience context. Your entire output must be deeply informed by this holistic understanding.
+
+You are a senior hiring manager and expert interviewer. Your task is to generate a comprehensive interview kit. You MUST thoroughly analyze and synthesize ALL provided information: the Job Description, the Candidate Resume (if available), and any Candidate Experience Context. Your output should be deeply tailored and highly practical, reflecting a complete understanding of these inputs.
 
 Job Description:
 {{{jobDescription}}}
@@ -117,7 +119,7 @@ const generateInterviewKitFlow = ai.defineFlow(
           type: q.type || "Behavioral",
           category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical'),
           difficulty: q.difficulty || "Intermediate",
-          estimatedTimeMinutes: q.estimatedTimeMinutes || (q.difficulty === 'Naive' ? 2 : q.difficulty === 'Beginner' ? 4 : q.difficulty === 'Intermediate' ? 6 : q.difficulty === 'Expert' ? 8 : q.difficulty === 'Master' ? 10 : 5),
+          estimatedTimeMinutes: q.estimatedTimeMinutes || (difficultyTimeMap[q.difficulty || "Intermediate"]),
         })),
       })),
       scoringRubric: (output.scoringRubric || []).map(crit => ({

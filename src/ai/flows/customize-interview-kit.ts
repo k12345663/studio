@@ -65,7 +65,9 @@ const customizeInterviewKitPrompt = ai.definePrompt({
   name: 'customizeInterviewKitPrompt',
   input: {schema: CustomizeInterviewKitInputSchema},
   output: {schema: CustomizeInterviewKitOutputSchema},
-  prompt: `You are a senior recruiter. You will be given an interview kit previously generated from a Job Description, and potentially a Candidate Resume and/or Candidate Experience Context. This kit includes questions, model answers (as 3-4 bullet points referencing JD/resume/context), competency importance, question categories ('Technical'/'Non-Technical'), a 5-level question difficulty ('Naive' to 'Master'), and estimated times. The recruiter has made edits. Your task is to review these edits and refine the entire kit, ensuring it remains highly contextual to all provided inputs. You MUST thoroughly analyze all inputs: the original Job Description, Candidate Resume (if available), Candidate Experience Context, AND the recruiter's edits.
+  prompt: `Critical: Before refining any content, take the time to thoroughly analyze and synthesize ALL provided details about the job, the candidate (from their resume, if provided), any specific experience context, AND the recruiter's edits. Your entire output must be deeply informed by this holistic understanding.
+
+You are a senior recruiter. You will be given an interview kit previously generated from a Job Description, and potentially a Candidate Resume and/or Candidate Experience Context. This kit includes questions, model answers (as 3-4 bullet points referencing JD/resume/context), competency importance, question categories ('Technical'/'Non-Technical'), a 5-level question difficulty ('Naive' to 'Master'), and estimated times. The recruiter has made edits. Your task is to review these edits and refine the entire kit, ensuring it remains highly contextual to all provided inputs. You MUST thoroughly analyze all inputs: the original Job Description, Candidate Resume (if available), Candidate Experience Context, AND the recruiter's edits.
 
 Job Description (for context):
 {{{jobDescription}}}
@@ -131,7 +133,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
           ...q,
           category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical'),
           difficulty: q.difficulty || 'Intermediate',
-          estimatedTimeMinutes: q.estimatedTimeMinutes || (q.difficulty === 'Naive' ? 2 : q.difficulty === 'Beginner' ? 4 : q.difficulty === 'Intermediate' ? 6 : q.difficulty === 'Expert' ? 8 : q.difficulty === 'Master' ? 10 : 5),
+          estimatedTimeMinutes: q.estimatedTimeMinutes || (difficultyTimeMap[q.difficulty || 'Intermediate']),
           text: q.text || "Missing question text",
           modelAnswer: q.modelAnswer || "Missing model answer (should be 3-4 bullet points referencing JD/resume/context).",
         })),

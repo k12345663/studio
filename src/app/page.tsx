@@ -206,7 +206,7 @@ export default function Home() {
                   <h3 className="font-semibold mb-1 text-foreground flex items-center">
                      <FileText size={16} className="mr-2 text-muted-foreground"/> Job Description:
                   </h3>
-                  <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner">
+                  <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner custom-scrollbar">
                     {jobDescription}
                   </pre>
                 </div>
@@ -215,7 +215,7 @@ export default function Home() {
                     <h3 className="font-semibold mb-1 text-foreground flex items-center">
                       <UserCircle size={16} className="mr-2 text-muted-foreground"/> Candidate Resume:
                     </h3>
-                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner">
+                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner custom-scrollbar">
                       {candidateResume}
                     </pre>
                   </div>
@@ -225,7 +225,7 @@ export default function Home() {
                     <h3 className="font-semibold mb-1 text-foreground flex items-center">
                       <FileText size={16} className="mr-2 text-muted-foreground"/> Additional Context:
                     </h3>
-                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-background shadow-inner">
+                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-background shadow-inner custom-scrollbar">
                       {candidateExperienceContext}
                     </pre>
                   </div>
@@ -245,7 +245,7 @@ export default function Home() {
                 <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto">
                  Paste a job description, candidate's resume (optional), and any additional candidate context. RecruTake will instantly generate relevant questions, model answers, difficulty ratings, timings, categories, and a consistent scoring rubric tailored for your interview.
                 </CardDescription>
-                 <img src="https://placehold.co/300x200.png" alt="Recruitment illustration" data-ai-hint="recruitment hiring" className="mt-6 mx-auto rounded-lg shadow-md opacity-75"/>
+                 <img src="https://placehold.co/600x400.png" alt="Recruitment illustration" data-ai-hint="interview preparation" className="mt-6 mx-auto rounded-lg shadow-md opacity-75"/>
               </CardContent>
             </Card>
           )}

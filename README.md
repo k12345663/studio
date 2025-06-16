@@ -10,7 +10,7 @@ RecruTake is a Next.js web application designed to assist recruiters and hiring 
 *   **UI Components**: ShadCN UI
 *   **Styling**: Tailwind CSS (`src/app/globals.css` for theme)
 *   **AI Integration**: Genkit (Google's Gemini models). Prompts are designed for:
-    *   Thoroughly analyzing and synthesizing Job Description, Candidate Resume, and Candidate Context.
+    *   Critically analyzing and synthesizing Job Description, Candidate Resume, and Candidate Experience Context. The AI is instructed to thoroughly understand all user-provided details before generating content.
     *   Generating questions with categories (Technical/Non-Technical).
     *   Producing concise 3-4 judgeable bullet model answers explicitly referencing JD/resume/context, serving as general examples of strong answers.
     *   Using a 5-level difficulty scale ('Naive' to 'Master') with auto-suggested times (2/4/6/8/10 mins).
@@ -52,7 +52,7 @@ RecruTake is a Next.js web application designed to assist recruiters and hiring 
 
 **Key Files & Features:**
 
-*   **`src/app/page.tsx`**: Manages main state, calls AI flows.
+*   **`src/app/page.tsx`**: Manages main state, calls AI flows. Features a welcome screen with an illustrative image.
 *   **`src/ai/flows/`**: Genkit flows for initial generation and AI-assisted customization of interview kits. Prompts instruct the AI to deeply understand and synthesize all provided inputs (JD, resume, context) to generate questions with categories, 5-level difficulty, judgeable bullet-point model answers explicitly referencing context, and context-aware rubrics for comprehensive evaluation.
 *   **`src/components/interview-kit/JobDescriptionForm.tsx`**: Text input for JD, candidate resume (optional), and additional candidate experience context.
 *   **`src/components/interview-kit/CompetencyAccordion.tsx`**: Displays competencies with questions grouped into "Technical" and "Non-Technical" sections.
@@ -67,4 +67,3 @@ RecruTake is a Next.js web application designed to assist recruiters and hiring 
 4.  **Run Genkit Dev Server** (optional): `npm run genkit:dev` (Genkit UI `http://localhost:4000`)
 
 Refer to `PROJECT_REPORT.md` for a more detailed breakdown.
-
