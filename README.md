@@ -1,7 +1,7 @@
 
 # RecruTake: AI-Powered Interview Kit Generator
 
-RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, and the application will produce a structured set of competencies, interview questions (technical, scenario-based, behavioral) with model answers, difficulty levels, estimated answering times, and a weighted scoring rubric. Users can then edit this kit and have the AI refine their changes.
+RecruTake is a Next.js web application designed to assist recruiters and hiring managers by leveraging AI to generate and customize comprehensive interview kits. Users can input a job description by pasting text, and optionally provide context about the target candidate's experience level. The application will produce a structured set of competencies, interview questions (technical, scenario-based, behavioral) with model answers, a 5-level difficulty rating, estimated answering times, and a weighted scoring rubric. Users can then edit this kit and have the AI refine their changes.
 
 ## Tech Stack
 
@@ -11,7 +11,7 @@ The application is built with a modern, server-centric approach:
 *   **Language**: TypeScript
 *   **UI Components**: ShadCN UI - A collection of re-usable UI components.
 *   **Styling**: Tailwind CSS - A utility-first CSS framework for rapid UI development. Global styles and theme variables (CSS HSL) are managed in `src/app/globals.css`.
-*   **AI Integration**: Genkit - An open-source framework from Google for building AI-powered applications. It's used here to connect to Google's Gemini models.
+*   **AI Integration**: Genkit - An open-source framework from Google for building AI-powered applications. It's used here to connect to Google's Gemini models. AI prompts are designed to generate questions tailored to candidate experience, provide concise model answers, and use a 5-level difficulty scale.
 *   **State Management**: Primarily React's built-in state (`useState`, `useCallback`) and context where appropriate (e.g., `useToast`).
 *   **Form Handling**: Standard React form handling.
 *   **Linting/Formatting**: ESLint, Prettier (implicitly, through Next.js defaults).
@@ -34,7 +34,6 @@ The project follows a standard Next.js App Router structure:
 │   │   ├── page.tsx            # Main application page component
 │   │   ├── layout.tsx          # Root layout component
 │   │   └── globals.css         # Global styles and Tailwind theme
-│   │   └── actions.ts          # Server actions (currently minimal)
 │   ├── components/             # Reusable React components
 │   │   ├── common/             # General-purpose components (e.g., LoadingIndicator)
 │   │   ├── interview-kit/      # Components specific to the interview kit
@@ -57,13 +56,13 @@ The project follows a standard Next.js App Router structure:
 
 **Key Directories & Files:**
 
-*   **`src/app/page.tsx`**: The main entry point for the application's UI. It handles state for the job description, the generated interview kit, loading states, and orchestrates calls to AI flows.
+*   **`src/app/page.tsx`**: The main entry point for the application's UI. It handles state for the job description, candidate experience context, the generated interview kit, loading states, and orchestrates calls to AI flows.
 *   **`src/ai/flows/`**: Contains the Genkit flows.
-    *   **`generate-interview-kit.ts`**: Defines the AI flow for generating an interview kit from a job description.
-    *   **`customize-interview-kit.ts`**: Defines the AI flow for refining a user-modified interview kit.
+    *   **`generate-interview-kit.ts`**: Defines the AI flow for generating an interview kit from a job description and candidate experience context.
+    *   **`customize-interview-kit.ts`**: Defines the AI flow for refining a user-modified interview kit, considering experience context and the 5-level difficulty scale.
 *   **`src/ai/genkit.ts`**: Initializes Genkit with the Google AI plugin.
-*   **`src/components/interview-kit/`**: Houses components for displaying and editing the interview kit.
-*   **`src/types/interview-kit.ts`**: Defines core TypeScript interfaces for the application.
+*   **`src/components/interview-kit/`**: Houses components for displaying and editing the interview kit (e.g., `JobDescriptionForm.tsx` for text and experience input, `QuestionEditorCard.tsx` for 5-level difficulty).
+*   **`src/types/interview-kit.ts`**: Defines core TypeScript interfaces for the application, including the 5-level `QuestionDifficulty` and optional `candidateExperienceContext`.
 *   **`src/app/globals.css`**: Contains global CSS, Tailwind directives, and theme variables.
 
 ## Getting Started

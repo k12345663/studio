@@ -1,6 +1,6 @@
 
 export type QuestionType = 'Technical' | 'Scenario' | 'Behavioral';
-export type QuestionDifficulty = 'Easy' | 'Medium' | 'Hard';
+export type QuestionDifficulty = 'Naive' | 'Beginner' | 'Intermediate' | 'Expert' | 'Master';
 export type CompetencyImportance = 'High' | 'Medium' | 'Low';
 
 export interface ClientQuestion {
@@ -29,6 +29,7 @@ export interface ClientRubricCriterion {
 
 export interface InterviewKit {
   jobDescription: string;
+  candidateExperienceContext?: string; // Added
   competencies: ClientCompetency[];
   scoringRubric: ClientRubricCriterion[];
 }

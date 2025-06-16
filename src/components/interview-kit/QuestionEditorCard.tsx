@@ -1,13 +1,14 @@
+
 "use client";
 
-import type { ClientQuestion } from '@/types/interview-kit';
+import type { ClientQuestion, QuestionDifficulty } from '@/types/interview-kit';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { Wrench, Puzzle, Users, HelpCircle, AlertTriangle, CheckCircle, Clock3 } from 'lucide-react';
+import { Wrench, Puzzle, Users, HelpCircle, ThermometerSnowflake, Thermometer, Activity, Sparkles, Gem, Clock3 } from 'lucide-react';
 import type React from 'react';
 
 interface QuestionEditorCardProps {
@@ -34,21 +35,33 @@ const getQuestionTypeIcon = (type: ClientQuestion['type']) => {
 const DifficultyBadge: React.FC<{ difficulty: ClientQuestion['difficulty'] }> = ({ difficulty }) => {
   let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
   let icon: React.ReactNode = null;
+  let text = difficulty;
 
   switch (difficulty) {
-    case 'Hard':
+    case 'Naive':
+      variant = "outline";
+      icon = <ThermometerSnowflake className="h-3 w-3 mr-1" />;
+      break;
+    case 'Beginner':
+      variant = "secondary";
+      icon = <Thermometer className="h-3 w-3 mr-1" />;
+      break;
+    case 'Intermediate':
+      variant = "default"; 
+      icon = <Activity className="h-3 w-3 mr-1" />;
+      break;
+    case 'Expert':
+      // Using accent color for Expert
+      return <Badge variant="default" className="text-xs px-1.5 py-0.5 bg-accent text-accent-foreground hover:bg-accent/90"><Sparkles className="h-3 w-3 mr-1" />{text}</Badge>;
+    case 'Master':
       variant = "destructive";
-      icon = <AlertTriangle className="h-3 w-3 mr-1" />;
+      icon = <Gem className="h-3 w-3 mr-1" />;
       break;
-    case 'Medium':
-      variant = "default"; // Using primary color for medium
-      icon = <CheckCircle className="h-3 w-3 mr-1" />;
-      break;
-    case 'Easy':
-      variant = "secondary"; // Muted or secondary for easy
+    default:
+      icon = <HelpCircle className="h-3 w-3 mr-1" />;
       break;
   }
-  return <Badge variant={variant} className="text-xs px-1.5 py-0.5">{icon}{difficulty}</Badge>;
+  return <Badge variant={variant} className="text-xs px-1.5 py-0.5">{icon}{text}</Badge>;
 };
 
 
@@ -81,6 +94,7 @@ export function QuestionEditorCard({
 
 
   const uniqueIdPrefix = `competency-${competencyName.replace(/\s+/g, '-').toLowerCase()}-q${questionIndex}`;
+  const difficultyLevels: QuestionDifficulty[] = ['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'];
 
   return (
     <Card className="mb-4 shadow-md bg-card/80 backdrop-blur-sm border border-border">
@@ -139,9 +153,9 @@ export function QuestionEditorCard({
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-input border rounded-md focus:outline-none focus:ring-ring focus:border-ring sm:text-sm bg-background"
                 aria-label={`Difficulty for question ${questionIndex + 1}`}
             >
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
+                {difficultyLevels.map(level => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
             </select>
           </div>
           <div>
@@ -177,7 +191,11 @@ export function QuestionEditorCard({
               <Input
                 type="number"
                 value={question.score}
-                onChange={(e) => handleInputChange('score', parseInt(e.target.value, 10))}
+                onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    if(val >= 1 && val <=5) handleInputChange('score', val);
+                    else if (e.target.value === "") handleInputChange('score',1); // Or some default
+                }}
                 min={1} max={5}
                 className="w-16 text-center"
                 disabled={isLoading}

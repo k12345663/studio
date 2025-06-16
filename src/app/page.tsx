@@ -4,25 +4,27 @@
 import { useState, useCallback } from 'react';
 import { generateInterviewKit, type GenerateInterviewKitInput, type GenerateInterviewKitOutput } from '@/ai/flows/generate-interview-kit';
 import { customizeInterviewKit, type CustomizeInterviewKitInput, type CustomizeInterviewKitOutput } from '@/ai/flows/customize-interview-kit';
-import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion } from '@/types/interview-kit';
+import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty } from '@/types/interview-kit';
 import { generateId } from '@/types/interview-kit';
 
 import { AppHeader } from '@/components/layout/AppHeader';
-import { JobDescriptionForm } from '@/components/interview-kit/JobDescriptionForm';
+import { JobDescriptionForm, type JobDescriptionFormSubmitData } from '@/components/interview-kit/JobDescriptionForm';
 import { InterviewKitDisplay } from '@/components/interview-kit/InterviewKitDisplay';
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
-  const [jobDescriptionText, setJobDescriptionText] = useState<string>('');
+  const [jobDescription, setJobDescription] = useState<string>('');
+  const [candidateExperienceContext, setCandidateExperienceContext] = useState<string | undefined>(undefined);
   const [interviewKit, setInterviewKit] = useState<InterviewKit | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string): InterviewKit => {
+  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, expContext?: string): InterviewKit => {
     return {
       jobDescription: jdToStore,
+      candidateExperienceContext: expContext,
       competencies: output.competencies.map(comp => ({
         id: generateId('comp'),
         name: comp.name,
@@ -32,7 +34,7 @@ export default function Home() {
           type: q.type,
           text: q.question,
           modelAnswer: q.answer,
-          difficulty: q.difficulty || 'Medium',
+          difficulty: q.difficulty || 'Intermediate',
           estimatedTimeMinutes: q.estimatedTimeMinutes || 5,
           score: 3, 
           notes: '',
@@ -49,6 +51,7 @@ export default function Home() {
   const mapClientKitToCustomizeInput = useCallback((clientKit: InterviewKit): CustomizeInterviewKitInput => {
     return {
       jobDescription: clientKit.jobDescription,
+      candidateExperienceContext: clientKit.candidateExperienceContext,
       competencies: clientKit.competencies.map(comp => ({
         id: comp.id, 
         name: comp.name,
@@ -83,7 +86,7 @@ export default function Home() {
             type: newQ.type,
             text: newQ.text,
             modelAnswer: newQ.modelAnswer,
-            difficulty: newQ.difficulty || existingQ?.difficulty || 'Medium',
+            difficulty: newQ.difficulty || existingQ?.difficulty || 'Intermediate',
             estimatedTimeMinutes: newQ.estimatedTimeMinutes || existingQ?.estimatedTimeMinutes || 5,
             score: existingQ?.score ?? 3,
             notes: existingQ?.notes ?? '',
@@ -93,9 +96,13 @@ export default function Home() {
     });
 
     const newRubric = output.rubricCriteria.map((newCrit) => {
-      const existingCritByName = existingKit.scoringRubric.find(er => er.name === newCrit.name);
+      // Try to find existing rubric by ID first, then by name if ID isn't matching (e.g. if AI changed IDs which it shouldn't)
+      let existingCrit = existingKit.scoringRubric.find(er => er.id === generateId('rubric_placeholder')); // Placeholder to avoid accidental match with new IDs if AI changes them
+      if(!existingCrit){
+        existingCrit = existingKit.scoringRubric.find(er => er.name === newCrit.name);
+      }
       return {
-        id: existingCritByName?.id || generateId('rubric'),
+        id: existingCrit?.id || generateId('rubric'),
         name: newCrit.name,
         weight: newCrit.weight,
       };
@@ -103,26 +110,31 @@ export default function Home() {
     
     return {
       jobDescription: existingKit.jobDescription,
+      candidateExperienceContext: existingKit.candidateExperienceContext,
       competencies: newCompetencies,
       scoringRubric: newRubric,
     };
   }, []);
 
 
-  const handleGenerateKit = useCallback(async (jdText: string) => {
+  const handleGenerateKit = useCallback(async (data: JobDescriptionFormSubmitData) => {
     setIsLoading(true);
     setInterviewKit(null); 
-    setJobDescriptionText(jdText);
+    setJobDescription(data.jobDescription);
+    setCandidateExperienceContext(data.candidateExperienceContext);
 
     try {
-      if (!jdText.trim()) {
+      if (!data.jobDescription.trim()) {
         throw new Error("Job description is empty.");
       }
 
-      const input: GenerateInterviewKitInput = { jobDescription: jdText };
+      const input: GenerateInterviewKitInput = { 
+        jobDescription: data.jobDescription,
+        candidateExperienceContext: data.candidateExperienceContext 
+      };
       const output = await generateInterviewKit(input);
       if (output && output.competencies && output.scoringRubric) {
-        setInterviewKit(mapOutputToClientKit(output, jdText));
+        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
       } else {
         throw new Error("AI response was empty or malformed.");
@@ -131,7 +143,6 @@ export default function Home() {
       console.error("Error generating interview kit:", error);
       toast({ variant: "destructive", title: "Error", description: `Failed to generate kit: ${error instanceof Error ? error.message : String(error)}` });
       setInterviewKit(null);
-      // setJobDescriptionText(''); Keep the JD text for user reference
     } finally {
       setIsLoading(false);
     }
@@ -174,27 +185,38 @@ export default function Home() {
             </div>
           )}
           
-          {!isLoading && !interviewKit && jobDescriptionText && (
-            <Card>
+          {!isLoading && !interviewKit && jobDescription && (
+             <Card className="mt-8">
               <CardHeader>
-                <CardTitle>Processed Job Description</CardTitle>
+                <CardTitle>Processed Job Description & Context</CardTitle>
               </CardHeader>
-              <CardContent>
-                <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-60 overflow-y-auto p-4 border rounded-md bg-muted/50">
-                  {jobDescriptionText}
-                </pre>
+              <CardContent className="space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-1">Job Description:</h3>
+                  <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-muted/50">
+                    {jobDescription}
+                  </pre>
+                </div>
+                {candidateExperienceContext && (
+                  <div>
+                    <h3 className="font-semibold mb-1">Candidate Experience Context:</h3>
+                    <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-32 overflow-y-auto p-3 border rounded-md bg-muted/50">
+                      {candidateExperienceContext}
+                    </pre>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
 
-          {!isLoading && !interviewKit && !jobDescriptionText && (
+          {!isLoading && !interviewKit && !jobDescription && (
              <Card className="text-center bg-card shadow-lg">
               <CardHeader>
                 <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to RecruTake</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Streamline your hiring with RecruTake. Paste a job description to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
+                 Paste a job description and optionally provide candidate experience context to instantly generate relevant questions, model answers, difficulty, timings, and a consistent scoring rubric.
                 </CardDescription>
               </CardContent>
             </Card>
