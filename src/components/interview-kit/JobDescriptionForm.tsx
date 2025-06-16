@@ -46,7 +46,6 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     if (e.target.value && selectedFile) {
         setSelectedFile(null); // Clear file if text is entered
         setFileName('');
-        // Optionally reset the file input visually, though this can be tricky
         const fileInput = document.getElementById('job-description-pdf') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
     }
@@ -74,22 +73,25 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="job-description-pdf"> {/* Removed text-lg, default Label style will apply (text-sm font-medium) */}
+            <Label htmlFor="job-description-pdf">
               Upload Job Description PDF
             </Label>
-            <div className="flex items-center space-x-2">
-                <Input
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-2 gap-y-1 items-center">
+              <Input
                 id="job-description-pdf"
                 type="file"
                 accept=".pdf"
                 onChange={handleFileChange}
-                className="flex-grow file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" /* Removed mt-1 */
+                className="w-full file:text-primary file:text-sm file:font-medium file:mr-3 file:py-2 file:px-3 file:border-0 file:bg-transparent hover:file:text-primary/80 disabled:opacity-50"
                 disabled={isLoading}
                 aria-label="Job Description PDF Upload"
-                />
-                {fileName && <span className="text-sm text-muted-foreground truncate max-w-[150px] sm:max-w-xs">{fileName}</span>}
+              />
+              {fileName && (
+                <span className="text-sm text-muted-foreground truncate self-center">
+                  {fileName}
+                </span>
+              )}
             </div>
-            
           </div>
 
           <div className="relative flex items-center">
@@ -97,8 +99,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
             <div className="flex-grow border-t border-border"></div>
           </div>
           
-          <div>
-            <Label htmlFor="job-description-text"> {/* Removed text-lg, default Label style will apply (text-sm font-medium) */}
+          <div className="space-y-2">
+            <Label htmlFor="job-description-text">
               Paste Job Description
             </Label>
             <Textarea
@@ -106,7 +108,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               value={jobDescription}
               onChange={handleTextChange}
               placeholder="Paste the full job description here..."
-              className="mt-2 min-h-[150px] text-sm"
+              className="min-h-[150px] text-sm"
               rows={8}
               disabled={isLoading}
               aria-label="Job Description Text Input"
@@ -122,7 +124,6 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               </AlertDescription>
             </Alert>
            )}
-
 
           <Button
             type="submit"

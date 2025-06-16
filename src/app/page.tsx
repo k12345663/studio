@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
-  const [jobDescriptionText, setJobDescriptionText] = useState<string>(''); // Stores the actual JD text
+  const [jobDescriptionText, setJobDescriptionText] = useState<string>('');
   const [interviewKit, setInterviewKit] = useState<InterviewKit | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
@@ -120,7 +120,6 @@ export default function Home() {
         currentJdText = data;
         setJobDescriptionText(data);
       } else {
-        // It's a File object, extract text
         toast({ title: "Processing PDF...", description: "Extracting text from your PDF." });
         const arrayBuffer = await data.arrayBuffer();
         const extractedText = await extractTextFromPdf(arrayBuffer);
@@ -128,7 +127,7 @@ export default function Home() {
             throw new Error("PDF is empty or contains no extractable text.");
         }
         currentJdText = extractedText;
-        setJobDescriptionText(extractedText); // Store the extracted text
+        setJobDescriptionText(extractedText); 
         toast({ title: "PDF Processed!", description: "Text extracted, now generating kit." });
       }
 
@@ -148,7 +147,7 @@ export default function Home() {
       console.error("Error generating interview kit:", error);
       toast({ variant: "destructive", title: "Error", description: `Failed to generate kit: ${error instanceof Error ? error.message : String(error)}` });
       setInterviewKit(null);
-      setJobDescriptionText(''); // Clear if error
+      setJobDescriptionText(''); 
     } finally {
       setIsLoading(false);
     }
@@ -182,18 +181,17 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-8">
           <JobDescriptionForm onSubmit={handleGenerateKit} isLoading={isLoading && !interviewKit} />
 
           {isLoading && !interviewKit && (
-            <div className="mt-8 flex justify-center">
+            <div className="flex justify-center">
               <LoadingIndicator text="Generating your interview kit, please wait..." />
             </div>
           )}
           
-          {/* Display jobDescriptionText if it exists and no kit is loaded yet, useful for PDF preview */}
           {!isLoading && !interviewKit && jobDescriptionText && (
-            <Card className="mt-8">
+            <Card>
               <CardHeader>
                 <CardTitle>Processed Job Description</CardTitle>
               </CardHeader>
@@ -205,13 +203,12 @@ export default function Home() {
             </Card>
           )}
 
-
           {!isLoading && !interviewKit && !jobDescriptionText && (
-             <Card className="mt-8 text-center bg-card shadow-lg">
-              <CardHeader> {/* Default padding will apply, text-center from parent Card will center title */}
+             <Card className="text-center bg-card shadow-lg">
+              <CardHeader>
                 <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to RecruTake</CardTitle>
               </CardHeader>
-              <CardContent className="pt-0"> {/* Remove top padding as CardHeader has bottom padding */}
+              <CardContent className="pt-0">
                 <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
                   Streamline your hiring with RecruTake. Paste a job description or upload a PDF to instantly generate relevant questions, model answers, and a consistent scoring rubric. Now with added insights on competency importance, question difficulty, and estimated answering times.
                 </CardDescription>
