@@ -5,7 +5,7 @@
  * @fileOverview This file defines a Genkit flow for customizing an interview kit.
  *
  * It allows recruiters to tweak question wording, re-weight scoring criteria, and regenerate questions.
- * It now also considers candidate experience context, candidate resume, a 5-level difficulty scale, question categories,
+ * It now also considers candidate experience context, candidate resume (including specific project details, tech stack, goals, accomplishments, challenges, and past work experiences), a 5-level difficulty scale, question categories,
  * and specific model answer formatting, including deep resume engagement for project questions and "Tell me about yourself".
  * - customizeInterviewKit - A function that handles the interview kit customization process.
  * - CustomizeInterviewKitInput - The input type for the customizeInterviewKit function.
@@ -31,8 +31,8 @@ const QuestionSchema = z.object({
   id: z.string().describe('Unique identifier for the question.'),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('Type of question.'),
   category: z.enum(['Technical', 'Non-Technical']).optional().describe("Category of the question ('Technical' or 'Non-Technical', e.g., 'Tell me about yourself' is Non-Technical). Preserve or update if changed by user."),
-  text: z.string().describe('The text of the question. Ensure it is insightful and specific, considering JD and candidate profile (resume including projects, tech stack, goals, accomplishments, challenges & context).'),
-  modelAnswer: z.string().describe("An example answer for the question, presented as 3-4 concise bullet points. Each bullet MUST serve as a general example of a strong answer, be basic, clear, and easy to judge, demonstrate proficiency for the target experience level (drawing from candidate's specific work experience, past experiences from resume/context, including projects), and EXPLICITLY reference terms, skills, projects, or experiences from the Job Description, Candidate Resume, or context if appropriate. Ensure this format is maintained if modified. For 'Tell me about yourself', if a resume is provided, the model answer MUST be specifically tailored to outline 3-4 key points a strong candidate would ideally cover based on THEIR specific resume. For resume project deep-dive questions, the model answer should guide the interviewer on what to listen for regarding project goals, tech stack, accomplishments, and challenges. The candidate's resume (including projects and past work experiences) should be a key reference for validating and refining model answers."),
+  text: z.string().describe('The text of the question. Ensure it is insightful and specific, considering JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, past work experiences & context).'),
+  modelAnswer: z.string().describe("An example answer for the question, presented as 3-4 concise bullet points. Each bullet MUST serve as a general example of a strong answer, be basic, clear, and easy to judge, demonstrate proficiency for the target experience level (drawing from candidate's specific work experience, past experiences from resume/context, including projects and their specifics like tech stack, goals, accomplishments, challenges), and EXPLICITLY reference terms, skills, projects, or experiences from the Job Description, Candidate Resume, or context if appropriate. Ensure this format is maintained if modified. For 'Tell me about yourself', if a resume is provided, the model answer MUST be specifically tailored to outline 3-4 key points a strong candidate would ideally cover based on THEIR specific resume. For resume project deep-dive questions, the model answer should guide the interviewer on what to listen for regarding project goals, tech stack, accomplishments, and challenges. The candidate's resume (including projects, their tech stack, goals, accomplishments, challenges, and past work experiences) should be a key reference for validating and refining model answers."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).optional().describe("The difficulty level of the question (5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master')."),
   estimatedTimeMinutes: z.number().optional().describe('Suitable estimated time in minutes to answer this question.'),
 });
@@ -41,28 +41,28 @@ const CompetencySchema = z.object({
   id: z.string().describe('Unique identifier for the competency.'),
   name: z.string().describe('Name of the competency.'),
   importance: z.enum(['High', 'Medium', 'Low']).optional().describe('The importance of this competency for the role.'),
-  questions: z.array(QuestionSchema).describe('Array of questions for the competency. Ensure questions and answers maintain high quality if modified or regenerated, referencing JD and candidate profile (especially the resume, including projects, their tech stack, goals, accomplishments, challenges).'),
+  questions: z.array(QuestionSchema).describe('Array of questions for the competency. Ensure questions and answers maintain high quality if modified or regenerated, referencing JD and candidate profile (especially the resume, including projects, their tech stack, goals, accomplishments, challenges, and past work experiences).'),
 });
 
 const RubricCriterionSchema = z.object({
-  name: z.string().describe('Name of the well-defined, distinct, and high-quality criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context (including specific projects or past work experiences). The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively.'),
+  name: z.string().describe('Name of the well-defined, distinct, and high-quality criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context (including specific projects, their tech stack, goals, accomplishments, challenges, or past work experiences). The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively.'),
   weight: z.number().describe('Weight of the criterion (a value between 0.0 and 1.0, should sum to 1.0 across all criteria).'),
 });
 
 // Define the input schema for the customization flow
 const CustomizeInterviewKitInputSchema = z.object({
-  jobDescription: z.string().describe('The job description used to generate the interview kit.'),
-  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements (e.g., years of experience, current role, past tech stack).'),
-  candidateResume: z.string().optional().describe('The full text of the candidate\'s resume that was used and should be considered for refinements. This is a key reference document for tailoring, including specific projects mentioned (their tech stack, goals, accomplishments, challenges) and past work experiences.'),
-  competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here. May include "Tell me about yourself".'),
+  jobDescription: z.string().describe('The job description used to generate the interview kit. This is a primary source material.'),
+  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements (e.g., years of experience, current role, past tech stack). This supplements primary sources.'),
+  candidateResume: z.string().optional().describe('The full text of the candidate\'s resume that was used and should be considered for refinements. This is a key reference document for tailoring, including specific projects mentioned (their tech stack, goals, accomplishments, challenges) and past work experiences. Analyze it deeply.'),
+  competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here. May include "Tell me about yourself". Competencies should be informed by the holistic analysis of JD and candidate profile.'),
   rubricCriteria: z.array(RubricCriterionSchema).describe('Array of rubric criteria with weights. User edits are reflected here.'),
 });
 export type CustomizeInterviewKitInput = z.infer<typeof CustomizeInterviewKitInputSchema>;
 
 // Define the output schema for the customization flow
 const CustomizeInterviewKitOutputSchema = z.object({
-  competencies: z.array(CompetencySchema).describe('Array of customized core competencies, including importance, and questions with category, difficulty/time. Quality of questions and answers should be maintained or enhanced, with answers as 3-4 bullet points referencing JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges & context, serving as general examples of strong answers). "Tell me about yourself" model answers should remain tailored to the resume if provided.'),
-  rubricCriteria: z.array(RubricCriterionSchema).describe('Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria reference JD and candidate profile (resume including projects, past work experiences & context) for a broad yet deeply contextual evaluation.'),
+  competencies: z.array(CompetencySchema).describe('Array of customized core competencies, including importance, and questions with category, difficulty/time. Quality of questions and answers should be maintained or enhanced, with answers as 3-4 bullet points referencing JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, past work experiences & context, serving as general examples of strong answers). "Tell me about yourself" model answers should remain tailored to the resume if provided.'),
+  rubricCriteria: z.array(RubricCriterionSchema).describe('Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria reference JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, past work experiences & context) for a broad yet deeply contextual evaluation.'),
 });
 export type CustomizeInterviewKitOutput = z.infer<typeof CustomizeInterviewKitOutputSchema>;
 
@@ -76,20 +76,20 @@ const customizeInterviewKitPrompt = ai.definePrompt({
   name: 'customizeInterviewKitPrompt',
   input: {schema: CustomizeInterviewKitInputSchema},
   output: {schema: CustomizeInterviewKitOutputSchema},
-  prompt: `Critical: Before refining any content, take the time to thoroughly analyze and synthesize ALL provided details about the job, the candidate (from their resume, if provided, which should be treated as a primary reference, including specific projects, their tech stack, goals, accomplishments, challenges, and past work experiences), any specific experience context, AND the recruiter's edits. Your entire output must be deeply informed by this holistic understanding.
+  prompt: `Critical: Before refining any content, take the time to thoroughly analyze and synthesize ALL provided details: the Job Description (primary source), the Candidate Resume (primary source if provided, analyze it deeply including specific projects, their tech stack, goals, accomplishments, challenges, and past work experiences), any Candidate Experience Context, AND the recruiter's edits. Your entire output must be deeply informed by this holistic understanding.
 
-You are a senior recruiter. You will be given an interview kit previously generated from a Job Description, and potentially a Candidate Resume and/or Candidate Experience Context. This kit includes questions (potentially "Tell me about yourself" and questions about resume projects), model answers (as 3-4 bullet points referencing JD/resume/projects/context), competency importance, question categories ('Technical'/'Non-Technical'), a 5-level question difficulty ('Naive' to 'Master'), and estimated times. The recruiter has made edits. Your task is to review these edits and refine the entire kit, ensuring it remains highly contextual to all provided inputs. You MUST thoroughly analyze all inputs: the original Job Description, Candidate Resume (if available - analyze it deeply, including projects, their tech stack, goals, accomplishments, challenges, and past work experiences, as a key reference document), Candidate Experience Context (considering candidate's work experience and past experiences), AND the recruiter's edits.
+You are a senior recruiter. You will be given an interview kit previously generated from a Job Description, and potentially a Candidate Resume and/or Candidate Experience Context. This kit includes questions (potentially "Tell me about yourself" and questions about resume projects), model answers (as 3-4 bullet points referencing JD/resume/projects/context, serving as general examples of strong answers), competency importance, question categories ('Technical'/'Non-Technical'), a 5-level question difficulty ('Naive' to 'Master'), and estimated times. The recruiter has made edits. Your task is to review these edits and refine the entire kit, ensuring it remains highly contextual to all provided inputs. You MUST thoroughly analyze all inputs: the original Job Description, Candidate Resume (if available - analyze it deeply, including projects, their tech stack, goals, accomplishments, challenges, and past work experiences, as a key reference document), Candidate Experience Context (considering candidate's work experience and past experiences), AND the recruiter's edits.
 
-Job Description (for context):
+Job Description (Primary Source, for context):
 {{{jobDescription}}}
 
 {{#if candidateResume}}
-Candidate Resume (for context and primary reference, including projects, their tech stack, goals, accomplishments, challenges, and past work experiences):
+Candidate Resume (Primary Source, for context and primary reference, including projects, their tech stack, goals, accomplishments, challenges, and past work experiences):
 {{{candidateResume}}}
 {{/if}}
 
 {{#if candidateExperienceContext}}
-Candidate Experience Context (additional notes on candidate's background, e.g., years of experience, current role, past tech stack, for context):
+Candidate Experience Context (additional notes on candidate's background, e.g., years of experience, current role, past tech stack, for context, to supplement primary sources):
 {{{candidateExperienceContext}}}
 {{/if}}
 
@@ -115,12 +115,12 @@ Based on the recruiter's modifications and a holistic understanding of the origi
 1.  Preserve all existing IDs for competencies and questions.
 2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/projects/context).
     *   Model answers MUST be 3-4 concise bullet points, serving as general examples of strong answers, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, projects, or experiences from the Job Description AND/OR Candidate Resume/Context (reflecting candidate's work and past experiences, including specific project details like tech stack, goals, accomplishments, challenges).
-    *   The candidate's resume (including projects, past work experiences, and their specific details) should be a key reference for validating and refining model answers.
+    *   The candidate's resume (including projects, past work experiences, and their specific details like tech stack, goals, accomplishments, challenges) should be a key reference for validating and refining model answers.
     *   For questions specifically probing resume projects (e.g., asking about tech stack, goals, accomplishments, challenges) or a "Tell me about yourself" question, ensure the refined model answer maintains or enhances its deep tailoring to the candidate's resume (if provided). For "Tell me about yourself," the model answer should continue to guide on what points a strong candidate, based on their resume, would cover.
-    If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links (especially to the resume/projects and their details), and ensuring the 3-4 bullet point format for answers.
-3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/projects/context, including specifics like tech stack, goals, accomplishments, challenges).
-4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are high-quality, well-defined, distinct evaluation parameters, contextually relevant, EXPLICITLY referencing key phrases, skills, concepts, or project types from the JD, Candidate Resume (including specific projects or past work experiences), or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/projects/context, while staying close to recruiter's weights.
-5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/projects/context and their specifics, serving as general examples of strong answers) are present for all competencies and questions.
+    If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links (especially to the resume/projects and their details like tech stack, goals, accomplishments, challenges), and ensuring the 3-4 bullet point format for answers.
+3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/projects/context, including specifics like tech stack, goals, accomplishments, challenges, and past work experiences).
+4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are high-quality, well-defined, distinct evaluation parameters, contextually relevant, EXPLICITLY referencing key phrases, skills, concepts, or project types from the JD, Candidate Resume (including specific projects, their tech stack, goals, accomplishments, challenges, or past work experiences), or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/projects/context, while staying close to recruiter's weights.
+5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/projects/context and their specifics like tech stack, goals, accomplishments, challenges, serving as general examples of strong answers) are present for all competencies and questions.
 
 Return the fully customized and refined interview kit in the specified JSON format. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements based on the JD, resume (including projects, their tech stack, goals, accomplishments, challenges, and past work experiences), and any other candidate context.
 `,
@@ -218,6 +218,4 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-    
-
     

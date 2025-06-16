@@ -25,15 +25,15 @@ const difficultyTimeMap: Record<QuestionDifficulty, number> = {
 const GenerateInterviewKitInputSchema = z.object({
   jobDescription: z
     .string()
-    .describe('The job description to generate an interview kit for.'),
+    .describe('The job description to generate an interview kit for. This is a primary source material.'),
   candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience." This supplements the resume if provided.'),
-  candidateResume: z.string().optional().describe('The full text of the candidate\'s resume, if provided. This is a primary source for tailoring questions and model answers, alongside the job description. Analyze the resume deeply to extract skills, experiences, and specific projects to ask about, including tech stack, goals, accomplishments, and challenges for those projects.'),
+  candidateResume: z.string().optional().describe("The full text of the candidate's resume, if provided. This is a primary source material for tailoring questions and model answers. Analyze the resume deeply to extract skills, experiences, and specific projects to ask about, including their tech stack, goals, accomplishments, challenges, and past work experiences."),
 });
 export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInputSchema>;
 
 const QuestionAnswerPairSchema = z.object({
-  question: z.string().describe('The interview question. Should be insightful and highly specific, directly derived from or probing into experiences, skills, projects (including tech stack, goals, accomplishments, challenges), and claims made in the Candidate\'s Resume (if provided, including specific project details) and the Job Description, as well as any Candidate Experience Context. This includes potentially asking "Tell me about yourself".'),
-  answer: z.string().describe("A model answer as 3-4 concise bullet points. For general questions, each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific work experience, past experiences (from resume/context) and background by EXPLICITLY referencing key terms, skills, projects, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for. For 'Tell me about yourself', if a resume is provided, the model answer MUST be specifically tailored to outline 3-4 key points a strong candidate would ideally cover based on THEIR specific resume. For resume project deep-dive questions, the model answer should guide the interviewer on what to listen for regarding project goals, tech stack, accomplishments, and challenges."),
+  question: z.string().describe('The interview question. Should be insightful and highly specific, directly derived from or probing into experiences, skills, projects (including their tech stack, goals, accomplishments, challenges, and past work experiences), and claims made in the Candidate\'s Resume (if provided) and the Job Description, as well as any Candidate Experience Context. This includes potentially asking "Tell me about yourself".'),
+  answer: z.string().describe("A model answer as 3-4 concise bullet points. For general questions, each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific work experience, past experiences (from resume/context, including projects and their specifics) and background by EXPLICITLY referencing key terms, skills, projects, or experiences from the Job Description AND/OR the Candidate Resume/Context (including specific project details and past work experiences). Highlight positive indicators a recruiter should look for. For 'Tell me about yourself', if a resume is provided, the model answer MUST be specifically tailored to outline 3-4 key points a strong candidate would ideally cover based on THEIR specific resume, considering their work history and projects. For resume project deep-dive questions, the model answer should guide the interviewer on what to listen for regarding project goals, tech stack, accomplishments, and challenges."),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR method).'),
   category: z.enum(['Technical', 'Non-Technical']).describe("The category of the question. 'Technical' for questions assessing specific hard skills or tool knowledge. 'Non-Technical' for questions assessing problem-solving, behavioral traits, scenarios, or soft skills (like 'Tell me about yourself'). Infer this primarily from the question type and content."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).describe("The difficulty level of the question, on a 5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level."),
@@ -41,21 +41,21 @@ const QuestionAnswerPairSchema = z.object({
 });
 
 const CompetencySchema = z.object({
-  name: z.string().describe('The name of the competency, derived from the job description. One competency might be "General Candidate Assessment" to house "Tell me about yourself".'),
+  name: z.string().describe('The name of the competency, derived from the job description and potentially informed by resume specifics. One competency might be "General Candidate Assessment" to house "Tell me about yourself".'),
   importance: z.enum(['High', 'Medium', 'Low']).describe('The importance of this competency for the role, based on the job description.'),
-  questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency. Aim for a mix of Technical, Scenario, and Behavioral questions, tailored to the job description and candidate profile. Questions should actively probe claims and details found in the candidate\'s resume, including specific projects (tech stack, goals, accomplishments, challenges).'),
+  questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency. Aim for a mix of Technical, Scenario, and Behavioral questions, tailored to the job description and candidate profile. Questions should actively probe claims and details found in the candidate\'s resume, including specific projects (their tech stack, goals, accomplishments, challenges, and past work experiences).'),
 });
 
 const ScoringCriterionSchema = z.object({
-  criterion: z.string().describe('A well-defined, distinct, and high-quality scoring criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context. The set of criteria MUST provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
+  criterion: z.string().describe('A well-defined, distinct, and high-quality scoring criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context (including specific project details and past work experiences). The set of criteria MUST provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
   weight: z.number().describe('The weight of this criterion (a value between 0.0 and 1.0). All criterion weights in the rubric must sum to 1.0.'),
 });
 
 const GenerateInterviewKitOutputSchema = z.object({
-  competencies: z.array(CompetencySchema).describe('The 5-7 core competencies for the job, including their importance and tailored questions. Include a "Tell me about yourself" question, potentially under a "General Candidate Assessment" competency.'),
+  competencies: z.array(CompetencySchema).describe('The 5-7 core competencies for the job, including their importance and tailored questions. Include a "Tell me about yourself" question, potentially under a "General Candidate Assessment" competency. Competencies themselves should be informed by the holistic analysis of JD and candidate profile.'),
   scoringRubric: z
     .array(ScoringCriterionSchema)
-    .describe('The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, explicitly referencing key phrases from the Job Description AND/OR Candidate Resume/Context to provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
+    .describe('The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, explicitly referencing key phrases from the Job Description AND/OR Candidate Resume/Context (including specific project details and past work experiences) to provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
 });
 export type GenerateInterviewKitOutput = z.infer<typeof GenerateInterviewKitOutputSchema>;
 
@@ -67,48 +67,48 @@ const generateInterviewKitPrompt = ai.definePrompt({
   name: 'generateInterviewKitPrompt',
   input: {schema: GenerateInterviewKitInputSchema},
   output: {schema: GenerateInterviewKitOutputSchema},
-  prompt: `Critical: Before generating any content, take the time to thoroughly analyze and synthesize ALL provided user details (Job Description, Candidate Resume including specific projects and experiences from their work history, and Candidate Experience Context). The Candidate Resume, if provided, along with the Job Description, serve as primary source materials. Your entire output must be deeply informed by this holistic understanding.
+  prompt: `Critical: Before generating any content, take the time to thoroughly analyze and synthesize ALL provided user details: the Job Description, the Candidate Resume (if available, including specific projects, their tech stack, goals, accomplishments, challenges, and past work experiences), and any Candidate Experience Context. The Job Description and Candidate Resume (if provided) serve as PRIMARY SOURCE MATERIALS. Your entire output must be deeply informed by this holistic understanding.
 
-You are a senior hiring manager and expert interviewer. Your task is to generate a comprehensive interview kit. You MUST thoroughly analyze and synthesize ALL provided information: the Job Description, the Candidate Resume (if available - analyze it deeply to extract skills, experiences, and **projects to ask about, including their tech stack, goals, accomplishments, and challenges**), and any Candidate Experience Context. Your output should be deeply tailored and highly practical, reflecting a complete understanding of these inputs.
+You are a senior hiring manager and expert interviewer. Your task is to generate a comprehensive interview kit. You MUST thoroughly analyze and synthesize ALL provided information: the Job Description (primary source), the Candidate Resume (primary source if available - analyze it deeply to extract skills, experiences, and **projects to ask about, including their tech stack, goals, accomplishments, challenges, and details from past work experiences**), and any Candidate Experience Context. Your output should be deeply tailored and highly practical, reflecting a complete understanding of these inputs.
 
-Job Description:
+Job Description (Primary Source):
 {{{jobDescription}}}
 
 {{#if candidateResume}}
-Candidate Resume:
+Candidate Resume (Primary Source - analyze for specific projects, tech stack, goals, accomplishments, challenges, and past work experiences):
 {{{candidateResume}}}
 {{/if}}
 
 {{#if candidateExperienceContext}}
-Candidate Experience Context (additional notes on candidate's background, years of experience, current role, past tech stack, etc.):
+Candidate Experience Context (additional notes on candidate's background, years of experience, current role, past tech stack, etc., to supplement primary sources):
 {{{candidateExperienceContext}}}
 {{/if}}
 
-Based on a holistic understanding of ALL available information (Job Description, Candidate Resume including project details, past work experiences, and specific accomplishments, and Candidate Experience Context):
+Based on a holistic understanding of ALL available information (Job Description, Candidate Resume including project details, tech stack, goals, accomplishments, challenges, past work experiences, and specific accomplishments, and Candidate Experience Context):
 
-1.  Identify 5-7 core competencies crucial for the role as per the Job Description. For each competency, assess its importance (High, Medium, or Low). One competency could be "General Candidate Assessment" or similar, to house the "Tell me about yourself" question.
+1.  Identify 5-7 core competencies crucial for the role as per the Job Description, potentially informed by the Candidate Resume. For each competency, assess its importance (High, Medium, or Low). One competency could be "General Candidate Assessment" or similar, to house the "Tell me about yourself" question.
 2.  For each competency, create 2-3 distinct, insightful questions:
-    *   One Technical Question (if applicable for the competency): Probes specific technical skills, tools, or platform knowledge relevant to the JD and candidate's background (from resume/context).
+    *   One Technical Question (if applicable for the competency): Probes specific technical skills, tools, or platform knowledge relevant to the JD and candidate's background (from resume/context, including specific tech stack used in projects).
     *   One Scenario-based Question: Presents a realistic work-related challenge reflecting the JD's demands and candidate's experience level (from resume/context).
-    *   One Behavioral Question: Assesses past behavior (STAR method), ideally probing experiences mentioned in the resume or required by the JD.
-    *   **Resume Project Deep-Dive Question(s)**: If a Candidate Resume is provided, ensure some questions **directly probe into specific projects listed**. These questions should aim to uncover details such as: "Regarding Project X mentioned on your resume, could you describe the tech stack you used, the primary goals of the project, what you accomplished, and any significant challenges you overcame?"
-    These questions must be sharply tailored to the specifics of the Job Description and **directly derived from or probe into experiences, skills, projects (including tech stack, goals, accomplishments, challenges from their work history), and claims made in the Candidate's Resume** (if provided) and any Candidate Experience Context.
+    *   One Behavioral Question: Assesses past behavior (STAR method), ideally probing experiences mentioned in the resume (e.g., challenges faced in projects, accomplishments) or required by the JD.
+    *   **Resume Project Deep-Dive Question(s)**: If a Candidate Resume is provided, ensure some questions **directly probe into specific projects listed**. These questions should aim to uncover details such as: "Regarding Project X mentioned on your resume, could you describe the tech stack you used, the primary goals of the project, what you accomplished, and any significant challenges you overcame?" or "Tell me about your role and contributions in Project Y, especially how you handled [specific challenge/goal mentioned in project description]."
+    These questions must be sharply tailored to the specifics of the Job Description and **directly derived from or probe into experiences, skills, projects (including their tech stack, goals, accomplishments, challenges, and past work experiences), and claims made in the Candidate's Resume** (if provided) and any Candidate Experience Context.
 
 3.  Include a standard "Tell me about yourself" question, likely under a general competency.
 4.  For EACH question (including "Tell me about yourself" and resume project questions), provide all the fields as specified in the output schema, paying close attention to the descriptions:
     *   \`question\`: The text of the question.
     *   \`answer\`: A model answer as 3-4 concise bullet points.
-        *   For general questions: Each bullet point MUST serve as a **general example of a strong answer** for this role and candidate profile – **basic, clear, and easy to judge**. Crucially, these answers must also demonstrate proficiency relevant to the candidate's **specific work experience, past experiences (from resume/context, including projects)** and background by EXPLICITLY referencing key terms, skills, **projects**, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for.
-        *   For "Tell me about yourself": If a resume is provided, the model answer MUST be specifically tailored to the candidate's resume. It should outline 3-4 key bullet points a strong candidate, based on *their specific resume*, would ideally cover. For example: "Candidate succinctly summarizes their career trajectory relevant to this role; Highlights achievement from Project Y (on resume) and skills A & B (from resume) that align with JD; Briefly explains motivation for applying, connecting past experiences (from resume) to this opportunity." If no resume is provided, offer a more generic but still structured model answer guiding on general strong points.
-        *   For resume project deep-dive questions: The model answer should guide the interviewer on what to listen for, e.g., "Candidate clearly articulates project goals and their role; Details specific technologies used (from resume/JD context); Quantifies accomplishments where possible (aligning with resume claims); Describes challenges and demonstrates problem-solving approaches."
+        *   For general questions: Each bullet point MUST serve as a **general example of a strong answer** for this role and candidate profile – **basic, clear, and easy to judge**. Crucially, these answers must also demonstrate proficiency relevant to the candidate's **specific work experience, past experiences (from resume/context, including projects and their specific details like tech stack, goals, accomplishments, challenges)** and background by EXPLICITLY referencing key terms, skills, **projects**, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for.
+        *   For "Tell me about yourself": If a resume is provided, the model answer MUST be specifically tailored to the candidate's resume. It should outline 3-4 key bullet points a strong candidate, based on *their specific resume* (considering their work history and projects), would ideally cover. For example: "Candidate succinctly summarizes their career trajectory relevant to this role; Highlights achievement from Project Y (on resume, mentioning tech stack/goal) and skills A & B (from resume) that align with JD; Briefly explains motivation for applying, connecting past experiences (from resume, e.g., challenge overcome in a project) to this opportunity." If no resume is provided, offer a more generic but still structured model answer guiding on general strong points.
+        *   For resume project deep-dive questions: The model answer should guide the interviewer on what to listen for, e.g., "Candidate clearly articulates project goals and their role; Details specific technologies used (from resume/JD context); Quantifies accomplishments where possible (aligning with resume claims); Describes challenges (e.g., technical, team, timeline) and demonstrates problem-solving approaches."
     *   \`type\`: The type of question ('Technical', 'Scenario', 'Behavioral').
     *   \`category\`: The category of the question ('Technical' or 'Non-Technical'). 'Technical' questions assess specific hard skills/tools. 'Non-Technical' questions (typically Scenario or Behavioral, including "Tell me about yourself") assess problem-solving, behavioral traits, or soft skills. Assign based on question type and content.
     *   \`difficulty\`: The difficulty level from this exact 5-level scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level.
     *   \`estimatedTimeMinutes\`: A suitable estimated time in minutes a candidate might need for a thorough answer, considering question complexity and the candidate's experience. Default suggestions: Naive(2), Beginner(4), Intermediate(6), Expert(8), Master(10).
-5.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be a **well-defined, distinct, and high-quality** scoring criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context (including specific projects or past work experiences). The set of criteria MUST provide a **broad yet deeply contextual** basis for comprehensive candidate evaluation. Ensure criterion weights sum to 1.0.
+5.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be a **well-defined, distinct, and high-quality** scoring criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, or project types from the Job Description AND/OR the Candidate Resume/Context (including specific project details or past work experiences). The set of criteria MUST provide a **broad yet deeply contextual** basis for comprehensive candidate evaluation. Ensure criterion weights sum to 1.0.
 
 Return a JSON object adhering to the specified output schema. Ensure all fields are populated.
-The goal is to produce highly relevant, tailored questions (actively drawing from the resume, including specific projects, their tech stack, goals, accomplishments, and challenges) with concise, judgeable model answers that serve as general examples of strong responses (and for 'Tell me about yourself', a resume-specific guide outlining what points covered from their resume would indicate a strong answer), and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience (including their past work history and projects).
+The goal is to produce highly relevant, tailored questions (actively drawing from the resume, including specific projects, their tech stack, goals, accomplishments, and challenges, and past work experiences) with concise, judgeable model answers that serve as general examples of strong responses (and for 'Tell me about yourself', a resume-specific guide outlining what points covered from their resume would indicate a strong answer), and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience (including their past work history and projects).
 `,
 });
 
@@ -200,6 +200,4 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-    
-
     
