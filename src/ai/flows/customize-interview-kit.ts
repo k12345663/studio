@@ -6,7 +6,7 @@
  *
  * It allows recruiters to tweak question wording, re-weight scoring criteria, and regenerate questions.
  * It now also considers candidate experience context, candidate resume (including specific project details, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), a 5-level difficulty scale, question categories,
- * and specific model answer formatting, including deep resume engagement for project questions and "Tell me about yourself".
+ * and specific model answer formatting, including deep resume engagement for project questions and "Tell me about yourself". It also aims to maintain a logical question flow.
  * - customizeInterviewKit - A function that handles the interview kit customization process.
  * - CustomizeInterviewKitInput - The input type for the customizeInterviewKit function.
  * - CustomizeInterviewKitOutput - The return type for the customizeInterviewKit function.
@@ -41,7 +41,7 @@ const CompetencySchema = z.object({
   id: z.string().describe('Unique identifier for the competency.'),
   name: z.string().describe('Name of the competency.'),
   importance: z.enum(['High', 'Medium', 'Low']).optional().describe('The importance of this competency for the role.'),
-  questions: z.array(QuestionSchema).describe('Array of questions for the competency. Ensure questions and answers maintain high quality if modified or regenerated, referencing JD and candidate profile (especially the resume, including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences).'),
+  questions: z.array(QuestionSchema).describe('Array of questions for the competency. Ensure questions and answers maintain high quality if modified or regenerated, referencing JD and candidate profile (especially the resume, including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences). Try to maintain a logical sequence of questions within competencies if edits allow (e.g., general background/experience, then project/technical specifics).'),
 });
 
 const RubricCriterionSchema = z.object({
@@ -61,7 +61,7 @@ export type CustomizeInterviewKitInput = z.infer<typeof CustomizeInterviewKitInp
 
 // Define the output schema for the customization flow
 const CustomizeInterviewKitOutputSchema = z.object({
-  competencies: z.array(CompetencySchema).describe('Array of customized core competencies, including importance, and questions with category, difficulty/time. Quality of questions and answers should be maintained or enhanced, with answers as 3-4 bullet points referencing JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context, serving as general examples of strong answers). "Tell me about yourself" model answers should remain tailored to the resume if provided (including educational background and academic achievements).'),
+  competencies: z.array(CompetencySchema).describe('Array of customized core competencies, including importance, and questions with category, difficulty/time. Quality of questions and answers should be maintained or enhanced, with answers as 3-4 bullet points referencing JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context, serving as general examples of strong answers). "Tell me about yourself" model answers should remain tailored to the resume if provided (including educational background and academic achievements). Questions should aim for a logical flow where appropriate.'),
   rubricCriteria: z.array(RubricCriterionSchema).describe('Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria reference JD and candidate profile (resume including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context) for a broad yet deeply contextual evaluation.'),
 });
 export type CustomizeInterviewKitOutput = z.infer<typeof CustomizeInterviewKitOutputSchema>;
@@ -114,13 +114,14 @@ Rubric Criteria:
 Based on the recruiter's modifications and a holistic understanding of the original Job Description, Candidate Resume (as a key reference, including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and Candidate Experience Context:
 1.  Preserve all existing IDs for competencies and questions.
 2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/projects/education/context).
-    *   Model answers MUST be 3-4 concise bullet points, serving as **general examples of strong answers**, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, projects, or experiences from the Job Description AND/OR Candidate Resume/Context (reflecting candidate's work and past experiences, including specific project details like tech stack, goals, accomplishments, challenges, educational background, and academic achievements).
+    *   Model answers MUST be 3-4 concise bullet points, serving as **general examples of a strong answer**, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, projects, or experiences from the Job Description AND/OR Candidate Resume/Context (reflecting candidate's work and past experiences, including specific project details like tech stack, goals, accomplishments, challenges, educational background, and academic achievements).
     *   The candidate's resume (including projects, past work experiences, educational background, academic achievements, and their specific details like tech stack, goals, accomplishments, challenges) should be a key reference for validating and refining model answers.
     *   For questions specifically probing resume projects (e.g., asking about tech stack, goals, accomplishments, challenges), resume background (e.g., education, academic projects), or a "Tell me about yourself" question, ensure the refined model answer maintains or enhances its deep tailoring to the candidate's resume (if provided). For "Tell me about yourself," the model answer should continue to guide on what points a strong candidate, based on their resume (including education and academic achievements), would cover.
     If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links (especially to the resume/projects/education and their details like tech stack, goals, accomplishments, challenges), and ensuring the 3-4 bullet point format for answers.
 3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/projects/education/context, including specifics like tech stack, goals, accomplishments, challenges, and past work experiences).
 4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are high-quality, well-defined, distinct evaluation parameters, contextually relevant, EXPLICITLY referencing key phrases, skills, concepts, project types, or relevant academic achievements from the JD, Candidate Resume (including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, or past work experiences), or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/projects/education/context, while staying close to recruiter's weights.
-5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/projects/education/context and their specifics like tech stack, goals, accomplishments, challenges, serving as general examples of strong answers) are present for all competencies and questions.
+5.  **Question Sequencing**: When refining the kit, aim to preserve or guide towards a logical question sequence if the recruiter's edits allow for it: general introduction (e.g., 'Tell me about yourself'), then background/academic/experience, then specific project/technical questions. If new questions are added or if the AI is making significant structural revisions, prioritize this logical flow.
+6.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/projects/education/context and their specifics like tech stack, goals, accomplishments, challenges, serving as general examples of strong answers) are present for all competencies and questions.
 
 Return the fully customized and refined interview kit in the specified JSON format. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements based on the JD, resume (including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and any other candidate context.
 `,
@@ -174,7 +175,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
                     crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
                 }
             });
-        } else if (totalWeight !== 1.0) { // If weights are non-zero but don't sum to 1.0, normalize
+        } else if (Math.abs(totalWeight - 1.0) > 0.001) { // If weights are non-zero but don't sum to 1.0, normalize (with float tolerance)
             const factor = 1.0 / totalWeight;
             let sumOfNormalizedWeights = 0;
             validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
@@ -189,7 +190,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
     }
      // Final check and adjustment if sum is still not 1.0 due to rounding
     let finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
-    if (finalSum !== 1.0 && validatedOutput.rubricCriteria.length > 0) {
+    if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
         const lastCrit = validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1];
         const diff = parseFloat((1.0 - finalSum).toFixed(2)); // Use toFixed for precision
         lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diff).toFixed(2));
@@ -197,7 +198,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
             lastCrit.weight = 0;
             // Attempt to re-distribute deficit if other weights exist
             let currentTotal = validatedOutput.rubricCriteria.reduce((s,c) => s + c.weight, 0);
-             if (currentTotal < 1.0 && validatedOutput.rubricCriteria.length > 1) {
+             if (Math.abs(currentTotal - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 1) {
                  const remainingDiff = parseFloat((1.0 - currentTotal).toFixed(2));
                  let targetCrit = validatedOutput.rubricCriteria.find(c => c !== lastCrit && c.weight > 0) || validatedOutput.rubricCriteria.find(c => c !== lastCrit); // Prefer one with existing weight
                  if (targetCrit) {
@@ -209,7 +210,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
         }
         // One final pass to ensure the sum is exactly 1.0 by adjusting the largest weight if necessary
         finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
-        if (finalSum !== 1.0 && validatedOutput.rubricCriteria.length > 0) {
+        if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
             const finalDiff = parseFloat((1.0 - finalSum).toFixed(2));
             let targetCrit = validatedOutput.rubricCriteria.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.rubricCriteria[0]); // find crit with largest weight or first
             targetCrit.weight = parseFloat(Math.max(0, targetCrit.weight + finalDiff).toFixed(2));

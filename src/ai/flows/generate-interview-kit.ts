@@ -41,9 +41,9 @@ const QuestionAnswerPairSchema = z.object({
 });
 
 const CompetencySchema = z.object({
-  name: z.string().describe('The name of the competency, derived from the job description and potentially informed by resume specifics (including educational background and academic achievements). One competency might be "General Candidate Assessment" to house "Tell me about yourself".'),
+  name: z.string().describe('The name of the competency, derived from the job description and potentially informed by resume specifics (including educational background and academic achievements). One competency might be "Candidate Introduction & Background" or similar to house introductory questions.'),
   importance: z.enum(['High', 'Medium', 'Low']).describe('The importance of this competency for the role, based on the job description.'),
-  questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency. Aim for a mix of Technical, Scenario, and Behavioral questions, tailored to the job description and candidate profile. Questions should actively probe claims and details found in the candidate\'s resume, including specific projects (their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences.'),
+  questions: z.array(QuestionAnswerPairSchema).describe('The questions for the competency. Questions should be generated in a logical sequence: introductory questions first (like "Tell me about yourself", academic background, general experience), then project-specific questions, followed by other technical/scenario/behavioral questions. Questions should actively probe claims and details found in the candidate\'s resume, including specific projects (their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences.'),
 });
 
 const ScoringCriterionSchema = z.object({
@@ -52,7 +52,7 @@ const ScoringCriterionSchema = z.object({
 });
 
 const GenerateInterviewKitOutputSchema = z.object({
-  competencies: z.array(CompetencySchema).describe('The 5-7 core competencies for the job, including their importance and tailored questions. Include a "Tell me about yourself" question, potentially under a "General Candidate Assessment" competency. Competencies themselves should be informed by the holistic analysis of JD and candidate profile (including educational background and academic achievements from resume).'),
+  competencies: z.array(CompetencySchema).describe('An array of 5-7 core competencies for the job. The first competency should ideally cover "Candidate Introduction & Background" including "Tell me about yourself", academic background, and general experience questions. Subsequent competencies should cover skills/projects, with questions sequenced logically. Competencies themselves should be informed by the holistic analysis of JD and candidate profile (including educational background and academic achievements from resume).'),
   scoringRubric: z
     .array(ScoringCriterionSchema)
     .describe('The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, explicitly referencing key phrases from the Job Description AND/OR Candidate Resume/Context (including specific project details, educational background, academic achievements, and past work experiences) to provide a broad yet deeply contextual basis for comprehensive candidate evaluation.'),
@@ -84,33 +84,40 @@ Candidate Experience Context (additional notes on candidate's background, years 
 {{{candidateExperienceContext}}}
 {{/if}}
 
-Based on a holistic understanding of ALL available information (Job Description, Candidate Resume including project details, tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences, and specific accomplishments, and Candidate Experience Context):
+Based on a holistic understanding of ALL available information:
 
-1.  Identify 5-7 core competencies crucial for the role as per the Job Description, potentially informed by the Candidate Resume (including educational background and academic achievements). For each competency, assess its importance (High, Medium, or Low). One competency could be "General Candidate Assessment" or similar, to house the "Tell me about yourself" question.
-2.  For each competency, create 2-3 distinct, insightful questions:
-    *   One Technical Question (if applicable for the competency): Probes specific technical skills, tools, or platform knowledge relevant to the JD and candidate's background (from resume/context, including specific tech stack used in projects).
-    *   One Scenario-based Question: Presents a realistic work-related challenge reflecting the JD's demands and candidate's experience level (from resume/context).
-    *   One Behavioral Question: Assesses past behavior (STAR method), ideally probing experiences mentioned in the resume (e.g., challenges faced in projects, accomplishments, or points from their educational/academic background if highly relevant) or required by the JD.
-    *   **Resume Project Deep-Dive Question(s)**: If a Candidate Resume is provided, ensure some questions **directly probe into specific projects listed**. These questions should aim to uncover details such as: "Regarding Project X mentioned on your resume, could you describe the tech stack you used, the primary goals of the project, what you accomplished, and any significant challenges you overcame?" or "Tell me about your role and contributions in Project Y, especially how you handled [specific challenge/goal mentioned in project description]."
-    *   **Resume Background Question(s)**: If a Candidate Resume is provided and details significant educational achievements, academic projects, or unique experiences relevant to the JD, formulate questions to explore these.
-    These questions must be sharply tailored to the specifics of the Job Description and **directly derived from or probe into experiences, skills, projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences, and claims made in the Candidate's Resume** (if provided) and any Candidate Experience Context.
+1.  **Structure the Interview Flow and Identify Competencies**:
+    *   Start by defining a competency named "Candidate Introduction & Background" (or similar). This competency should house introductory questions. Assign it an appropriate importance level.
+    *   Then, identify 4-6 other core competencies crucial for the role as per the Job Description, potentially informed by the Candidate Resume (including educational background and academic achievements). For each of these competencies, assess its importance (High, Medium, or Low).
 
-3.  Include a standard "Tell me about yourself" question, likely under a general competency.
-4.  For EACH question (including "Tell me about yourself" and resume project/background questions), provide all the fields as specified in the output schema, paying close attention to the descriptions:
+2.  **Generate Questions in a Logical Sequence**:
+    *   **For the "Candidate Introduction & Background" competency**:
+        *   Begin with a "Tell me about yourself" question.
+        *   Follow with questions probing the candidate's **academic background, qualifications, and relevant academic achievements** (if detailed in the resume and pertinent to the role).
+        *   Then, include questions about their overall **work experience** (if detailed in the resume and relevant).
+    *   **For all other competencies**:
+        *   Prioritize **Resume Project Deep-Dive Question(s)**: If a Candidate Resume is provided, ensure questions **directly probe into specific projects listed**. These questions should aim to uncover details such as: "Regarding Project X mentioned on your resume, could you describe the tech stack you used, the primary goals of the project, what you accomplished, and any significant challenges you overcame?" or "Tell me about your role and contributions in Project Y, especially how you handled [specific challenge/goal mentioned in project description]."
+        *   Follow with other distinct, insightful questions (aim for 2-3 total per competency, including project questions):
+            *   One Technical Question (if applicable for the competency): Probes specific technical skills, tools, or platform knowledge relevant to the JD and candidate's background (from resume/context, including specific tech stack used in projects).
+            *   One Scenario-based Question: Presents a realistic work-related challenge reflecting the JD's demands and candidate's experience level (from resume/context).
+            *   One Behavioral Question: Assesses past behavior (STAR method), ideally probing experiences mentioned in the resume (e.g., challenges faced in projects, accomplishments, or points from their educational/academic background if highly relevant) or required by the JD.
+    *   All questions must be sharply tailored to the specifics of the Job Description and **directly derived from or probe into experiences, skills, projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences, and claims made in the Candidate's Resume** (if provided) and any Candidate Experience Context.
+
+3.  **For EACH question, provide all fields as specified in the output schema**:
     *   \`question\`: The text of the question.
     *   \`answer\`: A model answer as 3-4 concise bullet points.
         *   Each bullet point MUST serve as a **general example of a strong answer** for this role and candidate profile – basic, clear, and easy to judge. These points should guide the interviewer on what a good answer might cover, and MUST be informed by proficiency relevant to the candidate's **specific work experience, past experiences (from resume/context, including projects and their specific details like tech stack, goals, accomplishments, challenges, educational background, academic achievements)** and background by EXPLICITLY referencing key terms, skills, **projects**, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for.
-        *   For "Tell me about yourself": If a resume is provided, the model answer MUST be specifically tailored to the candidate's resume. It should outline 3-4 key bullet points a strong candidate, based on *their specific resume* (considering their work history, projects, **educational background, and academic achievements**), would ideally cover. For example: "Candidate succinctly summarizes their career trajectory relevant to this role, possibly mentioning their degree if highly relevant; Highlights achievement from Project Y (on resume, mentioning tech stack/goal) and skills A & B (from resume) that align with JD; Briefly explains motivation for applying, connecting past experiences (from resume, e.g., challenge overcome in a project or a key learning from their education) to this opportunity." If no resume is provided, offer a more generic but still structured model answer guiding on general strong points.
+        *   For "Tell me about yourself": If a resume is provided, the model answer MUST be specifically tailored to the candidate's resume. It should outline 3-4 key bullet points a strong candidate, based on *their specific resume* (considering their work history, projects, **educational background, and academic achievements**), would ideally cover.
         *   For resume project deep-dive questions: The model answer should guide the interviewer on what to listen for, e.g., "Candidate clearly articulates project goals and their role; Details specific technologies used (from resume/JD context); Quantifies accomplishments where possible (aligning with resume claims); Describes challenges (e.g., technical, team, timeline) and demonstrates problem-solving approaches."
         *   For resume educational/academic background questions: Model answers should guide on assessing the relevance and depth of understanding related to their academic experiences.
     *   \`type\`: The type of question ('Technical', 'Scenario', 'Behavioral').
     *   \`category\`: The category of the question ('Technical' or 'Non-Technical'). 'Technical' questions assess specific hard skills/tools. 'Non-Technical' questions (typically Scenario or Behavioral, including "Tell me about yourself") assess problem-solving, behavioral traits, or soft skills. Assign based on question type and content.
     *   \`difficulty\`: The difficulty level from this exact 5-level scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level.
     *   \`estimatedTimeMinutes\`: A suitable estimated time in minutes a candidate might need for a thorough answer, considering question complexity and the candidate's experience. Default suggestions: Naive(2), Beginner(4), Intermediate(6), Expert(8), Master(10).
-5.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be a **well-defined, distinct, and high-quality** scoring criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate Resume/Context (including specific project details, educational background, academic achievements, or past work experiences). The set of criteria MUST provide a **broad yet deeply contextual** basis for comprehensive candidate evaluation. Ensure criterion weights sum to 1.0.
+4.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be a **well-defined, distinct, and high-quality** scoring criterion. It must be actionable, measurable, and directly relevant to assessing candidate suitability for the role. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate Resume/Context (including specific project details, educational background, academic achievements, or past work experiences). The set of criteria MUST provide a **broad yet deeply contextual** basis for comprehensive candidate evaluation. Ensure criterion weights sum to 1.0.
 
 Return a JSON object adhering to the specified output schema. Ensure all fields are populated.
-The goal is to produce highly relevant, tailored questions (actively drawing from the resume, including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences) with concise, judgeable model answers that serve as general examples of strong responses (and for 'Tell me about yourself', a resume-specific guide outlining what points covered from their resume would indicate a strong answer), and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience (including their past work history, projects, and education).
+The goal is to produce a logically sequenced interview kit with highly relevant, tailored questions (actively drawing from the resume, including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences) with concise, judgeable model answers that serve as general examples of strong responses (and for 'Tell me about yourself', a resume-specific guide outlining what points covered from their resume would indicate a strong answer), and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience (including their past work history, projects, and education).
 `,
 });
 
@@ -158,7 +165,7 @@ const generateInterviewKitFlow = ai.defineFlow(
                     crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
                 }
             });
-        } else if (totalWeight !== 1.0) { // If weights are non-zero but don't sum to 1.0, normalize
+        } else if (Math.abs(totalWeight - 1.0) > 0.001) { // If weights are non-zero but don't sum to 1.0 (with tolerance for float issues)
             const factor = 1.0 / totalWeight;
             let sumOfNormalizedWeights = 0;
             validatedOutput.scoringRubric.forEach((crit, index, arr) => {
@@ -174,7 +181,7 @@ const generateInterviewKitFlow = ai.defineFlow(
 
     // Final check and adjustment if sum is still not 1.0 due to rounding
     let finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
-    if (finalSum !== 1.0 && validatedOutput.scoringRubric.length > 0) {
+    if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
         const diff = 1.0 - finalSum;
         const lastCrit = validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1];
         lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diff).toFixed(2));
@@ -182,7 +189,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         if (lastCrit.weight < 0) {
             lastCrit.weight = 0;
             let currentTotal = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
-            if (currentTotal < 1.0 && validatedOutput.scoringRubric.length > 1) {
+            if (Math.abs(currentTotal - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 1) {
                  const remainingDiff = 1.0 - currentTotal;
                  const otherCrits = validatedOutput.scoringRubric.filter(c => c !== lastCrit);
                  if (otherCrits.length > 0) {
@@ -191,7 +198,7 @@ const generateInterviewKitFlow = ai.defineFlow(
                  }
             }
             finalSum = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
-            if (finalSum !== 1.0 && validatedOutput.scoringRubric.length > 0) { // If still not 1.0, adjust the one with most weight or first.
+            if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) { // If still not 1.0, adjust the one with most weight or first.
                 const finalDiffToAdjust = parseFloat((1.0-finalSum).toFixed(2));
                 let targetCrit = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
                 targetCrit.weight = parseFloat(Math.max(0, targetCrit.weight + finalDiffToAdjust).toFixed(2));
