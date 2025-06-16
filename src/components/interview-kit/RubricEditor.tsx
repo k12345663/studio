@@ -71,7 +71,7 @@ export function RubricEditor({ rubricCriteria, onRubricChange, isLoading = false
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor={`criterion-weight-${criterion.id}`} className="font-medium text-sm text-foreground">Weight (0-1)</Label>
+              <Label htmlFor={`criterion-weight-${criterion.id}`} className="font-medium text-sm text-foreground">Weight (0.0 - 1.0)</Label>
               <Input
                 id={`criterion-weight-${criterion.id}`}
                 type="number"
@@ -81,7 +81,7 @@ export function RubricEditor({ rubricCriteria, onRubricChange, isLoading = false
                 step="0.01"
                 min="0"
                 max="1"
-                className="mt-1 text-sm p-2 shadow-sm w-full md:w-40" // Kept md:w-40 for weight for a bit narrower field, but it's on its own line
+                className="mt-1 text-sm p-2 shadow-sm w-full"
                 disabled={isLoading}
                 aria-label={`Weight for ${criterion.name || `criterion ${index + 1}`}`}
               />
@@ -97,7 +97,7 @@ export function RubricEditor({ rubricCriteria, onRubricChange, isLoading = false
           aria-live="polite"
         >
           {totalWeight === 1.0 ? <CheckCircle2 className="mr-2 h-5 w-5" /> : <AlertTriangle className="mr-2 h-5 w-5" />}
-          Total Weight: {totalWeight.toFixed(2)} / 1.00
+          Total Weight: {totalWeight.toFixed(2)} / 1.0
           {totalWeight !== 1.0 && " (Adjust weights to sum to 1.0)"}
         </div>
       </CardContent>

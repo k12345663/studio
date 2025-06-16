@@ -45,8 +45,8 @@ const CompetencySchema = z.object({
 });
 
 const RubricCriterionSchema = z.object({
-  name: z.string().describe('Name of the criterion. Each criterion MUST be actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively.'),
-  weight: z.number().describe('Weight of the criterion (should sum to 1.0).'),
+  name: z.string().describe('Name of the high-quality, distinct criterion. It MUST be actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively.'),
+  weight: z.number().describe('Weight of the criterion (a value between 0.0 and 1.0, should sum to 1.0 across all criteria).'),
 });
 
 // Define the input schema for the customization flow
@@ -115,7 +115,7 @@ Based on the recruiter's modifications and a holistic understanding of the origi
 1.  Preserve all existing IDs for competencies and questions.
 2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/context). Model answers MUST be 3-4 concise bullet points, serving as general examples of strong answers, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, or experiences from the Job Description AND/OR Candidate Resume/Context. If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links, and ensuring the 3-4 bullet point format for answers.
 3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/context).
-4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are contextually relevant, EXPLICITLY referencing key phrases from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/context, while staying close to recruiter's weights.
+4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are high-quality, distinct evaluation parameters, contextually relevant, EXPLICITLY referencing key phrases from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/context, while staying close to recruiter's weights.
 5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/context, serving as general examples of strong answers) are present for all competencies and questions.
 
 Return the fully customized and refined interview kit in the specified JSON format. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements based on the JD, resume, and any other candidate context.
@@ -157,39 +157,58 @@ const customizeInterviewKitFlow = ai.defineFlow(
     };
 
     // Ensure rubric weights sum to 1.0
-    const totalWeight = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
-    if (totalWeight > 0 && totalWeight !== 1.0 && validatedOutput.rubricCriteria.length > 0) {
-      const factor = 1.0 / totalWeight;
-      let sumOfNormalizedWeights = 0;
-      validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
-        if (index < arr.length -1) {
-          crit.weight = parseFloat((crit.weight * factor).toFixed(2));
-          sumOfNormalizedWeights += crit.weight;
-        } else {
-           crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
+    let totalWeight = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
+    if (validatedOutput.rubricCriteria.length > 0) {
+        if (totalWeight === 0) { // If all weights are 0, distribute equally
+            const equalWeight = parseFloat((1.0 / validatedOutput.rubricCriteria.length).toFixed(2));
+            let sum = 0;
+            validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
+                if(index < arr.length -1) {
+                    crit.weight = equalWeight;
+                    sum += equalWeight;
+                } else {
+                    crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
+                }
+            });
+        } else if (totalWeight !== 1.0) { // If weights are non-zero but don't sum to 1.0, normalize
+            const factor = 1.0 / totalWeight;
+            let sumOfNormalizedWeights = 0;
+            validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
+                if (index < arr.length -1) {
+                    crit.weight = parseFloat((crit.weight * factor).toFixed(2));
+                    sumOfNormalizedWeights += crit.weight;
+                } else {
+                    crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
+                }
+            });
         }
-      });
-      let finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
-      if (finalSum !== 1.0 && validatedOutput.rubricCriteria.length > 0) {
-          const diff = 1.0 - finalSum;
-          const lastCrit = validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1];
-           lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diff).toFixed(2));
-      }
-    } else if (totalWeight === 0 && validatedOutput.rubricCriteria.length > 0) {
-        const equalWeight = parseFloat((1.0 / validatedOutput.rubricCriteria.length).toFixed(2));
-        let sum = 0;
-        validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
-            if(index < arr.length -1) {
-                crit.weight = equalWeight;
-                sum += equalWeight;
-            } else {
-                crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
+    }
+     // Final check and adjustment if sum is still not 1.0 due to rounding
+    let finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
+    if (finalSum !== 1.0 && validatedOutput.rubricCriteria.length > 0) {
+        const diff = 1.0 - finalSum;
+        const lastCrit = validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1];
+        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diff).toFixed(2));
+        if (lastCrit.weight < 0) {
+            lastCrit.weight = 0;
+            let currentTotal = validatedOutput.rubricCriteria.reduce((s,c) => s + c.weight, 0);
+            if (currentTotal < 1.0 && validatedOutput.rubricCriteria.length > 1) {
+                 const remainingDiff = 1.0 - currentTotal;
+                 const otherCrits = validatedOutput.rubricCriteria.filter(c => c !== lastCrit);
+                 if (otherCrits.length > 0) {
+                    const adjustmentPerCrit = remainingDiff / otherCrits.length;
+                    otherCrits.forEach(c => c.weight = parseFloat(Math.max(0, c.weight + adjustmentPerCrit).toFixed(2)));
+                 }
             }
-        });
+            finalSum = validatedOutput.rubricCriteria.reduce((s,c) => s + c.weight, 0);
+            if (finalSum !== 1.0) {
+                const finalDiff = 1.0 - finalSum;
+                const primaryTarget = validatedOutput.rubricCriteria.find(c => c.weight > 0 && c !== lastCrit) || validatedOutput.rubricCriteria[0];
+                primaryTarget.weight = parseFloat(Math.max(0, primaryTarget.weight + finalDiff).toFixed(2));
+            }
+        }
     }
     return validatedOutput;
   }
 );
-    
-
     
