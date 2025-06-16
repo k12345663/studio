@@ -11,6 +11,16 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { QuestionDifficulty } from '@/types/interview-kit'; // For difficultyTimeMap
+
+// This map is used in post-processing if AI doesn't provide estimatedTimeMinutes
+const difficultyTimeMap: Record<QuestionDifficulty, number> = {
+  Naive: 2,
+  Beginner: 4,
+  Intermediate: 6,
+  Expert: 8,
+  Master: 10,
+};
 
 const GenerateInterviewKitInputSchema = z.object({
   jobDescription: z
@@ -70,7 +80,7 @@ Candidate Resume:
 {{/if}}
 
 {{#if candidateExperienceContext}}
-Candidate Experience Context (additional notes):
+Candidate Experience Context (additional notes on candidate's background, years of experience, current role, past tech stack, etc.):
 {{{candidateExperienceContext}}}
 {{/if}}
 
@@ -83,17 +93,17 @@ Based on a holistic understanding of ALL available information (Job Description,
     *   One Behavioral Question: Assesses past behavior (STAR method), ideally probing experiences mentioned in the resume or required by the JD.
     These questions must be sharply tailored to the specifics of BOTH the Job Description and the Candidate's Profile (Resume and/or Context).
 
-3.  For EACH question, provide the following:
+3.  For EACH question, provide all the fields as specified in the output schema, paying close attention to the descriptions:
     *   \\\`question\\\`: The text of the question.
     *   \\\`answer\\\`: A model answer as 3-4 concise bullet points. Each bullet point MUST serve as a general example of a strong answer for this role and candidate profile – basic, clear, and easy to judge. Crucially, these answers must also demonstrate proficiency relevant to the candidate's specific experience level and background by EXPLICITLY referencing key terms, skills, or experiences from the Job Description AND/OR the Candidate Resume/Context. Highlight positive indicators a recruiter should look for.
     *   \\\`type\\\`: The type of question ('Technical', 'Scenario', 'Behavioral').
-    *   \\\`category\\\`: The category of the question ('Technical' or 'Non-Technical'). 'Technical' questions assess specific hard skills/tools. 'Non-Technical' questions (typically Scenario or Behavioral) assess problem-solving, behavioral traits, or soft skills.
+    *   \\\`category\\\`: The category of the question ('Technical' or 'Non-Technical'). 'Technical' questions assess specific hard skills/tools. 'Non-Technical' questions (typically Scenario or Behavioral) assess problem-solving, behavioral traits, or soft skills. Assign based on question type and content.
     *   \\\`difficulty\\\`: The difficulty level from this exact 5-level scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level.
     *   \\\`estimatedTimeMinutes\\\`: A suitable estimated time in minutes a candidate might need for a thorough answer, considering question complexity and the candidate's experience. Default suggestions: Naive(2), Beginner(4), Intermediate(6), Expert(8), Master(10).
 4.  Create a scoring rubric with 3-5 weighted criteria. Each criterion MUST be actionable, measurable, and explicitly mention key phrases, skills, or concepts from the Job Description AND/OR the Candidate Resume/Context. The set of criteria MUST provide a broad yet deeply contextual basis for evaluating the candidate comprehensively. Ensure criterion weights sum to 1.0.
 
 Return a JSON object adhering to the specified output schema. Ensure all fields are populated.
-The goal is to produce highly relevant, tailored questions with concise, judgeable model answers, and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background.
+The goal is to produce highly relevant, tailored questions with concise, judgeable model answers that serve as general examples of strong responses, and a deeply contextual scoring rubric, all meticulously informed by the Job Description and the candidate's specific background and experience.
 `,
 });
 
@@ -165,4 +175,6 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+    
+
     

@@ -14,6 +14,17 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { QuestionDifficulty } from '@/types/interview-kit'; // For difficultyTimeMap
+
+// This map is used in post-processing if AI doesn't provide estimatedTimeMinutes
+const difficultyTimeMap: Record<QuestionDifficulty, number> = {
+  Naive: 2,
+  Beginner: 4,
+  Intermediate: 6,
+  Expert: 8,
+  Master: 10,
+};
+
 
 // Define schemas for the interview kit components
 const QuestionSchema = z.object({
@@ -41,7 +52,7 @@ const RubricCriterionSchema = z.object({
 // Define the input schema for the customization flow
 const CustomizeInterviewKitInputSchema = z.object({
   jobDescription: z.string().describe('The job description used to generate the interview kit.'),
-  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements.'),
+  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements (e.g., years of experience, current role, past tech stack).'),
   candidateResume: z.string().optional().describe('The full text of the candidate\'s resume that was used and should be considered for refinements.'),
   competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here.'),
   rubricCriteria: z.array(RubricCriterionSchema).describe('Array of rubric criteria with weights. User edits are reflected here.'),
@@ -50,8 +61,8 @@ export type CustomizeInterviewKitInput = z.infer<typeof CustomizeInterviewKitInp
 
 // Define the output schema for the customization flow
 const CustomizeInterviewKitOutputSchema = z.object({
-  competencies: z.array(CompetencySchema).describe('Array of customized core competencies, including importance, and questions with category, difficulty/time. Quality of questions and answers should be maintained or enhanced, with answers as 3-4 bullet points referencing JD and candidate profile.'),
-  rubricCriteria: z.array(RubricCriterionSchema).describe('Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria reference JD and candidate profile for a broad yet contextual evaluation.'),
+  competencies: z.array(CompetencySchema).describe('Array of customized core competencies, including importance, and questions with category, difficulty/time. Quality of questions and answers should be maintained or enhanced, with answers as 3-4 bullet points referencing JD and candidate profile (serving as general examples of strong answers).'),
+  rubricCriteria: z.array(RubricCriterionSchema).describe('Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria reference JD and candidate profile for a broad yet deeply contextual evaluation.'),
 });
 export type CustomizeInterviewKitOutput = z.infer<typeof CustomizeInterviewKitOutputSchema>;
 
@@ -78,7 +89,7 @@ Candidate Resume (for context):
 {{/if}}
 
 {{#if candidateExperienceContext}}
-Candidate Experience Context (additional notes, for context):
+Candidate Experience Context (additional notes on candidate's background, e.g., years of experience, current role, past tech stack, for context):
 {{{candidateExperienceContext}}}
 {{/if}}
 
@@ -105,7 +116,7 @@ Based on the recruiter's modifications and a holistic understanding of the origi
 2.  If the recruiter modified a question's text or model answer, ensure the updated content remains high quality, insightful, and relevant to the JD and candidate profile (resume/context). Model answers MUST be 3-4 concise bullet points, serving as general examples of strong answers, be basic, clear, and easy to judge, and EXPLICITLY reference specific terms, skills, or experiences from the Job Description AND/OR Candidate Resume/Context. If a question seems significantly altered, subtly improve it respecting recruiter's intent, maintaining contextual links, and ensuring the 3-4 bullet point format for answers.
 3.  Reflect changes to competency importance, question category ('Technical'/'Non-Technical'), question difficulty (5 levels: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'), or estimated times. Ensure difficulty is one of the 5 allowed levels. If new questions are implicitly added, assign appropriate category, difficulty, estimated time, and ensure well-formed questions with concise 3-4 bullet model answers strongly tied to the JD and candidate profile (resume/context).
 4.  If rubric criteria names or weights were changed, reflect these. Ensure criteria names are contextually relevant, EXPLICITLY referencing key phrases from the JD, Candidate Resume, or Candidate Profile/Context to provide a broad yet deeply contextual basis for evaluation. Ensure rubric weights for all criteria sum to 1.0. Adjust logically if they do not, prioritizing critical criteria based on JD/resume/context, while staying close to recruiter's weights.
-5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/context) are present for all competencies and questions.
+5.  Ensure all output fields (importance, category, difficulty, estimatedTimeMinutes, 3-4 bullet model answers referencing JD/resume/context, serving as general examples of strong answers) are present for all competencies and questions.
 
 Return the fully customized and refined interview kit in the specified JSON format. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements based on the JD, resume, and any other candidate context.
 `,
@@ -135,7 +146,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
           difficulty: q.difficulty || 'Intermediate',
           estimatedTimeMinutes: q.estimatedTimeMinutes || (difficultyTimeMap[q.difficulty || 'Intermediate']),
           text: q.text || "Missing question text",
-          modelAnswer: q.modelAnswer || "Missing model answer (should be 3-4 bullet points referencing JD/resume/context, serving as a general example).",
+          modelAnswer: q.modelAnswer || "Missing model answer (should be 3-4 bullet points referencing JD/resume/context, serving as a general example of a strong answer).",
         })),
       })),
       rubricCriteria: output.rubricCriteria.map(rc => ({
@@ -179,4 +190,6 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+    
+
     

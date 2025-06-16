@@ -110,7 +110,7 @@ AI capabilities are central to RecruTake and are implemented using **Genkit**.
         *   **Output Schema (`CustomizeInterviewKitOutputSchema` using Zod)**: A refined version of the interview kit.
         *   **Error Handling & Validation**: Includes logic to ensure output fields are present, rubric weights are normalized, and default times are applied.
 
-*   **Schema Enforcement**: Zod schemas are used extensively for type safety and to guide the AI model on its response format, ensuring model answers are judgeable (serving as general examples of strong answers) and rubrics offer a broad yet contextual perspective.
+*   **Schema Enforcement**: Zod schemas are used extensively for type safety and to guide the AI model on its response format, ensuring model answers are judgeable (serving as general examples of strong answers) and rubrics offer a broad yet deeply contextual perspective for evaluation.
 
 ## 5. Workflow
 
@@ -158,3 +158,5 @@ AI capabilities are central to RecruTake and are implemented using **Genkit**.
 *   More granular AI regeneration (e.g., single question).
 
 This report provides a comprehensive overview of the RecruTake application, reflecting the latest feature enhancements and AI prompting strategies.
+
+    

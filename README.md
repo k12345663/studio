@@ -67,3 +67,5 @@ RecruTake is a Next.js web application designed to assist recruiters and hiring 
 4.  **Run Genkit Dev Server** (optional): `npm run genkit:dev` (Genkit UI `http://localhost:4000`)
 
 Refer to `PROJECT_REPORT.md` for a more detailed breakdown.
+
+    
