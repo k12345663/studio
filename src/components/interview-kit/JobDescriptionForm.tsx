@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Send, FileText, UserCircle, MessageSquare } from 'lucide-react';
+import { Send, FileText, UserCircle, MessageSquare, UploadCloud, Link2 } from 'lucide-react';
 
 export interface JobDescriptionFormSubmitData {
   jobDescription: string;
   candidateExperienceContext?: string;
-  candidateResume?: string;
+  candidateResume?: string; // This will now hold pasted text, or could be a placeholder if uploads were implemented
 }
 
 interface JobDescriptionFormProps {
@@ -46,7 +46,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           <FileText className="mr-3 h-7 w-7" /> Create Your Interview Kit
         </CardTitle>
         <CardDescription className="text-base">
-          Provide the job details, candidate's resume (optional), and any extra context to generate a tailored interview kit.
+          Provide the job details. For candidate information, you can paste their resume text below.
+          Ideally, future versions will support PDF/DOC uploads or direct Unstop profile integration.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,18 +71,22 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
 
           <div className="space-y-2">
             <Label htmlFor="candidate-resume-text" className="font-semibold text-foreground text-md flex items-center">
-              <UserCircle size={18} className="mr-2 text-primary" /> Candidate Resume (Optional)
+              <UserCircle size={18} className="mr-2 text-primary" /> Candidate Resume / Profile Details (Optional)
             </Label>
             <Textarea
               id="candidate-resume-text"
               value={candidateResume}
               onChange={(e) => setCandidateResume(e.target.value)}
-              placeholder="Paste the candidate's full resume here to tailor questions and answers..."
+              placeholder="Paste the candidate's full resume text here, or relevant details from their Unstop profile to tailor questions and answers..."
               className="min-h-[150px] text-sm p-3 rounded-md shadow-inner"
               rows={6}
               disabled={isLoading}
-              aria-label="Candidate Resume Text Input"
+              aria-label="Candidate Resume Text Input or Profile Details"
             />
+             <p className="text-xs text-muted-foreground mt-1">
+              For best results, include project details, tech stack, goals, accomplishments, challenges, educational background, and past work experiences.
+              Future enhancements aim to support direct <UploadCloud className="inline h-3 w-3 mr-0.5"/>PDF/DOC uploads or <Link2 className="inline h-3 w-3 mr-0.5"/>Unstop profile linking.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -116,3 +121,4 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     </Card>
   );
 }
+    
