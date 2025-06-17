@@ -2,14 +2,16 @@
 "use client";
 
 import type React from 'react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Send, FileText, UserCircle, MessageSquare, UploadCloud, LinkIcon } from 'lucide-react';
+import { Send, FileText, UserCircle, MessageSquare, UploadCloud, LinkIcon, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import * as pdfjsLib from 'pdfjs-dist';
+import mammoth from 'mammoth';
 
 
 export interface JobDescriptionFormSubmitData {
@@ -29,37 +31,115 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
   const [unstopProfileLink, setUnstopProfileLink] = useState('');
   const [candidateResumeText, setCandidateResumeText] = useState('');
   const [candidateExperienceContext, setCandidateExperienceContext] = useState('');
+  const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Set workerSrc for pdfjs-dist. Using a CDN path.
+    // Ensure this version matches the installed pdfjs-dist version if possible, or use a generic one.
+    // The version can be found in package-lock.json or by checking pdfjsLib.version
+    // For pdfjs-dist v4.x.x, the worker path structure changed slightly.
+    // Using unpkg which resolves to the correct path based on version.
+     try {
+        if (pdfjsLib.GlobalWorkerOptions) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+        }
+     } catch (error) {
+        console.error("Error setting pdf.js worker source:", error);
+        toast({
+          variant: "destructive",
+          title: "PDF Worker Error",
+          description: "Could not initialize PDF processing. PDF extraction may fail.",
+        });
+     }
+  }, [toast]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.type === "application/pdf" || file.type === "application/msword" || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      setCandidateResumeText(`Processing ${file.name}...`);
+      setIsExtracting(true);
+      toast({
+        title: "Processing Resume",
+        description: `Attempting to extract text from ${file.name}.`,
+      });
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        let extractedText = '';
+
+        if (file.type === "application/pdf") {
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let textContent = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const text = await page.getTextContent();
+            textContent += text.items.map((s: any) => s.str).join(' ') + '\n';
+          }
+          extractedText = textContent;
+        } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") { // .docx
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          extractedText = result.value;
+        } else if (file.type === "application/msword") { // .doc
+           setCandidateResumeText(
+            `File selected: ${file.name}.\n\nIMPORTANT: Automated text extraction for .doc files is not supported by this client-side tool. Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this field, replacing this message. The AI will then analyze the pasted text.`
+          );
+          toast({
+            variant: "default",
+            title: ".doc File Selected",
+            description: "Automated extraction for .doc is not supported. Please paste text manually.",
+          });
+          setIsExtracting(false);
+          return;
+        }
+         else {
+          setCandidateResumeText(
+            `File selected: ${file.name}.\n\nUnsupported file type for automatic extraction. Please MANUALLY COPY the text content if it's a resume and PASTE it here.`
+          );
+          toast({
+            variant: "destructive",
+            title: "Unsupported File Type",
+            description: "Please upload a PDF or DOCX for automatic extraction, or paste text manually.",
+          });
+          if(fileInputRef.current) fileInputRef.current.value = "";
+          setIsExtracting(false);
+          return;
+        }
+
+        if (extractedText.trim()) {
+          setCandidateResumeText(extractedText);
+          toast({
+            title: "Text Extracted Successfully!",
+            description: `Text from ${file.name} has been loaded.`,
+          });
+        } else {
+          setCandidateResumeText(
+            `Could not automatically extract text from ${file.name}, or the file is empty. Please MANUALLY COPY the text content from your resume and PASTE it here.`
+          );
+          toast({
+            variant: "destructive",
+            title: "Extraction Issue",
+            description: `No text could be extracted from ${file.name}, or the file is empty. Please paste manually.`,
+          });
+        }
+      } catch (error) {
+        console.error("Error extracting text:", error);
         setCandidateResumeText(
-`File selected: ${file.name}.
-
-IMPORTANT: For this demonstration, automated text extraction from PDF/DOC files is not yet implemented.
-
-Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this field, replacing this message. The AI will then analyze the pasted text. Include all relevant details like projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences.`
+          `Error extracting text from ${file.name}. This can happen with complex or password-protected files. Please MANUALLY COPY the text content from your resume and PASTE it here.`
         );
         toast({
-          title: "File Selected: " + file.name,
-          description: "Please paste the resume's text content into the field below.",
-        });
-      } else {
-        toast({
           variant: "destructive",
-          title: "Invalid File Type",
-          description: "Please upload a PDF, DOC, or DOCX file.",
+          title: "Extraction Failed",
+          description: `Could not extract text from ${file.name}. Please paste manually. Error: ${error instanceof Error ? error.message : "Unknown error"}`,
         });
-        if(fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset file input
-        }
-        setCandidateResumeText(''); // Clear any previous instructional text
+      } finally {
+        setIsExtracting(false);
+        if(fileInputRef.current) fileInputRef.current.value = ""; // Reset file input so same file can be re-selected if needed
       }
     } else {
         setCandidateResumeText(''); // Clear if no file is selected or selection is cancelled
+        setIsExtracting(false);
     }
   };
 
@@ -80,16 +160,10 @@ Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this
         return;
     }
 
-    // Check if candidateResumeText still contains the instructional placeholder
-    if (candidateResumeText.startsWith("File selected:") && candidateResumeText.includes("MANUALLY COPY the text content")) {
-        // Optionally, you could clear it or prompt the user,
-        // but for now, we'll assume they might forget to replace it and proceed with it as potentially empty or just context.
-        // The AI prompts are robust enough to handle empty or less detailed resume text.
-        // Or, to be stricter:
-        // toast({ variant: "destructive", title: "Resume Text Needed", description: "Please paste the actual resume text, replacing the instructional message." });
-        // return;
+    if (candidateResumeText.startsWith("Processing ") && candidateResumeText.includes("...")) {
+        toast({ variant: "destructive", title: "Resume Processing", description: "Please wait for resume text extraction to complete or paste text manually." });
+        return;
     }
-
 
     onSubmit({
       jobDescription: jobDescription.trim(),
@@ -99,7 +173,7 @@ Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this
     });
   };
 
-  const canSubmit = !isLoading && jobDescription.trim() && unstopProfileLink.trim();
+  const canSubmit = !isLoading && !isExtracting && jobDescription.trim() && unstopProfileLink.trim();
 
   return (
     <Card className="w-full shadow-xl border border-primary/20">
@@ -108,7 +182,7 @@ Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this
           <FileText className="mr-3 h-7 w-7" /> Create Your Interview Kit
         </CardTitle>
         <CardDescription className="text-base">
-          Provide the job details, candidate's Unstop profile, and optionally their resume (paste text after selecting file).
+          Provide job details, candidate's Unstop profile, and optionally their resume (PDF/DOCX for auto-extraction, or paste text).
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -124,7 +198,7 @@ Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this
               placeholder="Paste the full job description here..."
               className="min-h-[180px] text-sm p-3 rounded-md shadow-inner"
               rows={8}
-              disabled={isLoading}
+              disabled={isLoading || isExtracting}
               aria-label="Job Description Text Input"
               required
             />
@@ -141,7 +215,7 @@ Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this
               onChange={(e) => setUnstopProfileLink(e.target.value)}
               placeholder="https://unstop.com/p/candidate-profile-link..."
               className="text-sm p-3 rounded-md shadow-inner"
-              disabled={isLoading}
+              disabled={isLoading || isExtracting}
               aria-label="Unstop Profile Link Input"
               required
             />
@@ -152,35 +226,37 @@ Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this
           
           <div className="space-y-2">
             <Label htmlFor="candidate-resume-upload" className="font-semibold text-foreground text-md flex items-center">
-              <UploadCloud size={18} className="mr-2 text-primary" /> Candidate Resume (PDF/DOC - Optional)
+              <UploadCloud size={18} className="mr-2 text-primary" /> Candidate Resume (PDF/DOCX supported for auto-extraction - Optional)
             </Label>
             <Input
               id="candidate-resume-upload"
               type="file"
               ref={fileInputRef}
-              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
               onChange={handleFileChange}
               className="text-sm p-2 rounded-md shadow-sm border h-auto file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-              disabled={isLoading}
+              disabled={isLoading || isExtracting}
               aria-label="Candidate Resume Upload"
             />
              <p className="text-xs text-muted-foreground mt-1">
-              After selecting a file, its name will appear in the text area below with instructions. Please then PASTE the resume's full text content into that area. Automated text extraction is a planned future enhancement.
+              Select a PDF or DOCX file for automatic text extraction. For .doc files or if extraction fails, please paste text manually below.
             </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="candidate-resume-text" className="font-semibold text-foreground text-md flex items-center">
-              <UserCircle size={18} className="mr-2 text-primary" /> Candidate Resume Text (Optional - Paste after selecting file, or directly)
+             {isExtracting && <Loader2 size={18} className="mr-2 text-primary animate-spin"/>}
+             {!isExtracting && <UserCircle size={18} className="mr-2 text-primary"/>}
+              Candidate Resume Text (Populated by upload or paste manually)
             </Label>
             <Textarea
               id="candidate-resume-text"
               value={candidateResumeText}
               onChange={(e) => setCandidateResumeText(e.target.value)}
-              placeholder="Paste the candidate's full resume text here. If you selected a file above, this area will show instructions to paste its content."
+              placeholder="Select a PDF/DOCX above for auto-extraction, or paste the candidate's full resume text here."
               className="min-h-[150px] text-sm p-3 rounded-md shadow-inner"
               rows={6}
-              disabled={isLoading}
+              disabled={isLoading || isExtracting}
               aria-label="Candidate Resume Text Input or Profile Details"
             />
           </div>
@@ -196,7 +272,7 @@ Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this
               placeholder="E.g., 'Targeting senior level, 5+ years experience with microservices' or 'Focus on leadership and communication skills.'"
               className="min-h-[100px] text-sm p-3 rounded-md shadow-inner"
               rows={3}
-              disabled={isLoading}
+              disabled={isLoading || isExtracting}
               aria-label="Additional Candidate Experience Context Input"
             />
           </div>
@@ -209,7 +285,7 @@ Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this
               size="lg"
             >
               <Send className="mr-2 h-5 w-5" />
-              {isLoading ? 'Generating Kit...' : 'Generate Interview Kit'}
+              {isLoading ? 'Generating Kit...' : (isExtracting ? 'Processing Resume...' : 'Generate Interview Kit')}
             </Button>
           </div>
         </form>
