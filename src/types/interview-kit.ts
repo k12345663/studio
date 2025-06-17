@@ -31,8 +31,9 @@ export interface ClientRubricCriterion {
 
 export interface InterviewKit {
   jobDescription: string;
+  unstopProfileLink?: string; // Added, conceptually compulsory
+  candidateResumeText?: string; // Renamed from candidateResume, holds extracted text
   candidateExperienceContext?: string;
-  candidateResume?: string; // Added
   competencies: ClientCompetency[];
   scoringRubric: ClientRubricCriterion[];
 }

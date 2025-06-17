@@ -1,13 +1,13 @@
 
 # RecruTake: AI-Powered Interview Kit Generator
 
-RecruTake is a Next.js web application designed to assist recruiters and hiring managers—especially those who may not be technical experts in the role's domain—by leveraging AI to generate and customize comprehensive interview kits. Users input a job description (pasted text) and can optionally paste candidate resume text or relevant details from a candidate profile (e.g., Unstop). The AI then produces a structured set of competencies and interview questions, generated in a logical sequence (general intro, academics, experience, then project-specifics and other technicals).
+RecruTake is a Next.js web application designed to assist recruiters and hiring managers—especially those who may not be technical experts in the role's domain—by leveraging AI to generate and customize comprehensive interview kits. Users input a job description (pasted text), a **compulsory Unstop Profile Link**, and can **optionally upload a candidate's resume (PDF/DOC)**, for which they are currently guided to paste the extracted text. The AI then produces a structured set of competencies and interview questions, generated in a logical sequence (general intro, academics, experience, then project-specifics and other technicals).
 
-Questions are categorized as Technical or Non-Technical, and directly derived from analyzing the resume/profile data (including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences) and JD requirements. A "Tell me about yourself" question includes a resume/profile-tailored model answer, **written from an interviewer's perspective**, guiding on what points to cover. Model answers are formatted as 3-4 concise, judgeable bullet points serving as **general examples of strong answers from an interviewer's perspective by highlighting key points a candidate should cover** (e.g., for an OOP question, noting the 4 pillars). These answers are designed to be basic, clear, and easy for non-technical recruiters to evaluate, and include guidance on assessing real-life examples provided by candidates.
+Questions are categorized as Technical or Non-Technical, and directly derived from analyzing the Unstop Profile (conceptually), extracted resume text (including projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and JD requirements. A "Tell me about yourself" question includes a Unstop profile/resume-tailored model answer, **written from an interviewer's perspective**, guiding on what points to cover based on their specific background. Model answers are formatted as 3-4 concise, judgeable bullet points serving as **general examples of strong answers from an interviewer's perspective by highlighting key points a candidate should cover** (e.g., for an OOP question, noting the 4 pillars). These answers are designed to be basic, clear, and easy for non-technical recruiters to evaluate, and include guidance on assessing real-life examples provided by candidates.
 
-The kit includes a 5-level difficulty rating ('Naive' to 'Master'), estimated answering times, and a weighted scoring rubric. Rubric criteria are designed for non-technical evaluators (focusing on clarity, relevance, depth), contextually derived from JD/resume/profile, with weights summing to 1.0. Users can edit this kit and have the AI refine their changes. Panelists use a 1-10 score slider for individual questions. An overall interview score (average of question scores) is also displayed.
+The kit includes a 5-level difficulty rating ('Naive' to 'Master'), estimated answering times, and a weighted scoring rubric. Rubric criteria are designed for non-technical evaluators (focusing on clarity, relevance, depth), contextually derived from JD & Unstop profile/resume text, with weights summing to 1.0. Users can edit this kit and have the AI refine their changes. Panelists use a 1-10 score slider for individual questions. An "Overall Interview Score" (average of question scores) is also displayed.
 
-**Future Considerations**: The project envisions future support for direct PDF/DOC resume uploads and Unstop profile integration.
+**Future Considerations**: The project envisions future support for full server-side PDF/DOC resume parsing and direct Unstop profile API integration.
 
 ## Tech Stack
 
@@ -16,11 +16,11 @@ The kit includes a 5-level difficulty rating ('Naive' to 'Master'), estimated an
 *   **UI Components**: ShadCN UI
 *   **Styling**: Tailwind CSS (`src/app/globals.css` for theme)
 *   **AI Integration**: Genkit (Google's Gemini models). Prompts are designed for:
-    *   Embodying an experienced recruiter persona capable of non-technical evaluation.
-    *   Critically analyzing Job Description (primary source), Candidate Resume/Profile data (primary source, including projects, tech stack, goals, accomplishments, challenges, education, past work experiences), and Candidate Experience Context.
+    *   Embodying an experienced recruiter persona (25+ years) capable of non-technical evaluation.
+    *   Critically analyzing Job Description (primary source), Unstop Profile Link (primary source, conceptually), Candidate Resume Text (primary source from upload/paste, including projects, tech stack, goals, accomplishments, challenges, education, past work experiences), and Candidate Experience Context.
     *   Generating questions in a logical sequence.
-    *   Producing model answers from an interviewer's perspective, highlighting key points to cover, suitable for non-technical judgment, and noting how to evaluate real-life examples.
-    *   Creating scoring rubrics with criteria focused on clarity, relevance, and depth, usable by non-technical recruiters.
+    *   Producing model answers from an interviewer's perspective, highlighting key points to cover, suitable for non-technical judgment, and noting how to evaluate real-life examples. "Tell me about yourself" model answers are specifically tailored based on the Unstop profile/resume text from an interviewer's viewpoint.
+    *   Creating scoring rubrics with criteria focused on clarity, relevance, and depth, usable by non-technical recruiters, and contextually tied to JD & Unstop profile/resume text.
 *   **State Management**: React state, `useToast`.
 *   **Package Manager**: npm
 
@@ -35,19 +35,19 @@ The kit includes a 5-level difficulty rating ('Naive' to 'Master'), estimated an
 │   ├── components/ (UI components, including interview kit specific ones)
 │   ├── hooks/
 │   ├── lib/
-│   ├── types/ (TypeScript definitions)
+│   ├── types/ (TypeScript definitions: unstopProfileLink, candidateResumeText)
 ...
 ```
 
 **Key Files & Features:**
 
-*   **`src/app/page.tsx`**: Manages main state, calls AI flows.
-*   **`src/ai/flows/`**: Genkit flows for generation and customization, with prompts emphasizing recruiter-centric, non-technical evaluation, deep analysis of JD and resume/profile (projects, tech stack, education, experience), logical question sequencing, and model answers guiding on key points to cover.
-*   **`src/components/interview-kit/JobDescriptionForm.tsx`**: Text input for JD, candidate resume/profile details. Mentions future goals for PDF/DOC upload and Unstop integration.
+*   **`src/app/page.tsx`**: Manages main state (JD, Unstop link, resume text, context), calls AI flows.
+*   **`src/ai/flows/`**: Genkit flows for generation and customization, with prompts emphasizing recruiter-centric, non-technical evaluation, deep analysis of JD, Unstop Profile link (conceptually), and resume text (projects, tech stack, education, experience), logical question sequencing, and model answers guiding on key points to cover.
+*   **`src/components/interview-kit/JobDescriptionForm.tsx`**: Text input for JD, **compulsory Unstop Profile Link**, optional resume upload (simulated, with manual text pasting), and additional context.
 *   **`src/components/interview-kit/InterviewKitDisplay.tsx`**: Renders kit, displays "Overall Interview Score."
 *   **`src/components/interview-kit/CompetencyAccordion.tsx`**: Groups questions by "Technical" and "Non-Technical".
 *   **`src/components/interview-kit/QuestionEditorCard.tsx`**: UI for editing questions, model answers, category, difficulty, time, and 1-10 panelist score.
-*   **`src/components/interview-kit/RubricEditor.tsx`**: UI for editing rubric criteria (designed for non-technical evaluation) and weights.
+*   **`src/components/interview-kit/RubricEditor.tsx`**: UI for editing rubric criteria (designed for non-technical evaluation, context from JD & Unstop/resume) and weights. Textarea used for longer criterion names.
 
 ## Getting Started
 
@@ -57,4 +57,3 @@ The kit includes a 5-level difficulty rating ('Naive' to 'Master'), estimated an
 4.  **Run Genkit Dev Server** (optional): `npm run genkit:dev` (Genkit UI `http://localhost:4000`)
 
 Refer to `PROJECT_REPORT.md` for a more detailed breakdown.
-    
