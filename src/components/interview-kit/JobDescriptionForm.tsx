@@ -36,15 +36,17 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     const file = event.target.files?.[0];
     if (file) {
       if (file.type === "application/pdf" || file.type === "application/msword" || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        // In a real application, you'd send this file to a backend for text extraction.
-        // For now, we'll simulate this by asking the user to paste the text.
+        setCandidateResumeText(
+`File selected: ${file.name}.
+
+IMPORTANT: For this demonstration, automated text extraction from PDF/DOC files is not yet implemented.
+
+Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this field, replacing this message. The AI will then analyze the pasted text. Include all relevant details like projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences.`
+        );
         toast({
           title: "File Selected: " + file.name,
-          description: "For this demo, please manually copy and paste the resume text into the 'Candidate Resume Text' field below after selecting a file. Full file processing is a future enhancement.",
+          description: "Please paste the resume's text content into the field below.",
         });
-        // You could try to read basic text if it's a .txt, but PDF/DOCX need server-side.
-        // For simplicity, we just inform the user.
-        setCandidateResumeText(`(Text from ${file.name} would be extracted here. Please paste manually for now.)\n`);
       } else {
         toast({
           variant: "destructive",
@@ -54,7 +56,10 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         if(fileInputRef.current) {
             fileInputRef.current.value = ""; // Reset file input
         }
+        setCandidateResumeText(''); // Clear any previous instructional text
       }
+    } else {
+        setCandidateResumeText(''); // Clear if no file is selected or selection is cancelled
     }
   };
 
@@ -68,13 +73,23 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
       toast({ variant: "destructive", title: "Missing Input", description: "Unstop Profile Link is required." });
       return;
     }
-    // Basic URL validation for Unstop link (can be enhanced)
     try {
         new URL(unstopProfileLink);
     } catch (_) {
         toast({ variant: "destructive", title: "Invalid URL", description: "Please enter a valid Unstop Profile Link." });
         return;
     }
+
+    // Check if candidateResumeText still contains the instructional placeholder
+    if (candidateResumeText.startsWith("File selected:") && candidateResumeText.includes("MANUALLY COPY the text content")) {
+        // Optionally, you could clear it or prompt the user,
+        // but for now, we'll assume they might forget to replace it and proceed with it as potentially empty or just context.
+        // The AI prompts are robust enough to handle empty or less detailed resume text.
+        // Or, to be stricter:
+        // toast({ variant: "destructive", title: "Resume Text Needed", description: "Please paste the actual resume text, replacing the instructional message." });
+        // return;
+    }
+
 
     onSubmit({
       jobDescription: jobDescription.trim(),
@@ -93,7 +108,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           <FileText className="mr-3 h-7 w-7" /> Create Your Interview Kit
         </CardTitle>
         <CardDescription className="text-base">
-          Provide the job details, candidate's Unstop profile, and optionally upload their resume.
+          Provide the job details, candidate's Unstop profile, and optionally their resume (paste text after selecting file).
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -150,19 +165,19 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               aria-label="Candidate Resume Upload"
             />
              <p className="text-xs text-muted-foreground mt-1">
-              If you upload a resume, its text content will be used by the AI. For now, after selecting a file, please also paste its text into the field below. Full automated text extraction is a planned future enhancement.
+              After selecting a file, its name will appear in the text area below with instructions. Please then PASTE the resume's full text content into that area. Automated text extraction is a planned future enhancement.
             </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="candidate-resume-text" className="font-semibold text-foreground text-md flex items-center">
-              <UserCircle size={18} className="mr-2 text-primary" /> Candidate Resume Text (Optional - Paste if uploaded or in lieu of upload)
+              <UserCircle size={18} className="mr-2 text-primary" /> Candidate Resume Text (Optional - Paste after selecting file, or directly)
             </Label>
             <Textarea
               id="candidate-resume-text"
               value={candidateResumeText}
               onChange={(e) => setCandidateResumeText(e.target.value)}
-              placeholder="If you uploaded a resume, paste its text content here. Or, paste resume text directly if not uploading a file. Include project details, tech stack, goals, accomplishments, challenges, educational background, and past work experiences."
+              placeholder="Paste the candidate's full resume text here. If you selected a file above, this area will show instructions to paste its content."
               className="min-h-[150px] text-sm p-3 rounded-md shadow-inner"
               rows={6}
               disabled={isLoading}
