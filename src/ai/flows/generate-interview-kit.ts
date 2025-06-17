@@ -25,15 +25,15 @@ const GenerateInterviewKitInputSchema = z.object({
   jobDescription: z
     .string()
     .describe('The job description to generate an interview kit for. This is a primary source material.'),
-  unstopProfileLink: z.string().optional().describe("The candidate's Unstop profile link. This is a primary source material if provided; AI should (conceptually) analyze the content of this profile deeply."),
-  candidateResumeText: z.string().optional().describe("The full text extracted from the candidate's resume (e.g., from an uploaded PDF/DOC or pasted text). This is a primary source material. Analyze it deeply to extract skills, experiences, specific projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences to ask about."),
+  unstopProfileLink: z.string().optional().describe("The candidate's Unstop profile link. This is a primary source material if provided; AI should (conceptually) analyze the content of this profile deeply. THIS IS A COMPULSORY INPUT from the user."),
+  candidateResumeText: z.string().optional().describe("The full text extracted from the candidate's resume (e.g., from an uploaded PDF/DOC or pasted text). This is an optional input, but if provided, it's a primary source material. Analyze it deeply to extract skills, experiences, specific projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences to ask about."),
   candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience." This supplements primary data sources.'),
 });
 export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInputSchema>;
 
 const QuestionAnswerPairSchema = z.object({
-  question: z.string().describe('The interview question. Should be insightful and highly specific, directly derived from or probing into experiences, skills, projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences, and claims made in the Candidate\'s Unstop Profile (if link provided and conceptually analyzable) and/or Resume Text, the Job Description, as well as any Candidate Experience Context. This includes potentially asking "Tell me about yourself".'),
-  answer: z.string().describe("A model answer from the INTERVIEWER'S PERSPECTIVE, presented as 3-4 concise bullet points. Each bullet point MUST outline KEY POINTS A CANDIDATE SHOULD COVER for a strong answer, making it easy for a non-technical recruiter to judge. These points should serve as general examples of strong answers, reflecting core concepts (e.g., 'Candidate mentions the 4 pillars of OOP: Abstraction, Encapsulation, Inheritance, Polymorphism') yet be informed by the candidate's profile (Unstop link, resume text) and JD. EXPLICITLY reference key terms, skills, projects, or experiences from the Job Description AND/OR the Candidate's Unstop Profile/Resume Text (including specific project details, educational background, and past work experiences). Example: 'Look for: 1. Clear explanation of X. 2. Mention of Y. 3. Connection to Z.' Also, include a brief note if applicable: 'Note: If candidate provides relevant real-life examples beyond these core points, it indicates greater depth and may warrant higher marks or a positive note on their problem-solving skills.' For 'Tell me about yourself', if a resume text or Unstop profile is available, the model answer MUST guide the interviewer on key points from the candidate's specific background (work history, projects from resume/profile, education) that would constitute a strong introduction, written from the interviewer's perspective."),
+  question: z.string().describe('The interview question. Should be insightful and highly specific, directly derived from or probing into experiences, skills, projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences, and claims made in the Candidate\'s Unstop Profile (compulsory input, conceptually analyze its content) and/or Resume Text (optional input), the Job Description, as well as any Candidate Experience Context. This includes potentially asking "Tell me about yourself".'),
+  answer: z.string().describe("A model answer from the INTERVIEWER'S PERSPECTIVE, presented as 3-4 concise bullet points. Each bullet point MUST outline KEY POINTS A CANDIDATE SHOULD COVER for a strong answer, making it easy for a non-technical recruiter to judge. These points should serve as general examples of strong answers, reflecting core concepts (e.g., 'Candidate mentions the 4 pillars of OOP: Abstraction, Encapsulation, Inheritance, Polymorphism') yet be informed by the candidate's profile (Unstop link, resume text) and JD. EXPLICITLY reference key terms, skills, projects, or experiences from the Job Description AND/OR the Candidate's Unstop Profile/Resume Text (including specific project details, educational background, and past work experiences). Example: 'Look for: 1. Clear explanation of X. 2. Mention of Y. 3. Connection to Z.' Also, include a brief note: 'Note: If the candidate provides relevant real-life examples or discusses experiences/skills not detailed on their resume/profile but clearly relevant to the role, this can indicate greater depth, initiative, or broader experience. The interviewer should assess the relevance and substance of such unstated information against the job requirements.' For 'Tell me about yourself', if a resume text or Unstop profile is available, the model answer MUST guide the interviewer on key points from the candidate's specific background (work history, projects from resume/profile, education) that would constitute a strong introduction, written from the interviewer's perspective."),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR method).'),
   category: z.enum(['Technical', 'Non-Technical']).describe("The category of the question. 'Technical' for questions assessing specific hard skills or tool knowledge. 'Non-Technical' for questions assessing problem-solving, behavioral traits, scenarios, or soft skills (like 'Tell me about yourself'). Infer this primarily from the question type and content."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).describe("The difficulty level of the question, on a 5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level from Unstop profile/resume text."),
@@ -47,7 +47,7 @@ const CompetencySchema = z.object({
 });
 
 const ScoringCriterionSchema = z.object({
-  criterion: z.string().describe("A well-defined, distinct, and high-quality scoring criterion for a non-technical recruiter to use. It must be actionable, measurable, and directly relevant to assessing candidate suitability. Focus on parameters like 'Clarity of Explanation', 'Relevance of Answer to Question', 'Depth of Understanding (as evidenced by examples or detail)', 'Problem-Solving Approach', 'Communication Skills'. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate's Unstop Profile/Resume Text (including specific project details, educational background, academic achievements, and past work experiences) where appropriate to make it contextual. The set of criteria MUST provide a broad yet deeply contextual basis for comprehensive candidate evaluation, understandable by someone not expert in the role's domain."),
+  criterion: z.string().describe("A well-defined, distinct, and high-quality scoring criterion for a non-technical recruiter to use. It must be actionable, measurable, and directly relevant to assessing candidate suitability. Focus on parameters like 'Clarity of Explanation', 'Relevance of Answer to Question', 'Depth of Understanding (as evidenced by examples or detail, including relevant experiences shared during the interview that may not be on the resume)', 'Problem-Solving Approach', 'Communication Skills'. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate's Unstop Profile/Resume Text (including specific project details, educational background, academic achievements, and past work experiences) where appropriate to make it contextual. The set of criteria MUST provide a broad yet deeply contextual basis for comprehensive candidate evaluation, understandable by someone not expert in the role's domain."),
   weight: z.number().describe('The weight of this criterion (a value between 0.0 and 1.0). All criterion weights in the rubric must sum to 1.0.'),
 });
 
@@ -55,7 +55,7 @@ const GenerateInterviewKitOutputSchema = z.object({
   competencies: z.array(CompetencySchema).describe('An array of 4-6 core competencies for the job. The first competency should ideally cover "Candidate Introduction & Background" including "Tell me about yourself", academic background, and general experience questions. Subsequent competencies should cover skills/projects (from Unstop profile/resume text), with questions sequenced logically. Competencies themselves should be informed by the holistic analysis of JD and candidate profile (Unstop link/resume text, including educational background and academic achievements).'),
   scoringRubric: z
     .array(ScoringCriterionSchema)
-    .describe("The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, well-defined, distinct, high-quality, actionable, measurable, and explicitly referencing key phrases from the Job Description AND/OR Candidate's Unstop Profile/Resume Text (including specific project details, educational background, academic achievements, and past work experiences) to provide a broad yet deeply contextual basis for comprehensive candidate evaluation. Frame criteria to be easily usable by a non-technical recruiter, focusing on aspects like clarity, relevance, and depth. For example: 'Criterion: Technical Communication Clarity. Weight: 0.3. (Assesses how clearly the candidate explains technical concepts from the JD or mentioned in their Unstop profile/resume, like [specific skill/project])'"),
+    .describe("The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, well-defined, distinct, high-quality, actionable, measurable, and explicitly referencing key phrases from the Job Description AND/OR Candidate's Unstop Profile/Resume Text (including specific project details, educational background, academic achievements, and past work experiences, and guiding the interviewer to also consider relevant information shared by the candidate that may not be on the resume) to provide a broad yet deeply contextual basis for comprehensive candidate evaluation. Frame criteria to be easily usable by a non-technical recruiter, focusing on aspects like clarity, relevance, and depth. For example: 'Criterion: Technical Communication Clarity. Weight: 0.3. (Assesses how clearly the candidate explains technical concepts from the JD or mentioned in their Unstop profile/resume, like [specific skill/project], and any other relevant technical details they discuss.)'"),
 });
 export type GenerateInterviewKitOutput = z.infer<typeof GenerateInterviewKitOutputSchema>;
 
@@ -70,21 +70,19 @@ const generateInterviewKitPrompt = ai.definePrompt({
   prompt: `You are a highly experienced hiring manager and recruiter with 25 years of experience, specializing in creating effective interview kits. You are adept at designing questions and evaluation parameters usable by recruiters who may not be technical experts. Your task is to generate a comprehensive interview kit.
 CRITICAL: Before generating content, THOROUGHLY analyze and synthesize ALL provided inputs:
 1.  Job Description (Primary Source).
-2.  Unstop Profile Link (Primary Source - if provided, conceptually analyze its content for skills, projects, experience, education).
-3.  Candidate Resume Text (Primary Source - if provided, text extracted from resume, analyze deeply for skills, projects [tech stack, goals, accomplishments, challenges], education, past work experiences).
+2.  Unstop Profile Link (Primary Source - COMPULSORY, conceptually analyze its content for skills, projects, experience, education).
+3.  Candidate Resume Text (Primary Source - OPTIONAL, if provided, text extracted from resume, analyze deeply for skills, projects [tech stack, goals, accomplishments, challenges], education, past work experiences).
 4.  Candidate Experience Context (Supplements primary sources).
 Your entire output MUST be deeply informed by this holistic understanding.
 
 Job Description (Primary Source):
 {{{jobDescription}}}
 
-{{#if unstopProfileLink}}
-Unstop Profile Link (Primary Source - analyze content conceptually):
+Unstop Profile Link (Primary Source - COMPULSORY, analyze content conceptually):
 {{{unstopProfileLink}}}
-{{/if}}
 
 {{#if candidateResumeText}}
-Candidate Resume Text (Primary Source - analyze for specific projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences):
+Candidate Resume Text (Primary Source - OPTIONAL, analyze for specific projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences):
 {{{candidateResumeText}}}
 {{/if}}
 
@@ -110,18 +108,18 @@ Based on a holistic understanding of ALL available information, generate the int
 
 3.  **For EACH question, provide all fields as specified in the output schema**:
     *   \`question\`: Text of the question.
-    *   \`answer\`: A model answer FROM THE INTERVIEWER'S PERSPECTIVE (3-4 concise bullet points). Each bullet MUST outline KEY POINTS A CANDIDATE SHOULD COVER for a strong answer, making it easy for a non-technical recruiter to judge. These are general examples of strong answers, reflecting core concepts, informed by the candidate's profile (Unstop/resume) and JD. EXPLICITLY reference key terms, skills, projects, or experiences from JD AND/OR Unstop Profile/Resume Text. Include note: "Note: If candidate provides relevant real-life examples..., it indicates greater depth." For 'Tell me about yourself', if Unstop profile/resume text is available, the model answer MUST guide the interviewer on key points from the candidate's specific background (work history, projects from Unstop/resume, education) that would constitute a strong introduction, written from the interviewer's perspective. For resume project deep-dive questions, guide on what to listen for regarding project goals, tech stack, accomplishments, challenges.
+    *   \`answer\`: A model answer FROM THE INTERVIEWER'S PERSPECTIVE (3-4 concise bullet points). Each bullet MUST outline KEY POINTS A CANDIDATE SHOULD COVER for a strong answer, making it easy for a non-technical recruiter to judge. These are general examples of strong answers, reflecting core concepts, informed by the candidate's profile (Unstop/resume) and JD. EXPLICITLY reference key terms, skills, projects, or experiences from JD AND/OR Unstop Profile/Resume Text. Include the note: 'Note: If the candidate provides relevant real-life examples or discusses experiences/skills not detailed on their resume/profile but clearly relevant to the role, this can indicate greater depth, initiative, or broader experience. The interviewer should assess the relevance and substance of such unstated information against the job requirements.' For 'Tell me about yourself', if Unstop profile/resume text is available, the model answer MUST guide the interviewer on key points from the candidate's specific background (work history, projects from Unstop/resume, education) that would constitute a strong introduction, written from the interviewer's perspective. For resume project deep-dive questions, guide on what to listen for regarding project goals, tech stack, accomplishments, challenges.
     *   \`type\`: 'Technical', 'Scenario', 'Behavioral'.
     *   \`category\`: 'Technical' or 'Non-Technical'.
     *   \`difficulty\`: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'.
     *   \`estimatedTimeMinutes\`: Suitable time.
 
 4.  **Create a Scoring Rubric (for a non-technical recruiter)**:
-    *   3-5 weighted criteria. Each MUST be well-defined, distinct, high-quality, actionable, measurable. Focus on 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding', etc.
-    *   Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or academic achievements from JD AND/OR Unstop Profile/Resume Text (projects, education, past experiences) for context.
-    *   Set of criteria must provide broad yet deeply contextual basis for evaluation, usable by non-experts. Weights sum to 1.0. Example: 'Criterion: Technical Communication - Clarity on [specific concept from JD or Unstop/Resume]. Weight: 0.25.'
+    *   3-5 weighted criteria. Each MUST be well-defined, distinct, high-quality, actionable, measurable. Focus on 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering both resume-based and emergent relevant details)', etc.
+    *   Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or academic achievements from JD AND/OR Unstop Profile/Resume Text (projects, education, past experiences) for context. Guide the recruiter to also consider relevant, substantiated information shared by the candidate that may not have been on the resume.
+    *   Set of criteria must provide broad yet deeply contextual basis for evaluation, usable by non-experts. Weights sum to 1.0. Example: 'Criterion: Technical Communication - Clarity on [specific concept from JD or Unstop/Resume, and other relevant technical points discussed]. Weight: 0.25.'
 
-Return JSON object per output schema. Populate all fields. Goal: logically sequenced kit, relevant tailored questions (from Unstop profile/resume text: projects, tech stack, goals, accomplishments, challenges, education, past experiences), concise judgeable model answers (recruiter's perspective, key points, "Tell me about yourself" tailored from Unstop/resume), contextual well-defined rubric for non-technical recruiters.
+Return JSON object per output schema. Populate all fields. Goal: logically sequenced kit, relevant tailored questions (from Unstop profile/resume text: projects, tech stack, goals, accomplishments, challenges, education, past experiences), concise judgeable model answers (recruiter's perspective, key points, "Tell me about yourself" tailored from Unstop/resume), contextual well-defined rubric for non-technical recruiters that accounts for emergent candidate information.
 `,
 });
 
@@ -143,7 +141,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         importance: comp.importance || "Medium",
         questions: (comp.questions || []).map(q => ({
           question: q.question || "Missing question text. AI should generate this, derived from JD/Unstop Profile/Resume Text.",
-          answer: q.answer || "Missing model answer. AI should provide guidance from an interviewer's perspective on key points the candidate should cover, informed by JD/Unstop Profile/Resume Text/context. For 'Tell me about yourself', it should guide on what a candidate should cover from their specific background (Unstop/Resume).",
+          answer: q.answer || "Missing model answer. AI should provide guidance from an interviewer's perspective on key points the candidate should cover, informed by JD/Unstop Profile/Resume Text/context (including how to evaluate relevant details not on resume). For 'Tell me about yourself', it should guide on what a candidate should cover from their specific background (Unstop/Resume).",
           type: q.type || "Behavioral",
           category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical'),
           difficulty: q.difficulty || "Intermediate",
@@ -151,7 +149,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         })),
       })),
       scoringRubric: (output.scoringRubric || []).map(crit => ({
-        criterion: crit.criterion || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, contextually reference JD/Unstop Profile/Resume Text for comprehensive evaluation by a non-technical recruiter). AI should refine this.",
+        criterion: crit.criterion || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, contextually reference JD/Unstop Profile/Resume Text and account for emergent relevant details for comprehensive evaluation by a non-technical recruiter). AI should refine this.",
         weight: typeof crit.weight === 'number' ? Math.max(0, Math.min(1, crit.weight)) : 0.2,
       })),
     };
@@ -210,3 +208,4 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+
