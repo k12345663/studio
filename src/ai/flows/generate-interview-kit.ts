@@ -85,7 +85,7 @@ Unstop Profile Link (Primary Source - COMPULSORY, **conceptually treat as if acc
 {{#if candidateResumeDataUri}}
 Candidate Resume File ({{{candidateResumeFileName}}}):
 {{media url=candidateResumeDataUri}}
-(AI: Please directly analyze the content of the resume file provided above to extract skills, experiences, specific projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences to inform your question generation.)
+(AI: The candidate's resume is provided above via a data URI (which includes Base64 encoded content of the PDF/DOCX file). Please directly analyze the content of this file to extract skills, experiences, specific projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences to inform your question generation.)
 {{else}}
 No candidate resume file was provided.
 {{/if}}
@@ -215,3 +215,5 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+
+    
