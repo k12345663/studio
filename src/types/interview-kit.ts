@@ -32,8 +32,8 @@ export interface ClientRubricCriterion {
 export interface InterviewKit {
   jobDescription: string;
   unstopProfileLink?: string;
-  candidateResumeFileName?: string; // Stores the name of the uploaded file
-  candidateResumeDataUri?: string; // Stores the Base64 data URI of the resume file
+  candidateResumeFileName?: string; 
+  candidateResumeDataUri?: string; 
   candidateExperienceContext?: string;
   competencies: ClientCompetency[];
   scoringRubric: ClientRubricCriterion[];

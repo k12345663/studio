@@ -13,7 +13,7 @@ import { InterviewKitDisplay } from '@/components/interview-kit/InterviewKitDisp
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase, UserCircle, Zap, LinkIcon, FileCheck } from 'lucide-react';
+import { FileText, Briefcase, LinkIcon, FileCheck, Zap, MessageSquare } from 'lucide-react'; // Added MessageSquare
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>('');
@@ -120,8 +120,8 @@ export default function Home() {
     return {
       jobDescription: existingKit.jobDescription,
       unstopProfileLink: existingKit.unstopProfileLink,
-      candidateResumeDataUri: existingKit.candidateResumeDataUri, // Persist from original kit
-      candidateResumeFileName: existingKit.candidateResumeFileName, // Persist from original kit
+      candidateResumeDataUri: existingKit.candidateResumeDataUri, 
+      candidateResumeFileName: existingKit.candidateResumeFileName, 
       candidateExperienceContext: existingKit.candidateExperienceContext,
       competencies: newCompetencies,
       scoringRubric: newRubric,
@@ -211,7 +211,7 @@ export default function Home() {
             </div>
           )}
 
-          {!isLoading && !interviewKit && (jobDescription || unstopProfileLink) && (
+          {!isLoading && !interviewKit && (jobDescription || unstopProfileLink || candidateResumeFileName || candidateExperienceContext) && (
              <Card className="mt-8 shadow-lg transition-shadow hover:shadow-xl">
               <CardHeader>
                 <CardTitle className="flex items-center text-xl font-semibold">
@@ -265,7 +265,7 @@ export default function Home() {
             </Card>
           )}
 
-          {!isLoading && !interviewKit && !jobDescription && !unstopProfileLink && (
+          {!isLoading && !interviewKit && !jobDescription && !unstopProfileLink && !candidateResumeFileName && !candidateExperienceContext && (
              <Card className="text-center bg-card shadow-xl border border-primary/20 transition-shadow hover:shadow-2xl">
               <CardHeader className="pt-8">
                 <CardTitle className="text-2xl sm:text-3xl font-headline text-primary flex items-center justify-center">

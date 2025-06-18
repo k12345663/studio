@@ -2,14 +2,15 @@
 "use client";
 
 import type React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Send, FileText, UserCircle, MessageSquare, UploadCloud, LinkIcon, Loader2, FileCheck } from 'lucide-react';
+import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from '@/components/ui/textarea';
+
 
 export interface JobDescriptionFormSubmitData {
   jobDescription: string;
@@ -25,13 +26,14 @@ interface JobDescriptionFormProps {
 }
 
 const SUPPORTED_RESUME_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']; // PDF and DOCX
+const MAX_FILE_SIZE_MB = 4.5; // Corresponds to ~5MB Gemini part limit, with some headroom for base64 encoding
 
 export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormProps) {
   const [jobDescription, setJobDescription] = useState('');
   const [unstopProfileLink, setUnstopProfileLink] = useState('');
   const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined>(undefined);
   const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
-  const [resumeDisplayMessage, setResumeDisplayMessage] = useState('Select a PDF/DOCX resume for AI analysis, or leave blank if not providing a resume.');
+  const [resumeDisplayMessage, setResumeDisplayMessage] = useState<string>(`Select a PDF/DOCX resume (max ${MAX_FILE_SIZE_MB}MB) for AI analysis, or leave blank.`);
   const [candidateExperienceContext, setCandidateExperienceContext] = useState('');
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,34 +53,32 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
 
       if (!SUPPORTED_RESUME_TYPES.includes(file.type)) {
         setResumeDisplayMessage(
-          `File type (${file.type || 'unknown'}) not supported for direct AI analysis. Please use PDF or DOCX, or proceed without a resume file.`
+          `File type (${file.type || 'unknown'}) not supported. Please use PDF or DOCX (max ${MAX_FILE_SIZE_MB}MB).`
         );
         toast({
           variant: "destructive",
           title: "Unsupported File Type",
-          description: "Only PDF and DOCX files are supported for direct resume analysis. You can paste resume text as context if needed.",
+          description: "Only PDF and DOCX files are supported for resume analysis. Ensure file is within size limits.",
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsProcessingFile(false);
         return;
       }
       
-      // Max file size: ~4.5MB for Base64 encoding headroom (Gemini part limit ~5MB)
-      const MAX_FILE_SIZE_BYTES = 4.5 * 1024 * 1024; 
+      const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024; 
       if (file.size > MAX_FILE_SIZE_BYTES) {
         setResumeDisplayMessage(
-          `File "${file.name}" is too large (${(file.size / (1024*1024)).toFixed(1)}MB). Maximum size is approx 4.5MB.`
+          `File "${file.name}" (${(file.size / (1024*1024)).toFixed(1)}MB) is too large. Max size is ${MAX_FILE_SIZE_MB}MB.`
         );
         toast({
           variant: "destructive",
           title: "File Too Large",
-          description: "Resume file exceeds the size limit for direct analysis. Consider a smaller file or pasting key text into 'Additional Context'.",
+          description: `Resume file exceeds the ${MAX_FILE_SIZE_MB}MB limit. Please use a smaller file.`,
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsProcessingFile(false);
         return;
       }
-
 
       try {
         const reader = new FileReader();
@@ -86,16 +86,16 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           const dataUri = e.target?.result as string;
           setCandidateResumeDataUri(dataUri);
           setCandidateResumeFileName(file.name);
-          setResumeDisplayMessage(`File selected for AI analysis: ${file.name}. Its content will be directly analyzed by the AI.`);
+          setResumeDisplayMessage(`Ready for AI analysis: ${file.name}.`);
           toast({
-            title: "Resume Ready for Analysis!",
-            description: `${file.name} has been prepared and will be sent to the AI.`,
+            title: "Resume Ready!",
+            description: `${file.name} will be sent to the AI.`,
           });
           setIsProcessingFile(false);
         };
         reader.onerror = (error) => {
           console.error("Error reading file:", error);
-          setResumeDisplayMessage(`Error preparing file ${file.name}. Please try again or a different file. You can also paste resume text into 'Additional Context'.`);
+          setResumeDisplayMessage(`Error preparing ${file.name}. Please try again or a different file (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB).`);
           toast({
             variant: "destructive",
             title: "File Processing Failed",
@@ -104,11 +104,11 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           setIsProcessingFile(false);
           if (fileInputRef.current) fileInputRef.current.value = "";
         };
-        reader.readAsDataURL(file); // Reads file as Base64 data URI
+        reader.readAsDataURL(file);
       } catch (error) {
         console.error("Error initiating file read:", error);
         setResumeDisplayMessage(
-          `Error preparing ${file.name}. This can happen with problematic files. Please try another file or paste key text into 'Additional Context'.`
+          `Error preparing ${file.name}. This can happen with problematic files. Please try another file (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB).`
         );
         toast({
           variant: "destructive",
@@ -121,7 +121,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     } else {
         setCandidateResumeDataUri(undefined);
         setCandidateResumeFileName(undefined);
-        setResumeDisplayMessage('Select a PDF/DOCX resume for AI analysis, or leave blank if not providing a resume.');
+        setResumeDisplayMessage(`Select a PDF/DOCX resume (max ${MAX_FILE_SIZE_MB}MB) for AI analysis, or leave blank.`);
         setIsProcessingFile(false);
     }
   };
@@ -213,7 +213,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
                {isProcessingFile && <Loader2 size={18} className="mr-2 text-primary animate-spin"/>}
                {!isProcessingFile && candidateResumeFileName && <FileCheck size={18} className="mr-2 text-green-600"/>}
                {!isProcessingFile && !candidateResumeFileName && <UploadCloud size={18} className="mr-2 text-primary"/>}
-               Candidate Resume (PDF/DOCX for direct AI analysis - Optional)
+               Candidate Resume (PDF/DOCX - Optional, Max {MAX_FILE_SIZE_MB}MB)
             </Label>
             <Input
               id="candidate-resume-upload"
