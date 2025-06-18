@@ -8,16 +8,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Send, FileText, UserCircle, MessageSquare, UploadCloud, LinkIcon, Loader2 } from 'lucide-react';
+import { Send, FileText, UserCircle, MessageSquare, UploadCloud, LinkIcon, Loader2, FileCheck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import * as pdfjsLib from 'pdfjs-dist';
-import mammoth from 'mammoth';
-
 
 export interface JobDescriptionFormSubmitData {
   jobDescription: string;
   unstopProfileLink?: string;
-  candidateResumeText?: string;
+  candidateResumeDataUri?: string;
+  candidateResumeFileName?: string;
   candidateExperienceContext?: string;
 }
 
@@ -26,120 +24,105 @@ interface JobDescriptionFormProps {
   isLoading: boolean;
 }
 
+const SUPPORTED_RESUME_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']; // PDF and DOCX
+
 export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormProps) {
   const [jobDescription, setJobDescription] = useState('');
   const [unstopProfileLink, setUnstopProfileLink] = useState('');
-  const [candidateResumeText, setCandidateResumeText] = useState('');
+  const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined>(undefined);
+  const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
+  const [resumeDisplayMessage, setResumeDisplayMessage] = useState('Select a PDF/DOCX resume for AI analysis, or leave blank if not providing a resume.');
   const [candidateExperienceContext, setCandidateExperienceContext] = useState('');
-  const [isExtracting, setIsExtracting] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Set workerSrc for pdfjs-dist. Using a CDN path.
-    // Ensure this version matches the installed pdfjs-dist version if possible, or use a generic one.
-    // The version can be found in package-lock.json or by checking pdfjsLib.version
-    // For pdfjs-dist v4.x.x, the worker path structure changed slightly.
-    // Using unpkg which resolves to the correct path based on version.
-     try {
-        if (pdfjsLib.GlobalWorkerOptions) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
-        }
-     } catch (error) {
-        console.error("Error setting pdf.js worker source:", error);
-        toast({
-          variant: "destructive",
-          title: "PDF Worker Error",
-          description: "Could not initialize PDF processing. PDF extraction may fail.",
-        });
-     }
-  }, [toast]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setCandidateResumeText(`Processing ${file.name}...`);
-      setIsExtracting(true);
+      setIsProcessingFile(true);
+      setCandidateResumeDataUri(undefined);
+      setCandidateResumeFileName(undefined);
+      setResumeDisplayMessage(`Processing ${file.name}...`);
       toast({
         title: "Processing Resume",
-        description: `Attempting to extract text from ${file.name}.`,
+        description: `Attempting to prepare ${file.name} for AI analysis.`,
       });
 
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        let extractedText = '';
-
-        if (file.type === "application/pdf") {
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          let textContent = '';
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const text = await page.getTextContent();
-            textContent += text.items.map((s: any) => s.str).join(' ') + '\n';
-          }
-          extractedText = textContent;
-        } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") { // .docx
-          const result = await mammoth.extractRawText({ arrayBuffer });
-          extractedText = result.value;
-        } else if (file.type === "application/msword") { // .doc
-           setCandidateResumeText(
-            `File selected: ${file.name}.\n\nIMPORTANT: Automated text extraction for .doc files is not supported by this client-side tool. Please MANUALLY COPY the text content from '${file.name}' and PASTE it into this field, replacing this message. The AI will then analyze the pasted text.`
-          );
-          toast({
-            variant: "default",
-            title: ".doc File Selected",
-            description: "Automated extraction for .doc is not supported. Please paste text manually.",
-          });
-          setIsExtracting(false);
-          return;
-        }
-         else {
-          setCandidateResumeText(
-            `File selected: ${file.name}.\n\nUnsupported file type for automatic extraction. Please MANUALLY COPY the text content if it's a resume and PASTE it here.`
-          );
-          toast({
-            variant: "destructive",
-            title: "Unsupported File Type",
-            description: "Please upload a PDF or DOCX for automatic extraction, or paste text manually.",
-          });
-          if(fileInputRef.current) fileInputRef.current.value = "";
-          setIsExtracting(false);
-          return;
-        }
-
-        if (extractedText.trim()) {
-          setCandidateResumeText(extractedText);
-          toast({
-            title: "Text Extracted Successfully!",
-            description: `Text from ${file.name} has been loaded.`,
-          });
-        } else {
-          setCandidateResumeText(
-            `Could not automatically extract text from ${file.name}, or the file is empty. Please MANUALLY COPY the text content from your resume and PASTE it here.`
-          );
-          toast({
-            variant: "destructive",
-            title: "Extraction Issue",
-            description: `No text could be extracted from ${file.name}, or the file is empty. Please paste manually.`,
-          });
-        }
-      } catch (error) {
-        console.error("Error extracting text:", error);
-        setCandidateResumeText(
-          `Error extracting text from ${file.name}. This can happen with complex or password-protected files. Please MANUALLY COPY the text content from your resume and PASTE it here.`
+      if (!SUPPORTED_RESUME_TYPES.includes(file.type)) {
+        setResumeDisplayMessage(
+          `File type (${file.type || 'unknown'}) not supported for direct AI analysis. Please use PDF or DOCX, or proceed without a resume file.`
         );
         toast({
           variant: "destructive",
-          title: "Extraction Failed",
-          description: `Could not extract text from ${file.name}. Please paste manually. Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+          title: "Unsupported File Type",
+          description: "Only PDF and DOCX files are supported for direct resume analysis. You can paste resume text as context if needed.",
         });
-      } finally {
-        setIsExtracting(false);
-        if(fileInputRef.current) fileInputRef.current.value = ""; // Reset file input so same file can be re-selected if needed
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setIsProcessingFile(false);
+        return;
+      }
+      
+      // Max file size: ~4.5MB for Base64 encoding headroom (Gemini part limit ~5MB)
+      const MAX_FILE_SIZE_BYTES = 4.5 * 1024 * 1024; 
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setResumeDisplayMessage(
+          `File "${file.name}" is too large (${(file.size / (1024*1024)).toFixed(1)}MB). Maximum size is approx 4.5MB.`
+        );
+        toast({
+          variant: "destructive",
+          title: "File Too Large",
+          description: "Resume file exceeds the size limit for direct analysis. Consider a smaller file or pasting key text into 'Additional Context'.",
+        });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setIsProcessingFile(false);
+        return;
+      }
+
+
+      try {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUri = e.target?.result as string;
+          setCandidateResumeDataUri(dataUri);
+          setCandidateResumeFileName(file.name);
+          setResumeDisplayMessage(`File selected for AI analysis: ${file.name}. Its content will be directly analyzed by the AI.`);
+          toast({
+            title: "Resume Ready for Analysis!",
+            description: `${file.name} has been prepared and will be sent to the AI.`,
+          });
+          setIsProcessingFile(false);
+        };
+        reader.onerror = (error) => {
+          console.error("Error reading file:", error);
+          setResumeDisplayMessage(`Error preparing file ${file.name}. Please try again or a different file. You can also paste resume text into 'Additional Context'.`);
+          toast({
+            variant: "destructive",
+            title: "File Processing Failed",
+            description: `Could not prepare ${file.name}. Error: ${error || 'Unknown error'}`,
+          });
+          setIsProcessingFile(false);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        };
+        reader.readAsDataURL(file); // Reads file as Base64 data URI
+      } catch (error) {
+        console.error("Error initiating file read:", error);
+        setResumeDisplayMessage(
+          `Error preparing ${file.name}. This can happen with problematic files. Please try another file or paste key text into 'Additional Context'.`
+        );
+        toast({
+          variant: "destructive",
+          title: "File Preparation Failed",
+          description: `Could not prepare ${file.name}. Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+        setIsProcessingFile(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
     } else {
-        setCandidateResumeText(''); // Clear if no file is selected or selection is cancelled
-        setIsExtracting(false);
+        setCandidateResumeDataUri(undefined);
+        setCandidateResumeFileName(undefined);
+        setResumeDisplayMessage('Select a PDF/DOCX resume for AI analysis, or leave blank if not providing a resume.');
+        setIsProcessingFile(false);
     }
   };
 
@@ -160,20 +143,21 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         return;
     }
 
-    if (candidateResumeText.startsWith("Processing ") && candidateResumeText.includes("...")) {
-        toast({ variant: "destructive", title: "Resume Processing", description: "Please wait for resume text extraction to complete or paste text manually." });
+    if (isProcessingFile) {
+        toast({ variant: "destructive", title: "File Processing", description: "Please wait for resume file preparation to complete." });
         return;
     }
 
     onSubmit({
       jobDescription: jobDescription.trim(),
       unstopProfileLink: unstopProfileLink.trim(),
-      candidateResumeText: candidateResumeText.trim() || undefined,
+      candidateResumeDataUri: candidateResumeDataUri,
+      candidateResumeFileName: candidateResumeFileName,
       candidateExperienceContext: candidateExperienceContext.trim() || undefined,
     });
   };
 
-  const canSubmit = !isLoading && !isExtracting && jobDescription.trim() && unstopProfileLink.trim();
+  const canSubmit = !isLoading && !isProcessingFile && jobDescription.trim() && unstopProfileLink.trim();
 
   return (
     <Card className="w-full shadow-xl border border-primary/20">
@@ -182,7 +166,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           <FileText className="mr-3 h-7 w-7" /> Create Your Interview Kit
         </CardTitle>
         <CardDescription className="text-base">
-          Provide job details, candidate's Unstop profile, and optionally their resume (PDF/DOCX for auto-extraction, or paste text).
+          Provide job details, candidate's Unstop profile, and optionally their resume (PDF/DOCX) for direct AI analysis.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -198,7 +182,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               placeholder="Paste the full job description here..."
               className="min-h-[180px] text-sm p-3 rounded-md shadow-inner"
               rows={8}
-              disabled={isLoading || isExtracting}
+              disabled={isLoading || isProcessingFile}
               aria-label="Job Description Text Input"
               required
             />
@@ -215,7 +199,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               onChange={(e) => setUnstopProfileLink(e.target.value)}
               placeholder="https://unstop.com/p/candidate-profile-link..."
               className="text-sm p-3 rounded-md shadow-inner"
-              disabled={isLoading || isExtracting}
+              disabled={isLoading || isProcessingFile}
               aria-label="Unstop Profile Link Input"
               required
             />
@@ -226,39 +210,24 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           
           <div className="space-y-2">
             <Label htmlFor="candidate-resume-upload" className="font-semibold text-foreground text-md flex items-center">
-              <UploadCloud size={18} className="mr-2 text-primary" /> Candidate Resume (PDF/DOCX supported for auto-extraction - Optional)
+               {isProcessingFile && <Loader2 size={18} className="mr-2 text-primary animate-spin"/>}
+               {!isProcessingFile && candidateResumeFileName && <FileCheck size={18} className="mr-2 text-green-600"/>}
+               {!isProcessingFile && !candidateResumeFileName && <UploadCloud size={18} className="mr-2 text-primary"/>}
+               Candidate Resume (PDF/DOCX for direct AI analysis - Optional)
             </Label>
             <Input
               id="candidate-resume-upload"
               type="file"
               ref={fileInputRef}
-              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
+              accept={SUPPORTED_RESUME_TYPES.join(',')}
               onChange={handleFileChange}
               className="text-sm p-2 rounded-md shadow-sm border h-auto file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-              disabled={isLoading || isExtracting}
+              disabled={isLoading || isProcessingFile}
               aria-label="Candidate Resume Upload"
             />
-             <p className="text-xs text-muted-foreground mt-1">
-              Select a PDF or DOCX file for automatic text extraction. For .doc files or if extraction fails, please paste text manually below.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="candidate-resume-text" className="font-semibold text-foreground text-md flex items-center">
-             {isExtracting && <Loader2 size={18} className="mr-2 text-primary animate-spin"/>}
-             {!isExtracting && <UserCircle size={18} className="mr-2 text-primary"/>}
-              Candidate Resume Text (Populated by upload or paste manually)
-            </Label>
-            <Textarea
-              id="candidate-resume-text"
-              value={candidateResumeText}
-              onChange={(e) => setCandidateResumeText(e.target.value)}
-              placeholder="Select a PDF/DOCX above for auto-extraction, or paste the candidate's full resume text here."
-              className="min-h-[150px] text-sm p-3 rounded-md shadow-inner"
-              rows={6}
-              disabled={isLoading || isExtracting}
-              aria-label="Candidate Resume Text Input or Profile Details"
-            />
+             <div className="mt-1 text-sm p-3 rounded-md shadow-inner bg-muted/50 min-h-[60px] flex items-center justify-center text-center text-muted-foreground">
+                {resumeDisplayMessage}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -269,10 +238,10 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               id="candidate-experience-context"
               value={candidateExperienceContext}
               onChange={(e) => setCandidateExperienceContext(e.target.value)}
-              placeholder="E.g., 'Targeting senior level, 5+ years experience with microservices' or 'Focus on leadership and communication skills.'"
+              placeholder="E.g., 'Targeting senior level, 5+ years experience with microservices' or 'Focus on leadership and communication skills for this role with this candidate.'"
               className="min-h-[100px] text-sm p-3 rounded-md shadow-inner"
               rows={3}
-              disabled={isLoading || isExtracting}
+              disabled={isLoading || isProcessingFile}
               aria-label="Additional Candidate Experience Context Input"
             />
           </div>
@@ -285,7 +254,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               size="lg"
             >
               <Send className="mr-2 h-5 w-5" />
-              {isLoading ? 'Generating Kit...' : (isExtracting ? 'Processing Resume...' : 'Generate Interview Kit')}
+              {isLoading ? 'Generating Kit...' : (isProcessingFile ? 'Preparing Resume...' : 'Generate Interview Kit')}
             </Button>
           </div>
         </form>

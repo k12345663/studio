@@ -13,22 +13,24 @@ import { InterviewKitDisplay } from '@/components/interview-kit/InterviewKitDisp
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase, UserCircle, Zap, LinkIcon } from 'lucide-react';
+import { FileText, Briefcase, UserCircle, Zap, LinkIcon, FileCheck } from 'lucide-react';
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>('');
   const [unstopProfileLink, setUnstopProfileLink] = useState<string | undefined>(undefined);
-  const [candidateResumeText, setCandidateResumeText] = useState<string | undefined>(undefined);
+  const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined>(undefined);
+  const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
   const [candidateExperienceContext, setCandidateExperienceContext] = useState<string | undefined>(undefined);
   const [interviewKit, setInterviewKit] = useState<InterviewKit | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, unstopLink?: string, resumeTextToStore?: string, expContext?: string): InterviewKit => {
+  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, unstopLink?: string, resumeDataUri?: string, resumeFileName?: string, expContext?: string): InterviewKit => {
     return {
       jobDescription: jdToStore,
       unstopProfileLink: unstopLink,
-      candidateResumeText: resumeTextToStore,
+      candidateResumeDataUri: resumeDataUri,
+      candidateResumeFileName: resumeFileName,
       candidateExperienceContext: expContext,
       competencies: output.competencies.map(comp => ({
         id: generateId('comp'),
@@ -58,7 +60,8 @@ export default function Home() {
     return {
       jobDescription: clientKit.jobDescription,
       unstopProfileLink: clientKit.unstopProfileLink,
-      candidateResumeText: clientKit.candidateResumeText,
+      candidateResumeDataUri: clientKit.candidateResumeDataUri,
+      candidateResumeFileName: clientKit.candidateResumeFileName,
       candidateExperienceContext: clientKit.candidateExperienceContext,
       competencies: clientKit.competencies.map(comp => ({
         id: comp.id,
@@ -117,7 +120,8 @@ export default function Home() {
     return {
       jobDescription: existingKit.jobDescription,
       unstopProfileLink: existingKit.unstopProfileLink,
-      candidateResumeText: existingKit.candidateResumeText,
+      candidateResumeDataUri: existingKit.candidateResumeDataUri, // Persist from original kit
+      candidateResumeFileName: existingKit.candidateResumeFileName, // Persist from original kit
       candidateExperienceContext: existingKit.candidateExperienceContext,
       competencies: newCompetencies,
       scoringRubric: newRubric,
@@ -130,7 +134,8 @@ export default function Home() {
     setInterviewKit(null);
     setJobDescription(data.jobDescription);
     setUnstopProfileLink(data.unstopProfileLink);
-    setCandidateResumeText(data.candidateResumeText);
+    setCandidateResumeDataUri(data.candidateResumeDataUri);
+    setCandidateResumeFileName(data.candidateResumeFileName);
     setCandidateExperienceContext(data.candidateExperienceContext);
 
 
@@ -149,12 +154,13 @@ export default function Home() {
       const input: GenerateInterviewKitInput = {
         jobDescription: data.jobDescription,
         unstopProfileLink: data.unstopProfileLink,
-        candidateResumeText: data.candidateResumeText,
+        candidateResumeDataUri: data.candidateResumeDataUri,
+        candidateResumeFileName: data.candidateResumeFileName,
         candidateExperienceContext: data.candidateExperienceContext,
       };
       const output = await generateInterviewKit(input);
       if (output && output.competencies && output.scoringRubric) {
-        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.candidateResumeText, data.candidateExperienceContext));
+        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
       } else {
         throw new Error("AI response was empty or malformed.");
@@ -235,20 +241,20 @@ export default function Home() {
                     </pre>
                   </div>
                 )}
-                {candidateResumeText && (
+                {candidateResumeFileName && (
                   <div>
                     <h3 className="font-semibold mb-1 text-foreground flex items-center">
-                      <UserCircle size={16} className="mr-2 text-muted-foreground"/> Candidate Resume Text:
+                      <FileCheck size={16} className="mr-2 text-green-600"/> Candidate Resume File:
                     </h3>
-                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner custom-scrollbar">
-                      {candidateResumeText}
-                    </pre>
+                    <p className="text-muted-foreground p-3 border rounded-md bg-background shadow-inner">
+                      {candidateResumeFileName} (Content will be directly analyzed by AI)
+                    </p>
                   </div>
                 )}
                 {candidateExperienceContext && (
                   <div>
                     <h3 className="font-semibold mb-1 text-foreground flex items-center">
-                      <FileText size={16} className="mr-2 text-muted-foreground"/> Additional Context:
+                      <MessageSquare size={16} className="mr-2 text-muted-foreground"/> Additional Context:
                     </h3>
                     <pre className="whitespace-pre-wrap text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-background shadow-inner custom-scrollbar">
                       {candidateExperienceContext}
@@ -268,7 +274,7 @@ export default function Home() {
               </CardHeader>
               <CardContent className="pb-8 pt-2">
                 <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto mb-6">
-                 Paste a job description, provide the candidate's Unstop profile link, and optionally their resume text. RecruTake will instantly generate relevant questions, model answers, difficulty ratings, timings, categories, and a consistent scoring rubric tailored for your interview.
+                 Paste a job description, provide the candidate's Unstop profile link, and optionally upload their PDF/DOCX resume. RecruTake will instantly generate relevant questions, model answers, difficulty ratings, timings, categories, and a consistent scoring rubric tailored for your interview.
                 </CardDescription>
               </CardContent>
             </Card>
