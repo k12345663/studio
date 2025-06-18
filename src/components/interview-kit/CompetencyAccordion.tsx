@@ -6,7 +6,7 @@ import type { ClientCompetency, ClientQuestion } from '@/types/interview-kit';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { QuestionEditorCard } from './QuestionEditorCard';
-import { Brain, Lightbulb, Zap, Target, Settings, Briefcase, Star, ShieldAlert, ShieldCheck, Shield, Code2, MessageSquare, ChevronRight } from 'lucide-react'; 
+import { Brain, Lightbulb, Zap, Target, Settings, Briefcase, Star, ShieldAlert, ShieldCheck, Shield, Code2, MessageSquare, ChevronDown } from 'lucide-react'; 
 
 interface CompetencyAccordionProps {
   competencies: ClientCompetency[];
@@ -15,43 +15,42 @@ interface CompetencyAccordionProps {
 }
 
 const competencyIcons = [
-  <Brain key="brain" className="mr-3 h-6 w-6 text-primary/80" />,
-  <Lightbulb key="lightbulb" className="mr-3 h-6 w-6 text-primary/80" />,
-  <Zap key="zap" className="mr-3 h-6 w-6 text-primary/80" />,
-  <Target key="target" className="mr-3 h-6 w-6 text-primary/80" />,
-  <Settings key="settings" className="mr-3 h-6 w-6 text-primary/80" />,
-  <Briefcase key="briefcase" className="mr-3 h-6 w-6 text-primary/80" />,
+  <Brain key="brain" className="mr-3 h-6 w-6 text-primary/90" />,
+  <Lightbulb key="lightbulb" className="mr-3 h-6 w-6 text-primary/90" />,
+  <Zap key="zap" className="mr-3 h-6 w-6 text-primary/90" />,
+  <Target key="target" className="mr-3 h-6 w-6 text-primary/90" />,
+  <Settings key="settings" className="mr-3 h-6 w-6 text-primary/90" />,
+  <Briefcase key="briefcase" className="mr-3 h-6 w-6 text-primary/90" />,
 ];
 
 const ImportanceIndicator: React.FC<{ importance: ClientCompetency['importance'] }> = ({ importance }) => {
   let icon = <Star className="mr-1.5 h-4 w-4" />;
   let variant: "default" | "secondary" | "destructive" | "outline" = "default";
   let text = importance;
-  let textColor = "text-primary-foreground";
+  let textColor = "text-primary-foreground"; // Default from ShadCN badge
+  let bgColor = "bg-primary"; // Default from ShadCN badge
 
   switch (importance) {
     case 'High':
       icon = <ShieldAlert className="mr-1.5 h-4 w-4" />;
       variant = "destructive"; 
       text = "High";
-      textColor = "text-destructive-foreground";
+      // Destructive uses its own foreground/background
       break;
     case 'Medium':
       icon = <ShieldCheck className="mr-1.5 h-4 w-4" />;
-      variant = "default"; 
-      textColor = "text-primary-foreground";
+      variant = "default"; // Will use primary color
       text = "Medium";
       break;
     case 'Low':
       icon = <Shield className="mr-1.5 h-4 w-4" />;
-      variant = "secondary";
-      textColor = "text-secondary-foreground";
+      variant = "secondary"; // Will use secondary color
       text = "Low";
       break;
   }
 
   return (
-    <Badge variant={variant} className={`ml-3 text-xs px-2.5 py-1 ${textColor} shadow-sm`}>
+    <Badge variant={variant} className={`ml-3 text-xs px-2.5 py-1 shadow-sm`}>
       {icon}
       {text}
     </Badge>
@@ -96,7 +95,7 @@ export function CompetencyAccordion({ competencies, onCompetencyChange, isLoadin
                 </div>
                 <div className="flex items-center">
                   <ImportanceIndicator importance={competency.importance} />
-                  <ChevronRight className="h-5 w-5 ml-3 text-muted-foreground transition-transform duration-200 group-[[data-state=open]]:rotate-90" />
+                  <ChevronDown className="h-5 w-5 ml-3 text-muted-foreground transition-transform duration-200 accordion-chevron" />
                 </div>
               </div>
             </AccordionTrigger>

@@ -9,8 +9,8 @@ body {
 
 @layer base {
   :root {
-    --background: 220 50% 98%; /* Light Cool Gray */
-    --foreground: 220 20% 25%; /* Dark Slate Gray */
+    --background: 208 60% 97%; /* Light Gray (AliceBlue - #F0F8FF) */
+    --foreground: 220 20% 25%; /* Dark Slate Gray (for text) */
 
     --card: 0 0% 100%; /* White */
     --card-foreground: 220 20% 25%;
@@ -18,62 +18,62 @@ body {
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 220 20% 25%;
 
-    --primary: 210 70% 45%; /* Professional Blue */
-    --primary-foreground: 0 0% 100%; /* White for contrast */
+    --primary: 182 25% 49%; /* Slate Blue (#5F9EA0) */
+    --primary-foreground: 0 0% 100%; /* White for contrast on primary */
 
-    --secondary: 210 40% 92%; /* Lighter Professional Blue/Gray */
-    --secondary-foreground: 220 20% 25%;
+    --secondary: 182 25% 90%; /* Lighter Slate Blue */
+    --secondary-foreground: 182 25% 30%; /* Darker Slate Blue for text on secondary */
 
-    --muted: 220 30% 90%; /* Muted Cool Gray */
-    --muted-foreground: 220 15% 45%;
+    --muted: 210 30% 93%; /* Muted Cool Gray */
+    --muted-foreground: 210 15% 45%;
 
-    --accent: 180 30% 40%; /* Muted Teal */
-    --accent-foreground: 0 0% 100%; /* White for contrast */
+    --accent: 276 23% 62%; /* Dusty Lavender (#A588B5) */
+    --accent-foreground: 0 0% 100%; /* White for contrast on accent */
 
     --destructive: 0 70% 55%; /* Softer Red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 25% 85%; /* Softer Border */
-    --input: 220 25% 88%; /* Input Background */
-    --ring: 210 70% 45%; /* Ring color same as primary */
+    --border: 210 20% 88%; /* Softer Border, cool tone */
+    --input: 210 20% 95%; /* Input Background, very light cool gray */
+    --ring: 182 25% 49%; /* Ring color same as primary (Slate Blue) */
 
-    --chart-1: 210 70% 55%;
-    --chart-2: 180 40% 50%;
+    --chart-1: 182 35% 55%; /* Variations of Slate Blue */
+    --chart-2: 276 30% 68%; /* Variations of Dusty Lavender */
     --chart-3: 25 80% 60%;
-    --chart-4: 280 50% 60%;
+    --chart-4: 200 40% 60%;
     --chart-5: 45 70% 55%;
-    --radius: 0.75rem; /* Increased radius for modern feel */
+    --radius: 0.75rem; 
 
-    --sidebar-background: 220 30% 96%;
+    --sidebar-background: 210 30% 96%;
     --sidebar-foreground: 220 20% 35%;
-    --sidebar-primary: 210 70% 45%; 
+    --sidebar-primary: 182 25% 49%; 
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 30% 50%; 
+    --sidebar-accent: 276 23% 62%; 
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 25% 80%;
-    --sidebar-ring: 210 70% 45%;
+    --sidebar-border: 210 25% 80%;
+    --sidebar-ring: 182 25% 49%;
   }
 
   .dark {
-    --background: 220 20% 10%; /* Darker Slate Blue for background */
-    --foreground: 220 30% 92%; /* Lighter Gray for Dark Mode Text */
+    --background: 220 20% 10%; /* Dark Slate Blue for background */
+    --foreground: 210 30% 92%; /* Lighter Gray for Dark Mode Text */
 
     --card: 220 20% 13%; /* Darker Card Background */
-    --card-foreground: 220 30% 92%;
+    --card-foreground: 210 30% 92%;
 
     --popover: 220 20% 8%; 
-    --popover-foreground: 220 30% 92%;
+    --popover-foreground: 210 30% 92%;
 
-    --primary: 210 75% 60%; /* Brighter Professional Blue for Dark Mode */
+    --primary: 182 30% 55%; /* Brighter Slate Blue for Dark Mode */
     --primary-foreground: 0 0% 100%; 
 
     --secondary: 220 20% 22%; 
-    --secondary-foreground: 220 30% 88%;
+    --secondary-foreground: 210 30% 88%;
 
     --muted: 220 20% 18%; /* Dark Muted */
-    --muted-foreground: 220 20% 68%;
+    --muted-foreground: 210 20% 68%;
 
-    --accent: 180 40% 55%; /* Brighter Teal for Dark Mode */
+    --accent: 276 28% 68%; /* Brighter Dusty Lavender for Dark Mode */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 65% 55%; 
@@ -81,22 +81,22 @@ body {
 
     --border: 220 20% 25%; /* Dark Border */
     --input: 220 20% 20%; /* Dark Input */
-    --ring: 210 75% 60%;
+    --ring: 182 30% 55%; /* Brighter Slate Blue Ring */
 
-    --chart-1: 210 70% 65%;
-    --chart-2: 180 40% 60%;
+    --chart-1: 182 30% 65%;
+    --chart-2: 276 28% 72%;
     --chart-3: 30 70% 65%;
-    --chart-4: 280 50% 70%;
+    --chart-4: 200 40% 70%;
     --chart-5: 45 70% 65%;
 
     --sidebar-background: 220 20% 9%;
-    --sidebar-foreground: 220 30% 90%;
-    --sidebar-primary: 210 75% 60%;
+    --sidebar-foreground: 210 30% 90%;
+    --sidebar-primary: 182 30% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 40% 50%; 
+    --sidebar-accent: 276 28% 68%; 
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 220 20% 22%;
-    --sidebar-ring: 210 75% 60%;
+    --sidebar-ring: 182 30% 55%;
   }
 }
 

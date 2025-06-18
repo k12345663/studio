@@ -12,8 +12,9 @@ import { JobDescriptionForm, type JobDescriptionFormSubmitData } from '@/compone
 import { InterviewKitDisplay } from '@/components/interview-kit/InterviewKitDisplay';
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase, LinkIcon, FileCheck, Zap, MessageSquare } from 'lucide-react'; // Added MessageSquare
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { FileText, Briefcase, LinkIcon, FileCheck, Zap, MessageSquare, Info, AlertTriangle } from 'lucide-react';
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>('');
@@ -23,6 +24,7 @@ export default function Home() {
   const [candidateExperienceContext, setCandidateExperienceContext] = useState<string | undefined>(undefined);
   const [interviewKit, setInterviewKit] = useState<InterviewKit | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showInputs, setShowInputs] = useState<boolean>(false);
   const { toast } = useToast();
 
   const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, unstopLink?: string, resumeDataUri?: string, resumeFileName?: string, expContext?: string): InterviewKit => {
@@ -109,7 +111,7 @@ export default function Home() {
     });
 
     const newRubric = output.rubricCriteria.map((newCrit) => {
-      let existingCrit = existingKit.scoringRubric.find(er => er.name === newCrit.name); // Try to match by name
+      let existingCrit = existingKit.scoringRubric.find(er => er.name === newCrit.name); 
       return {
         id: existingCrit?.id || generateId('rubric'),
         name: newCrit.name,
@@ -137,7 +139,7 @@ export default function Home() {
     setCandidateResumeDataUri(data.candidateResumeDataUri);
     setCandidateResumeFileName(data.candidateResumeFileName);
     setCandidateExperienceContext(data.candidateExperienceContext);
-
+    setShowInputs(true); // Show inputs once form is submitted initially
 
     try {
       if (!data.jobDescription.trim()) {
@@ -162,6 +164,7 @@ export default function Home() {
       if (output && output.competencies && output.scoringRubric) {
         setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
+        setShowInputs(false); // Hide input summary after kit is generated
       } else {
         throw new Error("AI response was empty or malformed.");
       }
@@ -169,6 +172,7 @@ export default function Home() {
       console.error("Error generating interview kit:", error);
       toast({ variant: "destructive", title: "Error", description: `Failed to generate kit: ${error instanceof Error ? error.message : String(error)}` });
       setInterviewKit(null);
+      // Keep setShowInputs(true) so user can see their inputs if generation fails
     } finally {
       setIsLoading(false);
     }
@@ -198,12 +202,25 @@ export default function Home() {
     setInterviewKit(updatedKit);
   }, []);
 
+  const handleStartOver = () => {
+    setJobDescription('');
+    setUnstopProfileLink(undefined);
+    setCandidateResumeDataUri(undefined);
+    setCandidateResumeFileName(undefined);
+    setCandidateExperienceContext(undefined);
+    setInterviewKit(null);
+    setIsLoading(false);
+    setShowInputs(false);
+    // Optionally, could reset the JobDescriptionForm's internal state if it held any
+    // For now, page.tsx controls these primary input states.
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-muted/30 dark:bg-muted/10">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       <AppHeader />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          <JobDescriptionForm onSubmit={handleGenerateKit} isLoading={isLoading && !interviewKit} />
+          {!interviewKit && <JobDescriptionForm onSubmit={handleGenerateKit} isLoading={isLoading && !interviewKit} />}
 
           {isLoading && !interviewKit && (
             <div className="flex justify-center py-10">
@@ -211,86 +228,109 @@ export default function Home() {
             </div>
           )}
 
-          {!isLoading && !interviewKit && (jobDescription || unstopProfileLink || candidateResumeFileName || candidateExperienceContext) && (
-             <Card className="mt-8 shadow-lg transition-shadow hover:shadow-xl">
+          {!isLoading && !interviewKit && showInputs && (
+             <Card className="mt-8 shadow-lg transition-shadow hover:shadow-xl border-border/70">
               <CardHeader>
-                <CardTitle className="flex items-center text-xl font-semibold">
-                  <Briefcase className="mr-2 h-5 w-5 text-primary" />
-                  Inputs Provided for Kit Generation
+                <CardTitle className="flex items-center text-xl font-semibold text-primary">
+                  <Briefcase className="mr-3 h-6 w-6" />
+                  Inputs for Kit Generation
                 </CardTitle>
-                <CardDescription>Review the information that will be used to generate the kit.</CardDescription>
+                <CardDescription className="text-muted-foreground">Review the information that will be used. Generation failed or is in progress.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6 text-sm">
+              <CardContent className="space-y-4 text-sm">
                 {jobDescription && (
                   <div>
-                    <h3 className="font-semibold mb-1 text-foreground flex items-center">
-                       <FileText size={16} className="mr-2 text-muted-foreground"/> Job Description:
+                    <h3 className="font-medium mb-1 text-foreground flex items-center">
+                       <FileText size={16} className="mr-2 text-primary/80"/> Job Description:
                     </h3>
-                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner custom-scrollbar">
+                    <div className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-lg bg-input/50 shadow-inner custom-scrollbar">
                       {jobDescription}
-                    </pre>
+                    </div>
                   </div>
                 )}
                 {unstopProfileLink && (
                   <div>
-                    <h3 className="font-semibold mb-1 text-foreground flex items-center">
-                       <LinkIcon size={16} className="mr-2 text-muted-foreground"/> Unstop Profile Link:
+                    <h3 className="font-medium mb-1 text-foreground flex items-center">
+                       <LinkIcon size={16} className="mr-2 text-primary/80"/> Unstop Profile Link:
                     </h3>
-                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-md bg-background shadow-inner custom-scrollbar">
+                    <div className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-lg bg-input/50 shadow-inner custom-scrollbar">
                       {unstopProfileLink}
-                    </pre>
+                    </div>
                   </div>
                 )}
                 {candidateResumeFileName && (
                   <div>
-                    <h3 className="font-semibold mb-1 text-foreground flex items-center">
+                    <h3 className="font-medium mb-1 text-foreground flex items-center">
                       <FileCheck size={16} className="mr-2 text-green-600"/> Candidate Resume File:
                     </h3>
-                    <p className="text-muted-foreground p-3 border rounded-md bg-background shadow-inner">
+                    <p className="text-muted-foreground p-3 border rounded-lg bg-input/50 shadow-inner">
                       {candidateResumeFileName} (Content will be directly analyzed by AI)
                     </p>
                   </div>
                 )}
                 {candidateExperienceContext && (
                   <div>
-                    <h3 className="font-semibold mb-1 text-foreground flex items-center">
-                      <MessageSquare size={16} className="mr-2 text-muted-foreground"/> Additional Context:
+                    <h3 className="font-medium mb-1 text-foreground flex items-center">
+                      <MessageSquare size={16} className="mr-2 text-primary/80"/> Additional Context:
                     </h3>
-                    <pre className="whitespace-pre-wrap text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-md bg-background shadow-inner custom-scrollbar">
+                    <div className="whitespace-pre-wrap text-muted-foreground max-h-40 overflow-y-auto p-3 border rounded-lg bg-input/50 shadow-inner custom-scrollbar">
                       {candidateExperienceContext}
-                    </pre>
+                    </div>
                   </div>
                 )}
+                 {!jobDescription && !unstopProfileLink && !candidateResumeFileName && !candidateExperienceContext && (
+                    <div className="text-center py-4 text-muted-foreground">
+                        <AlertTriangle size={20} className="mx-auto mb-2 text-amber-500" />
+                        No inputs were provided for generation.
+                    </div>
+                 )}
               </CardContent>
+              <CardFooter>
+                 <Button onClick={handleStartOver} variant="outline" className="w-full">Start Over / Clear Inputs</Button>
+              </CardFooter>
             </Card>
           )}
 
-          {!isLoading && !interviewKit && !jobDescription && !unstopProfileLink && !candidateResumeFileName && !candidateExperienceContext && (
-             <Card className="text-center bg-card shadow-xl border border-primary/20 transition-shadow hover:shadow-2xl">
+          {!isLoading && !interviewKit && !showInputs && (
+             <Card className="text-center bg-card shadow-xl border-border/70 transition-shadow hover:shadow-2xl">
               <CardHeader className="pt-8">
                 <CardTitle className="text-2xl sm:text-3xl font-headline text-primary flex items-center justify-center">
                  <Zap className="mr-3 h-8 w-8 text-primary/90" /> Welcome to RecruTake
                 </CardTitle>
+                 <CardDescription className="text-lg text-muted-foreground max-w-xl mx-auto mt-2">
+                 Your AI-powered interview assistant.
+                </CardDescription>
               </CardHeader>
               <CardContent className="pb-8 pt-2">
-                <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto mb-6">
-                 Paste a job description, provide the candidate's Unstop profile link, and optionally upload their PDF/DOCX resume. RecruTake will instantly generate relevant questions, model answers, difficulty ratings, timings, categories, and a consistent scoring rubric tailored for your interview.
-                </CardDescription>
+                <p className="text-base text-foreground/80 max-w-2xl mx-auto mb-6">
+                 Paste a job description, provide the candidate's Unstop profile link, and optionally attach their resume. RecruTake will instantly generate relevant questions, model answers, difficulty ratings, timings, categories, and a consistent scoring rubric tailored for your interview.
+                </p>
+                 <div className="flex items-center justify-center text-sm text-muted-foreground bg-accent/10 p-3 rounded-lg max-w-md mx-auto">
+                    <Info size={18} className="mr-2 text-accent" />
+                    Fill the form above to begin.
+                </div>
               </CardContent>
             </Card>
           )}
 
           {interviewKit && (
+            <>
             <InterviewKitDisplay
               kit={interviewKit}
               onKitChange={handleKitChange}
               onCustomizeKit={handleCustomizeKit}
               isLoading={isLoading}
             />
+            <div className="mt-8 flex justify-center">
+                 <Button onClick={handleStartOver} variant="outline" size="lg" className="text-base py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                    Start New Kit / Clear All
+                </Button>
+            </div>
+            </>
           )}
         </div>
       </main>
-      <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border bg-card">
+      <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border bg-card/80">
         © {new Date().getFullYear()} RecruTake by Unstop. All rights reserved.
       </footer>
     </div>

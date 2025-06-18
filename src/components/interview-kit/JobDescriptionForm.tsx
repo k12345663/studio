@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck } from 'lucide-react';
+import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck, Paperclip } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from '@/components/ui/textarea';
 
@@ -33,7 +33,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
   const [unstopProfileLink, setUnstopProfileLink] = useState('');
   const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined>(undefined);
   const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
-  const [resumeDisplayMessage, setResumeDisplayMessage] = useState<string>(`Select a PDF/DOCX resume (max ${MAX_FILE_SIZE_MB}MB) for AI analysis, or leave blank.`);
+  const [resumeDisplayMessage, setResumeDisplayMessage] = useState<string>(`Attach resume (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB) or leave blank.`);
   const [candidateExperienceContext, setCandidateExperienceContext] = useState('');
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +48,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
       setResumeDisplayMessage(`Processing ${file.name}...`);
       toast({
         title: "Processing Resume",
-        description: `Attempting to prepare ${file.name} for AI analysis.`,
+        description: `Preparing ${file.name} for AI analysis.`,
       });
 
       if (!SUPPORTED_RESUME_TYPES.includes(file.type)) {
@@ -58,9 +58,9 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         toast({
           variant: "destructive",
           title: "Unsupported File Type",
-          description: "Only PDF and DOCX files are supported for resume analysis. Ensure file is within size limits.",
+          description: "Only PDF and DOCX files are supported for resume analysis.",
         });
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
         setIsProcessingFile(false);
         return;
       }
@@ -75,7 +75,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           title: "File Too Large",
           description: `Resume file exceeds the ${MAX_FILE_SIZE_MB}MB limit. Please use a smaller file.`,
         });
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
         setIsProcessingFile(false);
         return;
       }
@@ -86,7 +86,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           const dataUri = e.target?.result as string;
           setCandidateResumeDataUri(dataUri);
           setCandidateResumeFileName(file.name);
-          setResumeDisplayMessage(`Ready for AI analysis: ${file.name}.`);
+          setResumeDisplayMessage(`${file.name} attached for AI analysis.`);
           toast({
             title: "Resume Ready!",
             description: `${file.name} will be sent to the AI.`,
@@ -95,20 +95,20 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         };
         reader.onerror = (error) => {
           console.error("Error reading file:", error);
-          setResumeDisplayMessage(`Error preparing ${file.name}. Please try again or a different file (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB).`);
+          setResumeDisplayMessage(`Error preparing ${file.name}. Please try again (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB).`);
           toast({
             variant: "destructive",
             title: "File Processing Failed",
             description: `Could not prepare ${file.name}. Error: ${error || 'Unknown error'}`,
           });
           setIsProcessingFile(false);
-          if (fileInputRef.current) fileInputRef.current.value = "";
+          if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
         };
         reader.readAsDataURL(file);
       } catch (error) {
         console.error("Error initiating file read:", error);
         setResumeDisplayMessage(
-          `Error preparing ${file.name}. This can happen with problematic files. Please try another file (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB).`
+          `Error preparing ${file.name}. Please try another file (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB).`
         );
         toast({
           variant: "destructive",
@@ -116,12 +116,12 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           description: `Could not prepare ${file.name}. Error: ${error instanceof Error ? error.message : "Unknown error"}`,
         });
         setIsProcessingFile(false);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
       }
     } else {
         setCandidateResumeDataUri(undefined);
         setCandidateResumeFileName(undefined);
-        setResumeDisplayMessage(`Select a PDF/DOCX resume (max ${MAX_FILE_SIZE_MB}MB) for AI analysis, or leave blank.`);
+        setResumeDisplayMessage(`Attach resume (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB) or leave blank.`);
         setIsProcessingFile(false);
     }
   };
@@ -157,16 +157,18 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     });
   };
 
+  const triggerFileSelect = () => fileInputRef.current?.click();
+
   const canSubmit = !isLoading && !isProcessingFile && jobDescription.trim() && unstopProfileLink.trim();
 
   return (
-    <Card className="w-full shadow-xl border border-primary/20">
+    <Card className="w-full shadow-xl border-border/70">
       <CardHeader>
         <CardTitle className="font-headline text-2xl text-primary flex items-center">
           <FileText className="mr-3 h-7 w-7" /> Create Your Interview Kit
         </CardTitle>
-        <CardDescription className="text-base">
-          Provide job details, candidate's Unstop profile, and optionally their resume (PDF/DOCX) for direct AI analysis.
+        <CardDescription className="text-base text-muted-foreground">
+          Provide job details, candidate's Unstop profile, and optionally their resume for direct AI analysis.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -180,7 +182,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the full job description here..."
-              className="min-h-[180px] text-sm p-3 rounded-md shadow-inner"
+              className="min-h-[180px] text-sm p-3 rounded-lg shadow-inner bg-input/80 focus:bg-background"
               rows={8}
               disabled={isLoading || isProcessingFile}
               aria-label="Job Description Text Input"
@@ -198,22 +200,19 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               value={unstopProfileLink}
               onChange={(e) => setUnstopProfileLink(e.target.value)}
               placeholder="https://unstop.com/p/candidate-profile-link..."
-              className="text-sm p-3 rounded-md shadow-inner"
+              className="text-sm p-3 rounded-lg shadow-inner bg-input/80 focus:bg-background"
               disabled={isLoading || isProcessingFile}
               aria-label="Unstop Profile Link Input"
               required
             />
             <p className="text-xs text-muted-foreground mt-1">
-              AI will analyze this profile for tailored questions. Ensure it's a public and valid Unstop profile URL.
+              AI will analyze this profile. Ensure it's a public and valid Unstop profile URL.
             </p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="candidate-resume-upload" className="font-semibold text-foreground text-md flex items-center">
-               {isProcessingFile && <Loader2 size={18} className="mr-2 text-primary animate-spin"/>}
-               {!isProcessingFile && candidateResumeFileName && <FileCheck size={18} className="mr-2 text-green-600"/>}
-               {!isProcessingFile && !candidateResumeFileName && <UploadCloud size={18} className="mr-2 text-primary"/>}
-               Candidate Resume (PDF/DOCX - Optional, Max {MAX_FILE_SIZE_MB}MB)
+            <Label htmlFor="candidate-resume-upload-trigger" className="font-semibold text-foreground text-md flex items-center">
+               <Paperclip size={18} className="mr-2 text-primary"/> Candidate Resume (PDF/DOCX - Optional, Max {MAX_FILE_SIZE_MB}MB)
             </Label>
             <Input
               id="candidate-resume-upload"
@@ -221,13 +220,24 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               ref={fileInputRef}
               accept={SUPPORTED_RESUME_TYPES.join(',')}
               onChange={handleFileChange}
-              className="text-sm p-2 rounded-md shadow-sm border h-auto file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+              className="hidden" // Hide the actual input
               disabled={isLoading || isProcessingFile}
-              aria-label="Candidate Resume Upload"
+              aria-label="Candidate Resume Upload Hidden"
             />
-             <div className="mt-1 text-sm p-3 rounded-md shadow-inner bg-muted/50 min-h-[60px] flex items-center justify-center text-center text-muted-foreground">
+             <Button 
+                type="button" 
+                variant="outline" 
+                onClick={triggerFileSelect} 
+                disabled={isLoading || isProcessingFile}
+                className="w-full justify-start text-muted-foreground hover:text-foreground border-dashed border-input hover:border-primary"
+                id="candidate-resume-upload-trigger"
+                aria-label="Choose resume file"
+              >
+                {isProcessingFile && <Loader2 size={16} className="mr-2 animate-spin"/>}
+                {!isProcessingFile && candidateResumeFileName && <FileCheck size={16} className="mr-2 text-green-600"/>}
+                {!isProcessingFile && !candidateResumeFileName && <UploadCloud size={16} className="mr-2"/>}
                 {resumeDisplayMessage}
-            </div>
+            </Button>
           </div>
 
           <div className="space-y-2">
@@ -238,8 +248,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               id="candidate-experience-context"
               value={candidateExperienceContext}
               onChange={(e) => setCandidateExperienceContext(e.target.value)}
-              placeholder="E.g., 'Targeting senior level, 5+ years experience with microservices' or 'Focus on leadership and communication skills for this role with this candidate.'"
-              className="min-h-[100px] text-sm p-3 rounded-md shadow-inner"
+              placeholder="E.g., 'Targeting senior level, 5+ years with microservices' or 'Focus on leadership for this role with this candidate.'"
+              className="min-h-[100px] text-sm p-3 rounded-lg shadow-inner bg-input/80 focus:bg-background"
               rows={3}
               disabled={isLoading || isProcessingFile}
               aria-label="Additional Candidate Experience Context Input"
@@ -250,10 +260,10 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
             <Button
               type="submit"
               disabled={!canSubmit}
-              className="w-full sm:w-auto text-base py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+              className="w-full sm:w-auto text-base py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-shadow bg-primary hover:bg-primary/90 text-primary-foreground"
               size="lg"
             >
-              <Send className="mr-2 h-5 w-5" />
+              {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Send className="mr-2 h-5 w-5" />}
               {isLoading ? 'Generating Kit...' : (isProcessingFile ? 'Preparing Resume...' : 'Generate Interview Kit')}
             </Button>
           </div>
