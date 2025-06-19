@@ -46,7 +46,7 @@ export default function Home() {
           modelAnswer: q.answer,
           difficulty: q.difficulty || 'Intermediate',
           estimatedTimeMinutes: q.estimatedTimeMinutes || difficultyTimeMap[q.difficulty || 'Intermediate'],
-          score: 5, // Default score for 1-10 scale
+          score: 5, 
           notes: '',
         })),
       })),
@@ -103,7 +103,7 @@ export default function Home() {
             modelAnswer: newQ.modelAnswer,
             difficulty: newQ.difficulty || existingQ?.difficulty || 'Intermediate',
             estimatedTimeMinutes: newQ.estimatedTimeMinutes || existingQ?.estimatedTimeMinutes || difficultyTimeMap[newQ.difficulty || existingQ?.difficulty || 'Intermediate'],
-            score: existingQ?.score ?? 5, // Default score 5 for 1-10 scale
+            score: existingQ?.score ?? 5, 
             notes: existingQ?.notes ?? '',
           };
         }),
@@ -139,8 +139,9 @@ export default function Home() {
     setCandidateResumeDataUri(data.candidateResumeDataUri);
     setCandidateResumeFileName(data.candidateResumeFileName);
     setCandidateExperienceContext(data.candidateExperienceContext);
-    setShowInputs(true); // Show inputs once form is submitted initially
+    setShowInputs(true); 
 
+    let inputForAI: GenerateInterviewKitInput | null = null;
     try {
       if (!data.jobDescription.trim()) {
         toast({ variant: "destructive", title: "Input Error", description: "Job description cannot be empty." });
@@ -153,26 +154,29 @@ export default function Home() {
         return;
       }
 
-      const input: GenerateInterviewKitInput = {
+      inputForAI = {
         jobDescription: data.jobDescription,
         unstopProfileLink: data.unstopProfileLink,
         candidateResumeDataUri: data.candidateResumeDataUri,
         candidateResumeFileName: data.candidateResumeFileName,
         candidateExperienceContext: data.candidateExperienceContext,
       };
-      const output = await generateInterviewKit(input);
+      const output = await generateInterviewKit(inputForAI);
       if (output && output.competencies && output.scoringRubric) {
         setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
-        setShowInputs(false); // Hide input summary after kit is generated
+        setShowInputs(false); 
       } else {
         throw new Error("AI response was empty or malformed.");
       }
     } catch (error) {
       console.error("Error generating interview kit:", error);
-      toast({ variant: "destructive", title: "Error", description: `Failed to generate kit: ${error instanceof Error ? error.message : String(error)}` });
+      let description = `Failed to generate kit: ${error instanceof Error ? error.message : String(error)}`;
+      if (inputForAI?.candidateResumeDataUri && (error instanceof Error && (error.message.toLowerCase().includes("media") || error.message.toLowerCase().includes("parse") || error.message.toLowerCase().includes("content") || error.message.toLowerCase().includes("file")) ) ) {
+        description = "Failed to generate kit. There might be an issue processing the provided resume file. Please try a different file or generate the kit without a resume.";
+      }
+      toast({ variant: "destructive", title: "Error", description });
       setInterviewKit(null);
-      // Keep setShowInputs(true) so user can see their inputs if generation fails
     } finally {
       setIsLoading(false);
     }
@@ -181,9 +185,10 @@ export default function Home() {
   const handleCustomizeKit = useCallback(async () => {
     if (!interviewKit) return;
     setIsLoading(true);
+    let inputForAI: CustomizeInterviewKitInput | null = null;
     try {
-      const input = mapClientKitToCustomizeInput(interviewKit);
-      const output = await customizeInterviewKit(input);
+      inputForAI = mapClientKitToCustomizeInput(interviewKit);
+      const output = await customizeInterviewKit(inputForAI);
        if (output && output.competencies && output.rubricCriteria) {
         setInterviewKit(mapCustomizeOutputToClientKit(output, interviewKit));
         toast({ title: "Success!", description: "Interview kit updated." });
@@ -192,7 +197,11 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error customizing interview kit:", error);
-      toast({ variant: "destructive", title: "Error", description: `Failed to update kit: ${error instanceof Error ? error.message : String(error)}` });
+      let description = `Failed to update kit: ${error instanceof Error ? error.message : String(error)}`;
+      if (inputForAI?.candidateResumeDataUri && (error instanceof Error && (error.message.toLowerCase().includes("media") || error.message.toLowerCase().includes("parse") || error.message.toLowerCase().includes("content") || error.message.toLowerCase().includes("file")) ) ) {
+        description = "Failed to update kit. There might be an issue processing the resume file context. Please check the file if you recently uploaded one or try again.";
+      }
+      toast({ variant: "destructive", title: "Error", description });
     } finally {
       setIsLoading(false);
     }
@@ -211,8 +220,6 @@ export default function Home() {
     setInterviewKit(null);
     setIsLoading(false);
     setShowInputs(false);
-    // Optionally, could reset the JobDescriptionForm's internal state if it held any
-    // For now, page.tsx controls these primary input states.
   };
 
   return (
@@ -229,13 +236,13 @@ export default function Home() {
           )}
 
           {!isLoading && !interviewKit && showInputs && (
-             <Card className="mt-8 shadow-lg transition-shadow hover:shadow-xl border-border/70">
+             <Card className="mt-8 shadow-lg transition-shadow hover:shadow-xl border-border/70 bg-card">
               <CardHeader>
                 <CardTitle className="flex items-center text-xl font-semibold text-primary">
                   <Briefcase className="mr-3 h-6 w-6" />
-                  Inputs for Kit Generation
+                  Inputs Provided for Kit Generation
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">Review the information that will be used. Generation failed or is in progress.</CardDescription>
+                <CardDescription className="text-muted-foreground">Review the information that was submitted. Generation may have failed or is still in progress if the kit isn't shown.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 {jobDescription && (
@@ -264,10 +271,20 @@ export default function Home() {
                       <FileCheck size={16} className="mr-2 text-green-600"/> Candidate Resume File:
                     </h3>
                     <p className="text-muted-foreground p-3 border rounded-lg bg-input/50 shadow-inner">
-                      {candidateResumeFileName} (Content will be directly analyzed by AI)
+                      {candidateResumeFileName} (Content was sent for AI analysis)
                     </p>
                   </div>
                 )}
+                 {!candidateResumeFileName && candidateResumeDataUri === null && ( // Check if attempted but failed
+                    <div>
+                        <h3 className="font-medium mb-1 text-foreground flex items-center">
+                        <AlertTriangle size={16} className="mr-2 text-amber-500"/> Candidate Resume File:
+                        </h3>
+                        <p className="text-muted-foreground p-3 border rounded-lg bg-input/50 shadow-inner">
+                        A resume file was selected, but could not be processed.
+                        </p>
+                    </div>
+                 )}
                 {candidateExperienceContext && (
                   <div>
                     <h3 className="font-medium mb-1 text-foreground flex items-center">

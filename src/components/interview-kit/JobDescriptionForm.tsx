@@ -26,7 +26,7 @@ interface JobDescriptionFormProps {
 }
 
 const SUPPORTED_RESUME_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']; // PDF and DOCX
-const MAX_FILE_SIZE_MB = 4.5; // Corresponds to ~5MB Gemini part limit, with some headroom for base64 encoding
+const MAX_FILE_SIZE_MB = 4.5; 
 
 export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormProps) {
   const [jobDescription, setJobDescription] = useState('');
@@ -43,7 +43,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     const file = event.target.files?.[0];
     if (file) {
       setIsProcessingFile(true);
-      setCandidateResumeDataUri(undefined);
+      setCandidateResumeDataUri(undefined); 
       setCandidateResumeFileName(undefined);
       setResumeDisplayMessage(`Processing ${file.name}...`);
       toast({
@@ -60,7 +60,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           title: "Unsupported File Type",
           description: "Only PDF and DOCX files are supported for resume analysis.",
         });
-        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
+        if (fileInputRef.current) fileInputRef.current.value = ""; 
         setIsProcessingFile(false);
         return;
       }
@@ -75,7 +75,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           title: "File Too Large",
           description: `Resume file exceeds the ${MAX_FILE_SIZE_MB}MB limit. Please use a smaller file.`,
         });
-        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
+        if (fileInputRef.current) fileInputRef.current.value = ""; 
         setIsProcessingFile(false);
         return;
       }
@@ -102,7 +102,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
             description: `Could not prepare ${file.name}. Error: ${error || 'Unknown error'}`,
           });
           setIsProcessingFile(false);
-          if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
+          if (fileInputRef.current) fileInputRef.current.value = ""; 
+          setCandidateResumeDataUri(null as any); // Explicitly mark as failed processing
         };
         reader.readAsDataURL(file);
       } catch (error) {
@@ -116,7 +117,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           description: `Could not prepare ${file.name}. Error: ${error instanceof Error ? error.message : "Unknown error"}`,
         });
         setIsProcessingFile(false);
-        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
+        if (fileInputRef.current) fileInputRef.current.value = ""; 
+        setCandidateResumeDataUri(null as any); // Explicitly mark as failed processing
       }
     } else {
         setCandidateResumeDataUri(undefined);
@@ -131,6 +133,11 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     if (!jobDescription.trim()) {
       toast({ variant: "destructive", title: "Missing Input", description: "Job description is required." });
       return;
+    }
+    const alphanumericPattern = /[a-zA-Z0-9]/;
+    if (!alphanumericPattern.test(jobDescription)) {
+        toast({ variant: "destructive", title: "Invalid Input", description: "Job description must contain meaningful text, not just special characters or emojis." });
+        return;
     }
     if (!unstopProfileLink.trim()) {
       toast({ variant: "destructive", title: "Missing Input", description: "Unstop Profile Link is required." });
@@ -151,18 +158,21 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     onSubmit({
       jobDescription: jobDescription.trim(),
       unstopProfileLink: unstopProfileLink.trim(),
-      candidateResumeDataUri: candidateResumeDataUri,
+      candidateResumeDataUri: candidateResumeDataUri === null ? undefined : candidateResumeDataUri, // Pass undefined if processing failed
       candidateResumeFileName: candidateResumeFileName,
       candidateExperienceContext: candidateExperienceContext.trim() || undefined,
     });
   };
 
-  const triggerFileSelect = () => fileInputRef.current?.click();
+  const triggerFileSelect = () => {
+    if (isProcessingFile || isLoading) return;
+    fileInputRef.current?.click();
+  }
 
   const canSubmit = !isLoading && !isProcessingFile && jobDescription.trim() && unstopProfileLink.trim();
 
   return (
-    <Card className="w-full shadow-xl border-border/70">
+    <Card className="w-full shadow-xl border-border/70 bg-card">
       <CardHeader>
         <CardTitle className="font-headline text-2xl text-primary flex items-center">
           <FileText className="mr-3 h-7 w-7" /> Create Your Interview Kit
@@ -220,7 +230,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               ref={fileInputRef}
               accept={SUPPORTED_RESUME_TYPES.join(',')}
               onChange={handleFileChange}
-              className="hidden" // Hide the actual input
+              className="hidden" 
               disabled={isLoading || isProcessingFile}
               aria-label="Candidate Resume Upload Hidden"
             />
@@ -263,8 +273,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               className="w-full sm:w-auto text-base py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-shadow bg-primary hover:bg-primary/90 text-primary-foreground"
               size="lg"
             >
-              {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Send className="mr-2 h-5 w-5" />}
-              {isLoading ? 'Generating Kit...' : (isProcessingFile ? 'Preparing Resume...' : 'Generate Interview Kit')}
+              {(isLoading && !isProcessingFile) ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Send className="mr-2 h-5 w-5" />}
+              {(isLoading && !isProcessingFile) ? 'Generating Kit...' : (isProcessingFile ? 'Preparing Resume...' : 'Generate Interview Kit')}
             </Button>
           </div>
         </form>
