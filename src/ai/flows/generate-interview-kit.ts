@@ -72,21 +72,23 @@ const generateInterviewKitPrompt = ai.definePrompt({
 CRITICAL: Before generating content, **THOROUGHLY analyze and synthesize ALL provided inputs**:
 1.  Job Description (Primary Source).
 2.  Unstop Profile Link (Primary Source - **COMPULSORY**, **conceptually treat this as if you are accessing and deeply analyzing the candidate's entire live profile** for skills, projects, experience, education, academic achievements).
-3.  Candidate Resume File (Primary Source - **OPTIONAL**, if provided as 'candidateResumeDataUri' containing a data URI for a PDF or DOCX file, **AI must directly analyze the content of this file** for skills, projects [tech stack, goals, accomplishments, challenges], education, academic achievements, past work experiences. The 'candidateResumeFileName' is also provided for context.). (AI: The candidate's resume is provided above via a data URI (which includes Base64 encoded content of the PDF/DOCX file). Please directly analyze the content of this file to extract skills, experiences, specific projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences to inform your question generation.)
+3.  Candidate Resume File (Primary Source - **OPTIONAL**, if provided as 'candidateResumeDataUri' containing a data URI for a PDF or DOCX file, **AI must directly analyze the content of this file** for skills, projects [tech stack, goals, accomplishments, challenges], education, academic achievements, past work experiences. The 'candidateResumeFileName' is also provided for context.).
 4.  Candidate Experience Context (Supplements primary sources).
 Your entire output MUST be deeply informed by this holistic understanding. Leverage this holistic understanding to generate not just questions that parrot information from the inputs, but also those that probe deeper into underlying skills, test problem-solving through relevant scenarios, and assess broader competencies critical for the role, even if these aspects are not exhaustively detailed line-by-line in every source document. Your aim is to create an insightful and comprehensive evaluation tool.
 
-**Critically, you must also be an astute evaluator of experience when there's a potential mismatch between formal 'years of experience' stated in the Job Description and the candidate's demonstrated capabilities through projects.**
-If the Job Description specifies X years of experience, and the candidate's profile (Unstop/Resume content including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences) indicates fewer formal years but showcases *significant, highly relevant, complex, and impactful project work* directly related to the core requirements of the role:
-*   **Generate Insightful Questions:** Formulate questions that directly address this. Encourage the candidate to bridge this perceived gap by elaborating on their project work. For example:
-    *   'The Job Description mentions a requirement for [X] years of experience in [Specific Area]. Your resume highlights your in-depth work on [Project Y from resume/Unstop profile], which seems highly relevant. Could you walk me through how the complexities, challenges you overcame, and the skills you applied in [Project Y] have equipped you with the capabilities and maturity we'd typically expect from someone with [X] years of experience in this domain?'
-    *   If [Project Y] used a related but different technology (e.g., JD asks for Gemini API, resume shows OpenAI API for similar tasks on Project Y): 'Further to that, Project Y utilized [Candidate's Tech, e.g., OpenAI API]. How did your deep involvement in that project prepare you to quickly become proficient with [JD's Required Tech, e.g., Gemini API] for this role, and how would you leverage that project experience to accelerate your learning?'
-*   **Provide Model Answer Guidance for Evaluation:** The model answer guidance (the 3-4 brief bullet points for the interviewer, each with indicative mark contribution) for such questions should focus on helping the non-technical recruiter assess:
-    *   The **depth and complexity** of the candidate's involvement in the cited projects. (e.g., 'Candidate details significant technical challenges and their innovative solutions in Project Y – approx. 3-4 points')
-    *   The **relevance and transferability** of the skills gained from those projects to the JD's requirements. (e.g., 'Clearly maps skills from Project Y (using [Candidate's Tech]) to the needs of [JD's Required Tech/Area] – approx. 2-3 points')
-    *   The candidate's **problem-solving abilities, initiative, and the tangible outcomes/impact** of their project work. (e.g., 'Quantifiable positive impact or successful completion of Project Y attributed to candidate's efforts – approx. 2-3 points')
-    *   The candidate's **articulation of a credible learning strategy** for any specific technology gaps, using their project experience as a testament to their learning agility. (e.g., 'Presents a convincing plan to adapt to [JD's Required Tech] based on project-learned fundamentals – approx. 1-2 points')
-    *   *Interviewer Note:* Focus on the *quality, impact, and relevance of demonstrated skills through projects* as a strong indicator of capability, which can often be more telling than just the quantity of years. Assess their ability to connect their project learning to the role's demands.
+**Critically, you must be an astute evaluator of the candidate's entire profile against the Job Description, looking beyond surface-level matches to identify potential strengths, transferable skills, and areas ripe for insightful questioning. Your goal is to help the recruiter uncover the candidate's true capabilities and fit, especially in scenarios such as, but not limited to:**
+*   **Experience Nuances:** When formal 'years of experience' differ from demonstrated project impact or leadership. (Example: JD needs 5 years, candidate has 3 but led complex projects – *generate questions about how project scope/complexity equates to experience*).
+*   **Skill & Technology Transferability:** When a candidate has strong experience with related but not identical tools, technologies, or methodologies. (Example: JD wants Gemini API, candidate has deep OpenAI API experience – *generate questions about transferring core LLM principles and learning strategies*).
+*   **Domain Shifts:** When a candidate comes from a different industry but possesses relevant foundational skills or has dealt with similar conceptual challenges (e.g., regulatory compliance in healthcare vs. FinTech). (*Generate questions about how they'd adapt their knowledge and what interests them in the new domain*).
+*   **Leveraging Unique Strengths:** When a candidate has notable skills or achievements (e.g., advanced certifications, significant open-source contributions) that aren't explicitly required but could be highly valuable. (*Generate questions exploring how these unique assets could benefit the role/team*).
+
+**For such scenarios, your generated questions should encourage the candidate to articulate these connections and demonstrate their adaptability. Your model answer guidance for the interviewer should focus on evaluating:**
+*   The **depth, complexity, and relevance** of the candidate's analogous experiences or projects.
+*   The **transferability** of their existing skills and knowledge to the specific requirements of the role.
+*   Their **problem-solving abilities, initiative, learning agility, and the tangible outcomes** of their past work.
+*   Their **understanding of the new context** (e.g., new technology, domain) and their **strategy for adaptation**.
+
+**The Interviewer Note in model answers should consistently guide the recruiter to focus on the *quality, impact, and relevance of demonstrated skills and adaptability*, which can often be more telling than direct keyword matches or years in a title. Encourage the interviewer to assess the candidate's ability to connect their learning and experiences to the role's demands and to consider relevant information shared by the candidate that might not be on the resume.**
 
 Job Description (Primary Source):
 {{{jobDescription}}}
@@ -201,27 +203,32 @@ const generateInterviewKitFlow = ai.defineFlow(
 
     let finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
     if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-        const diff = 1.0 - finalSum;
+        const diffToAdjust = 1.0 - finalSum;
         const lastCrit = validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1];
-        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diff).toFixed(2));
-        if (lastCrit.weight < 0) { 
+        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2));
+        
+        if (lastCrit.weight < 0) { // If adjustment made it negative, set to 0 and re-distribute deficit
             lastCrit.weight = 0;
             let currentTotal = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
             if (Math.abs(currentTotal - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 1) {
                  const remainingDiff = parseFloat((1.0 - currentTotal).toFixed(2));
-                 let targetCrit = validatedOutput.scoringRubric.find(c => c !== lastCrit && c.weight > 0) || validatedOutput.scoringRubric.find(c => c !== lastCrit); 
+                 // Try to add to the largest existing weight that is not the last one, or first if only two
+                 let targetCrit = validatedOutput.scoringRubric
+                                .filter(c => c !== lastCrit)
+                                .sort((a,b) => b.weight - a.weight)[0] || validatedOutput.scoringRubric[0];
                  if(targetCrit) {
                     targetCrit.weight = parseFloat(Math.max(0, targetCrit.weight + remainingDiff).toFixed(2));
-                 }  else if (validatedOutput.scoringRubric.length > 0){
-                    validatedOutput.scoringRubric[0].weight = 1.0; 
                  }
+            } else if (validatedOutput.scoringRubric.length === 1) { // Only one criterion
+                validatedOutput.scoringRubric[0].weight = 1.0;
             }
         }
+        // Final check, if still off (e.g. due to multiple small negative adjustments), adjust the largest weight
         finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
         if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-            const finalDiffToAdjust = parseFloat((1.0-finalSum).toFixed(2));
-            let targetCrit = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
-            targetCrit.weight = parseFloat(Math.max(0, targetCrit.weight + finalDiffToAdjust).toFixed(2));
+            const finalDiffToAdjustAgain = parseFloat((1.0-finalSum).toFixed(2));
+            let targetCritForFinalAdj = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
+            targetCritForFinalAdj.weight = parseFloat(Math.max(0, targetCritForFinalAdj.weight + finalDiffToAdjustAgain).toFixed(2));
         }
     }
     return validatedOutput;
