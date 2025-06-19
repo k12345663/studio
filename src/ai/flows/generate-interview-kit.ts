@@ -76,19 +76,39 @@ CRITICAL: Before generating content, **THOROUGHLY analyze and synthesize ALL pro
 4.  Candidate Experience Context (Supplements primary sources).
 Your entire output MUST be deeply informed by this holistic understanding. Leverage this holistic understanding to generate not just questions that parrot information from the inputs, but also those that probe deeper into underlying skills, test problem-solving through relevant scenarios, and assess broader competencies critical for the role, even if these aspects are not exhaustively detailed line-by-line in every source document. Your aim is to create an insightful and comprehensive evaluation tool.
 
-**Critically, you must be an astute evaluator of the candidate's entire profile against the Job Description, looking beyond surface-level matches to identify potential strengths, transferable skills, and areas ripe for insightful questioning. Your goal is to help the recruiter uncover the candidate's true capabilities and fit, especially in scenarios such as, but not limited to:**
-*   **Experience Nuances:** When formal 'years of experience' differ from demonstrated project impact or leadership. (Example: JD needs 5 years, candidate has 3 but led complex projects – *generate questions about how project scope/complexity equates to experience*).
-*   **Skill & Technology Transferability:** When a candidate has strong experience with related but not identical tools, technologies, or methodologies. (Example: JD wants Gemini API, candidate has deep OpenAI API experience – *generate questions about transferring core LLM principles and learning strategies*).
-*   **Domain Shifts:** When a candidate comes from a different industry but possesses relevant foundational skills or has dealt with similar conceptual challenges (e.g., regulatory compliance in healthcare vs. FinTech). (*Generate questions about how they'd adapt their knowledge and what interests them in the new domain*).
-*   **Leveraging Unique Strengths:** When a candidate has notable skills or achievements (e.g., advanced certifications, significant open-source contributions) that aren't explicitly required but could be highly valuable. (*Generate questions exploring how these unique assets could benefit the role/team*).
+**Critically, you are an astute evaluator of the candidate's entire profile against the Job Description. Your primary function is to help the (often non-technical) recruiter uncover the candidate's true capabilities, potential, and fit, especially when there isn't a perfect surface-level match. Look beyond keywords to identify strengths, transferable skills, and areas requiring insightful questioning. Consider scenarios like, but not limited to:**
 
-**For such scenarios, your generated questions should encourage the candidate to articulate these connections and demonstrate their adaptability. Your model answer guidance for the interviewer should focus on evaluating:**
-*   The **depth, complexity, and relevance** of the candidate's analogous experiences or projects.
+*   **Experience Nuances (Years vs. Impact):**
+    *   If JD asks for 5 years of 'Project Management' and candidate shows 3 years as 'Coordinator' but *led two major SaaS launches from start to finish* (e.g., TC-EXPPROJ-001): Generate questions probing how the *scope, complexity, leadership demonstrated, and outcomes achieved* in those projects equate to the maturity of a 5-year PM.
+    *   If JD is for a full-time role needing 1-year experience, and candidate has *multiple impressive internships but no formal full-time experience* (e.g., TC-EXPPROJ-012): Generate questions probing how their internship responsibilities, independence, and project ownership mirror full-time expectations.
+
+*   **Skill & Technology Transferability:**
+    *   If JD requires 'Gemini API' and candidate has deep 'OpenAI API' experience for *similar tasks* (e.g., TC-EXPPROJ-002): Generate questions about transferring core LLM principles, adapting to Gemini, and leveraging their OpenAI project learnings.
+    *   If JD requires 'Python/Django' for e-commerce, and candidate has extensive 'Ruby on Rails' experience building *identical e-commerce systems*: Generate questions on transferring architectural patterns, e-commerce domain knowledge, and their plan to master Python/Django.
+
+*   **Career Progression, Gaps, and Motivations:**
+    *   If JD seeks a mid-level role and candidate's profile indicates *senior/lead experience (potentially overqualified)* (e.g., TC-EXPPROJ-003): Generate questions probing their motivation for this specific level, expectations, and how they envision contributing effectively.
+    *   If candidate's resume shows an *unexplained employment gap* or a *career break with upskilling* (e.g., TC-EXPPROJ-004, TC-EXPPROJ-011): Generate questions to understand the reason, and any productive activities or skill development (and its depth) during that time.
+    *   If candidate shows *frequent job switching* (e.g., TC-EXPPROJ-008): Generate questions about the reasons for transitions and what they seek for long-term commitment now.
+    *   If candidate has an *ambiguous role title* like 'Tech Specialist' for a 'Software Developer' JD (e.g., TC-EXPPROJ-015): Generate questions to clarify actual hands-on coding and development contributions versus support or operations.
+
+*   **Bridging Background & Domain Differences:**
+    *   If candidate is a *recent graduate with strong academic/research projects* for a JD requiring practical experience (e.g., TC-EXPPROJ-005): Generate questions that extract practical application, problem-solving, and real-world considerations from their academic work.
+    *   If candidate has a *non-traditional background* (e.g., PhD Physics for Data Scientist role) (e.g., TC-EXPPROJ-006): Focus questions on transferable analytical, problem-solving, and quantitative skills, and their strategy to bridge to the new domain's tools/techniques.
+    *   If candidate lacks *specific industry experience* (e.g., e-commerce to healthcare tech, gaming to fintech) (e.g., TC-EXPPROJ-007, TC-EXPPROJ-014): Generate questions exploring their adaptability, learning plan for new industry nuances, and how technical skills transfer.
+    *   If candidate is *transitioning career domains* (e.g., QA to DevOps) (e.g., TC-EXPPROJ-009): Generate questions probing practical application of newly acquired skills and how their prior domain experience provides unique strengths.
+    *   If candidate profile shows a *cross-functional misalignment* (e.g., strong Front-End Dev for UI/UX Designer role lacking design tool experience) (e.g., TC-EXPPROJ-016): Generate questions about their design sensibilities, collaboration with designers, and any exposure to design processes/tools.
+
+*   **Verifying Depth of Knowledge:**
+    *   If resume claims 'Expertise' in a technology (e.g., Kafka) but context suggests basic exposure (e.g., TC-EXPPROJ-013): Generate deep-diving questions that differentiate true expertise from superficial knowledge (e.g., asking about architecture, scalability, performance tuning, administration beyond default usage).
+
+**For ALL such scenarios, your generated questions MUST encourage the candidate to articulate connections, demonstrate adaptability, and provide concrete examples. Your model answer guidance for the interviewer MUST focus on evaluating:**
+*   The **depth, complexity, relevance, and tangible outcomes** of the candidate's analogous experiences, projects, or self-study.
 *   The **transferability** of their existing skills and knowledge to the specific requirements of the role.
-*   Their **problem-solving abilities, initiative, learning agility, and the tangible outcomes** of their past work.
-*   Their **understanding of the new context** (e.g., new technology, domain) and their **strategy for adaptation**.
+*   Their **problem-solving abilities, initiative, learning agility, and strategic thinking**.
+*   Their **understanding of the new context** (e.g., technology, domain, role level) and their **strategy for adaptation and contribution**.
 
-**The Interviewer Note in model answers should consistently guide the recruiter to focus on the *quality, impact, and relevance of demonstrated skills and adaptability*, which can often be more telling than direct keyword matches or years in a title. Encourage the interviewer to assess the candidate's ability to connect their learning and experiences to the role's demands and to consider relevant information shared by the candidate that might not be on the resume.**
+**The Interviewer Note in model answers MUST consistently guide the recruiter to focus on the *quality, impact, and relevance of demonstrated skills and adaptability*, which can often be more telling than direct keyword matches or years in a title. Encourage the interviewer to assess the candidate's ability to connect their learning and experiences to the role's demands and to consider relevant information shared by the candidate that might not be on the resume.**
 
 Job Description (Primary Source):
 {{{jobDescription}}}
@@ -122,7 +142,7 @@ Based on a holistic understanding of ALL available information (JD, Unstop Profi
         *   Questions on overall work experience (from Unstop profile/resume file content).
     *   **Other competencies**:
         *   Prioritize **Resume/Profile Project Deep-Dive Question(s)**: If Unstop profile/resume file is provided, ensure questions **directly probe specific projects identified from analyzing the resume file content or Unstop profile**. Ask about: "tech stack used, primary goals, accomplishments, and significant challenges overcome" for Project X, or "role and contributions in Project Y, especially how you handled [specific challenge/goal from project description found in resume/profile]."
-        *   Follow with other distinct, insightful questions (2-3 total per competency): Technical, Scenario, Behavioral, sharply tailored to JD and specifics from Unstop profile/resume file content/context (projects, tech stack, goals, accomplishments, challenges, education, past experiences).
+        *   Follow with other distinct, insightful questions (2-3 total per competency): Technical, Scenario, Behavioral, sharply tailored to JD and specifics from Unstop profile/resume file content/context (projects, tech stack, goals, accomplishments, challenges, education, past experiences). Apply the "astute evaluator" principles described above when generating these questions.
 
 3.  **For EACH question, provide all fields as specified in the output schema**:
     *   \`question\`: Text of the question.
@@ -203,32 +223,33 @@ const generateInterviewKitFlow = ai.defineFlow(
 
     let finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
     if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-        const diffToAdjust = 1.0 - finalSum;
+        const diffToAdjust = parseFloat((1.0 - finalSum).toFixed(2)); // Ensure diff is also rounded to avoid precision issues
         const lastCrit = validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1];
         lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2));
-        
-        if (lastCrit.weight < 0) { // If adjustment made it negative, set to 0 and re-distribute deficit
-            lastCrit.weight = 0;
-            let currentTotal = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
-            if (Math.abs(currentTotal - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 1) {
-                 const remainingDiff = parseFloat((1.0 - currentTotal).toFixed(2));
-                 // Try to add to the largest existing weight that is not the last one, or first if only two
-                 let targetCrit = validatedOutput.scoringRubric
-                                .filter(c => c !== lastCrit)
-                                .sort((a,b) => b.weight - a.weight)[0] || validatedOutput.scoringRubric[0];
-                 if(targetCrit) {
-                    targetCrit.weight = parseFloat(Math.max(0, targetCrit.weight + remainingDiff).toFixed(2));
-                 }
-            } else if (validatedOutput.scoringRubric.length === 1) { // Only one criterion
-                validatedOutput.scoringRubric[0].weight = 1.0;
+
+        // If adjustment made it negative, or if still not 1.0 due to many small items and rounding
+        if (lastCrit.weight < 0 || (Math.abs(validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0) - 1.0) > 0.001)) {
+            // Reset and redistribute if things went awry
+            let runningSum = 0;
+            for(let i=0; i < validatedOutput.scoringRubric.length -1; i++) {
+                // Ensure weights are non-negative after potential previous adjustments.
+                validatedOutput.scoringRubric[i].weight = Math.max(0, validatedOutput.scoringRubric[i].weight);
+                runningSum += validatedOutput.scoringRubric[i].weight;
             }
-        }
-        // Final check, if still off (e.g. due to multiple small negative adjustments), adjust the largest weight
-        finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
-        if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-            const finalDiffToAdjustAgain = parseFloat((1.0-finalSum).toFixed(2));
-            let targetCritForFinalAdj = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
-            targetCritForFinalAdj.weight = parseFloat(Math.max(0, targetCritForFinalAdj.weight + finalDiffToAdjustAgain).toFixed(2));
+            // The last item takes the remainder to make it sum to 1.0, ensuring it's not negative.
+            // This also handles the case where all other items sum up to > 1.0 after faulty previous logic, by forcing last to 0.
+            const lastWeight = Math.max(0, 1.0 - runningSum);
+            validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1].weight = parseFloat(lastWeight.toFixed(2));
+
+            // Final check: if the sum is still off (e.g., all were 0, last one became 1.0, then more items added or changed)
+            // Or if due to floating point precision after multiple toFixed(2), the sum is slightly off.
+            // Re-calculate sum and adjust the largest weighted item (or first if all equal) to ensure exactly 1.0
+            let currentTotal = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
+            if (Math.abs(currentTotal - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
+                const finalAdjustment = parseFloat((1.0 - currentTotal).toFixed(2));
+                let targetCritForFinalAdj = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
+                targetCritForFinalAdj.weight = parseFloat(Math.max(0, targetCritForFinalAdj.weight + finalAdjustment).toFixed(2));
+            }
         }
     }
     return validatedOutput;
