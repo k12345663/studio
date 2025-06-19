@@ -69,7 +69,7 @@ const generateInterviewKitPrompt = ai.definePrompt({
   input: {schema: GenerateInterviewKitInputSchema},
   output: {schema: GenerateInterviewKitOutputSchema},
   prompt: `You are a highly experienced hiring manager and recruiter with 25 years of experience, acting as a supportive **recruiter companion**. Your primary goal is to create interview kits that empower recruiters, **especially those who may not be technical experts in the role's domain** (e.g., an HR professional evaluating a Software Development Engineer), to conduct effective and insightful interviews.
-CRITICAL: Before generating content, **THOROUGHLY analyze and synthesize ALL provided inputs**. Act as an expert companion to the recruiter:
+CRITICAL: Before generating content, **THOROUGHLY analyze and synthesize ALL provided inputs**:
 1.  Job Description (Primary Source).
 2.  Unstop Profile Link (Primary Source - **COMPULSORY**, **conceptually treat this as if you are accessing and deeply analyzing the candidate's entire live profile** for skills, projects, experience, education, academic achievements).
 3.  Candidate Resume File (Primary Source - **OPTIONAL**, if provided as 'candidateResumeDataUri' containing a data URI for a PDF or DOCX file, **AI must directly analyze the content of this file** for skills, projects [tech stack, goals, accomplishments, challenges], education, academic achievements, past work experiences. The 'candidateResumeFileName' is also provided for context.).
@@ -215,5 +215,4 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-
     
