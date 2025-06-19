@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 export interface JobDescriptionFormSubmitData {
   jobDescription: string;
   unstopProfileLink?: string;
-  candidateResumeDataUri?: string;
+  candidateResumeDataUri?: string | null; // null indicates client-side processing error
   candidateResumeFileName?: string;
   candidateExperienceContext?: string;
 }
@@ -26,12 +26,12 @@ interface JobDescriptionFormProps {
 }
 
 const SUPPORTED_RESUME_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']; // PDF and DOCX
-const MAX_FILE_SIZE_MB = 4.5; 
+const MAX_FILE_SIZE_MB = 4.5;
 
 export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormProps) {
   const [jobDescription, setJobDescription] = useState('');
   const [unstopProfileLink, setUnstopProfileLink] = useState('');
-  const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined>(undefined);
+  const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined | null>(undefined);
   const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
   const [resumeDisplayMessage, setResumeDisplayMessage] = useState<string>(`Attach resume (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB) or leave blank.`);
   const [candidateExperienceContext, setCandidateExperienceContext] = useState('');
@@ -43,7 +43,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     const file = event.target.files?.[0];
     if (file) {
       setIsProcessingFile(true);
-      setCandidateResumeDataUri(undefined); 
+      setCandidateResumeDataUri(undefined);
       setCandidateResumeFileName(undefined);
       setResumeDisplayMessage(`Processing ${file.name}...`);
       toast({
@@ -60,12 +60,14 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           title: "Unsupported File Type",
           description: "Only PDF and DOCX files are supported for resume analysis.",
         });
-        if (fileInputRef.current) fileInputRef.current.value = ""; 
+        if (fileInputRef.current) fileInputRef.current.value = "";
         setIsProcessingFile(false);
+        setCandidateResumeDataUri(null); // Indicate client-side processing error
+        setCandidateResumeFileName(file.name); // Keep filename for error display
         return;
       }
-      
-      const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024; 
+
+      const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
       if (file.size > MAX_FILE_SIZE_BYTES) {
         setResumeDisplayMessage(
           `File "${file.name}" (${(file.size / (1024*1024)).toFixed(1)}MB) is too large. Max size is ${MAX_FILE_SIZE_MB}MB.`
@@ -75,8 +77,10 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           title: "File Too Large",
           description: `Resume file exceeds the ${MAX_FILE_SIZE_MB}MB limit. Please use a smaller file.`,
         });
-        if (fileInputRef.current) fileInputRef.current.value = ""; 
+        if (fileInputRef.current) fileInputRef.current.value = "";
         setIsProcessingFile(false);
+        setCandidateResumeDataUri(null); // Indicate client-side processing error
+        setCandidateResumeFileName(file.name); // Keep filename for error display
         return;
       }
 
@@ -99,11 +103,12 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           toast({
             variant: "destructive",
             title: "File Processing Failed",
-            description: `Could not prepare ${file.name}. Error: ${error || 'Unknown error'}`,
+            description: `Unable to read resume file. Please try another file.`, // TC-019
           });
           setIsProcessingFile(false);
-          if (fileInputRef.current) fileInputRef.current.value = ""; 
-          setCandidateResumeDataUri(null as any); // Explicitly mark as failed processing
+          if (fileInputRef.current) fileInputRef.current.value = "";
+          setCandidateResumeDataUri(null); // Explicitly mark as failed processing
+          setCandidateResumeFileName(file.name); // Keep filename for error display
         };
         reader.readAsDataURL(file);
       } catch (error) {
@@ -117,8 +122,9 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           description: `Could not prepare ${file.name}. Error: ${error instanceof Error ? error.message : "Unknown error"}`,
         });
         setIsProcessingFile(false);
-        if (fileInputRef.current) fileInputRef.current.value = ""; 
-        setCandidateResumeDataUri(null as any); // Explicitly mark as failed processing
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setCandidateResumeDataUri(null); // Explicitly mark as failed processing
+        setCandidateResumeFileName(file.name); // Keep filename for error display
       }
     } else {
         setCandidateResumeDataUri(undefined);
@@ -131,12 +137,12 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!jobDescription.trim()) {
-      toast({ variant: "destructive", title: "Missing Input", description: "Job description is required." });
+      toast({ variant: "destructive", title: "Missing Input", description: "Job Description is required." });
       return;
     }
     const alphanumericPattern = /[a-zA-Z0-9]/;
     if (!alphanumericPattern.test(jobDescription)) {
-        toast({ variant: "destructive", title: "Invalid Input", description: "Job description must contain meaningful text, not just special characters or emojis." });
+        toast({ variant: "destructive", title: "Invalid Input", description: "JD must contain valid text." }); // Aligned with Test Case
         return;
     }
     if (!unstopProfileLink.trim()) {
@@ -146,7 +152,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     try {
         new URL(unstopProfileLink);
     } catch (_) {
-        toast({ variant: "destructive", title: "Invalid URL", description: "Please enter a valid Unstop Profile Link." });
+        toast({ variant: "destructive", title: "Invalid URL", description: "Enter a valid Unstop profile URL." });
         return;
     }
 
@@ -158,7 +164,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     onSubmit({
       jobDescription: jobDescription.trim(),
       unstopProfileLink: unstopProfileLink.trim(),
-      candidateResumeDataUri: candidateResumeDataUri === null ? undefined : candidateResumeDataUri, // Pass undefined if processing failed
+      candidateResumeDataUri: candidateResumeDataUri,
       candidateResumeFileName: candidateResumeFileName,
       candidateExperienceContext: candidateExperienceContext.trim() || undefined,
     });
@@ -219,7 +225,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               AI will analyze this profile. Ensure it's a public and valid Unstop profile URL.
             </p>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="candidate-resume-upload-trigger" className="font-semibold text-foreground text-md flex items-center">
                <Paperclip size={18} className="mr-2 text-primary"/> Candidate Resume (PDF/DOCX - Optional, Max {MAX_FILE_SIZE_MB}MB)
@@ -230,22 +236,24 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               ref={fileInputRef}
               accept={SUPPORTED_RESUME_TYPES.join(',')}
               onChange={handleFileChange}
-              className="hidden" 
+              className="hidden"
               disabled={isLoading || isProcessingFile}
               aria-label="Candidate Resume Upload Hidden"
             />
-             <Button 
-                type="button" 
-                variant="outline" 
-                onClick={triggerFileSelect} 
+             <Button
+                type="button"
+                variant="outline"
+                onClick={triggerFileSelect}
                 disabled={isLoading || isProcessingFile}
                 className="w-full justify-start text-muted-foreground hover:text-foreground border-dashed border-input hover:border-primary"
                 id="candidate-resume-upload-trigger"
                 aria-label="Choose resume file"
               >
                 {isProcessingFile && <Loader2 size={16} className="mr-2 animate-spin"/>}
-                {!isProcessingFile && candidateResumeFileName && <FileCheck size={16} className="mr-2 text-green-600"/>}
-                {!isProcessingFile && !candidateResumeFileName && <UploadCloud size={16} className="mr-2"/>}
+                {!isProcessingFile && candidateResumeDataUri && candidateResumeFileName && <FileCheck size={16} className="mr-2 text-green-600"/>}
+                {!isProcessingFile && (candidateResumeDataUri === undefined || !candidateResumeFileName) && <UploadCloud size={16} className="mr-2"/>}
+                {/* Display specific error if candidateResumeDataUri is null (client processing error) */}
+                {candidateResumeDataUri === null && candidateResumeFileName && <FileCheck size={16} className="mr-2 text-red-500"/> }
                 {resumeDisplayMessage}
             </Button>
           </div>

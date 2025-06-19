@@ -19,7 +19,7 @@ import { FileText, Briefcase, LinkIcon, FileCheck, Zap, MessageSquare, Info, Ale
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>('');
   const [unstopProfileLink, setUnstopProfileLink] = useState<string | undefined>(undefined);
-  const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined>(undefined);
+  const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined | null>(undefined); // null indicates client-side processing error
   const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
   const [candidateExperienceContext, setCandidateExperienceContext] = useState<string | undefined>(undefined);
   const [interviewKit, setInterviewKit] = useState<InterviewKit | null>(null);
@@ -27,11 +27,11 @@ export default function Home() {
   const [showInputs, setShowInputs] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, unstopLink?: string, resumeDataUri?: string, resumeFileName?: string, expContext?: string): InterviewKit => {
+  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, unstopLink?: string, resumeDataUri?: string | null, resumeFileName?: string, expContext?: string): InterviewKit => {
     return {
       jobDescription: jdToStore,
       unstopProfileLink: unstopLink,
-      candidateResumeDataUri: resumeDataUri,
+      candidateResumeDataUri: resumeDataUri === null ? undefined : resumeDataUri, // Store as undefined if client processing failed
       candidateResumeFileName: resumeFileName,
       candidateExperienceContext: expContext,
       competencies: output.competencies.map(comp => ({
@@ -46,7 +46,7 @@ export default function Home() {
           modelAnswer: q.answer,
           difficulty: q.difficulty || 'Intermediate',
           estimatedTimeMinutes: q.estimatedTimeMinutes || difficultyTimeMap[q.difficulty || 'Intermediate'],
-          score: 5, 
+          score: 5,
           notes: '',
         })),
       })),
@@ -103,7 +103,7 @@ export default function Home() {
             modelAnswer: newQ.modelAnswer,
             difficulty: newQ.difficulty || existingQ?.difficulty || 'Intermediate',
             estimatedTimeMinutes: newQ.estimatedTimeMinutes || existingQ?.estimatedTimeMinutes || difficultyTimeMap[newQ.difficulty || existingQ?.difficulty || 'Intermediate'],
-            score: existingQ?.score ?? 5, 
+            score: existingQ?.score ?? 5,
             notes: existingQ?.notes ?? '',
           };
         }),
@@ -111,7 +111,7 @@ export default function Home() {
     });
 
     const newRubric = output.rubricCriteria.map((newCrit) => {
-      let existingCrit = existingKit.scoringRubric.find(er => er.name === newCrit.name); 
+      let existingCrit = existingKit.scoringRubric.find(er => er.name === newCrit.name);
       return {
         id: existingCrit?.id || generateId('rubric'),
         name: newCrit.name,
@@ -122,8 +122,8 @@ export default function Home() {
     return {
       jobDescription: existingKit.jobDescription,
       unstopProfileLink: existingKit.unstopProfileLink,
-      candidateResumeDataUri: existingKit.candidateResumeDataUri, 
-      candidateResumeFileName: existingKit.candidateResumeFileName, 
+      candidateResumeDataUri: existingKit.candidateResumeDataUri,
+      candidateResumeFileName: existingKit.candidateResumeFileName,
       candidateExperienceContext: existingKit.candidateExperienceContext,
       competencies: newCompetencies,
       scoringRubric: newRubric,
@@ -139,17 +139,17 @@ export default function Home() {
     setCandidateResumeDataUri(data.candidateResumeDataUri);
     setCandidateResumeFileName(data.candidateResumeFileName);
     setCandidateExperienceContext(data.candidateExperienceContext);
-    setShowInputs(true); 
+    setShowInputs(true);
 
     let inputForAI: GenerateInterviewKitInput | null = null;
     try {
       if (!data.jobDescription.trim()) {
-        toast({ variant: "destructive", title: "Input Error", description: "Job description cannot be empty." });
+        toast({ variant: "destructive", title: "Input Error", description: "Job description is required." });
         setIsLoading(false);
         return;
       }
       if (!data.unstopProfileLink?.trim()) {
-        toast({ variant: "destructive", title: "Input Error", description: "Unstop Profile Link cannot be empty." });
+        toast({ variant: "destructive", title: "Input Error", description: "Unstop Profile Link is required." });
         setIsLoading(false);
         return;
       }
@@ -157,7 +157,7 @@ export default function Home() {
       inputForAI = {
         jobDescription: data.jobDescription,
         unstopProfileLink: data.unstopProfileLink,
-        candidateResumeDataUri: data.candidateResumeDataUri,
+        candidateResumeDataUri: data.candidateResumeDataUri === null ? undefined : data.candidateResumeDataUri,
         candidateResumeFileName: data.candidateResumeFileName,
         candidateExperienceContext: data.candidateExperienceContext,
       };
@@ -165,17 +165,18 @@ export default function Home() {
       if (output && output.competencies && output.scoringRubric) {
         setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
-        setShowInputs(false); 
+        setShowInputs(false);
       } else {
         throw new Error("AI response was empty or malformed.");
       }
     } catch (error) {
       console.error("Error generating interview kit:", error);
-      let description = `Failed to generate kit: ${error instanceof Error ? error.message : String(error)}`;
-      if (inputForAI?.candidateResumeDataUri && (error instanceof Error && (error.message.toLowerCase().includes("media") || error.message.toLowerCase().includes("parse") || error.message.toLowerCase().includes("content") || error.message.toLowerCase().includes("file")) ) ) {
-        description = "Failed to generate kit. There might be an issue processing the provided resume file. Please try a different file or generate the kit without a resume.";
+      let description = `Failed to generate kit. Please try again.`;
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+      if (inputForAI?.candidateResumeDataUri && (errorMessage.includes("media") || errorMessage.includes("parse") || errorMessage.includes("content") || errorMessage.includes("file") || errorMessage.includes("request entity"))) {
+        description = "Error generating kit. The resume file might be unreadable or corrupted. Please try a different resume file or generate the kit without one.";
       }
-      toast({ variant: "destructive", title: "Error", description });
+      toast({ variant: "destructive", title: "Error Generating Kit", description });
       setInterviewKit(null);
     } finally {
       setIsLoading(false);
@@ -197,11 +198,12 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error customizing interview kit:", error);
-      let description = `Failed to update kit: ${error instanceof Error ? error.message : String(error)}`;
-      if (inputForAI?.candidateResumeDataUri && (error instanceof Error && (error.message.toLowerCase().includes("media") || error.message.toLowerCase().includes("parse") || error.message.toLowerCase().includes("content") || error.message.toLowerCase().includes("file")) ) ) {
-        description = "Failed to update kit. There might be an issue processing the resume file context. Please check the file if you recently uploaded one or try again.";
+      let description = `Failed to update kit. Please try again.`;
+      const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+       if (inputForAI?.candidateResumeDataUri && (errorMessage.includes("media") || errorMessage.includes("parse") || errorMessage.includes("content") || errorMessage.includes("file") || errorMessage.includes("request entity")) ) {
+        description = "Error updating kit. If you uploaded a resume, it might be unreadable or corrupted. Please try a different resume file or generate the kit without one.";
       }
-      toast({ variant: "destructive", title: "Error", description });
+      toast({ variant: "destructive", title: "Error Updating Kit", description });
     } finally {
       setIsLoading(false);
     }
@@ -265,7 +267,7 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-                {candidateResumeFileName && (
+                {candidateResumeFileName && candidateResumeDataUri !== null && (
                   <div>
                     <h3 className="font-medium mb-1 text-foreground flex items-center">
                       <FileCheck size={16} className="mr-2 text-green-600"/> Candidate Resume File:
@@ -275,13 +277,13 @@ export default function Home() {
                     </p>
                   </div>
                 )}
-                 {!candidateResumeFileName && candidateResumeDataUri === null && ( // Check if attempted but failed
+                 {candidateResumeDataUri === null && (
                     <div>
                         <h3 className="font-medium mb-1 text-foreground flex items-center">
                         <AlertTriangle size={16} className="mr-2 text-amber-500"/> Candidate Resume File:
                         </h3>
                         <p className="text-muted-foreground p-3 border rounded-lg bg-input/50 shadow-inner">
-                        A resume file was selected, but could not be processed.
+                        {candidateResumeFileName ? `${candidateResumeFileName}: ` : ""}A resume file was selected, but could not be processed client-side.
                         </p>
                     </div>
                  )}
@@ -295,7 +297,7 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-                 {!jobDescription && !unstopProfileLink && !candidateResumeFileName && !candidateExperienceContext && (
+                 {!jobDescription && !unstopProfileLink && !candidateResumeFileName && !candidateExperienceContext && candidateResumeDataUri !== null && (
                     <div className="text-center py-4 text-muted-foreground">
                         <AlertTriangle size={20} className="mx-auto mb-2 text-amber-500" />
                         No inputs were provided for generation.
