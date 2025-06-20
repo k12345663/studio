@@ -93,7 +93,7 @@ Your entire output MUST be deeply informed by this holistic understanding. Lever
     *   If candidate has an *ambiguous role title* like 'Tech Specialist' for a 'Software Developer' JD (e.g., TC-EXPPROJ-015): Generate questions to clarify actual hands-on coding and development contributions versus support or operations.
 
 *   **Bridging Background & Domain Differences:**
-    *   If candidate is a *recent graduate with strong academic/research projects* for a JD requiring practical experience (e.g., TC-EXPPROJ-005): Generate questions that extract practical application, problem-solving, and real-world considerations from their academic work.
+    *   If candidate is a *recent graduate with strong academic/research projects* for a JD requiring practical experience (e.g., TC-EXPPROJ-005): Generate questions that extract practical application, problem-solving, and real-world considerations from their academic work. Focus on the *practical application, problem-solving, and technical depth demonstrated in their projects (academic, personal, or internships); their learning agility, initiative, and ability to connect theoretical knowledge to real-world scenarios; their motivation, understanding of the target domain/role, and career aspirations. Filter certifications or coursework by direct relevance to the role, probing for practical application rather than just completion.*
     *   If candidate has a *non-traditional background* (e.g., PhD Physics for Data Scientist role) (e.g., TC-EXPPROJ-006): Focus questions on transferable analytical, problem-solving, and quantitative skills, and their strategy to bridge to the new domain's tools/techniques.
     *   If candidate lacks *specific industry experience* (e.g., e-commerce to healthcare tech, gaming to fintech) (e.g., TC-EXPPROJ-007, TC-EXPPROJ-014): Generate questions exploring their adaptability, learning plan for new industry nuances, and how technical skills transfer.
     *   If candidate is *transitioning career domains* (e.g., QA to DevOps) (e.g., TC-EXPPROJ-009): Generate questions probing practical application of newly acquired skills and how their prior domain experience provides unique strengths.
@@ -101,6 +101,11 @@ Your entire output MUST be deeply informed by this holistic understanding. Lever
 
 *   **Verifying Depth of Knowledge:**
     *   If resume claims 'Expertise' in a technology (e.g., Kafka) but context suggests basic exposure (e.g., TC-EXPPROJ-013): Generate deep-diving questions that differentiate true expertise from superficial knowledge (e.g., asking about architecture, scalability, performance tuning, administration beyond default usage).
+
+*   **Handling Vague/Sparse Inputs:**
+    *   If the Job Description is very brief, lacks specific technical details, or seems ambiguous (e.g., TC-JDMIS*, TC-JD-NO*), prioritize generating questions that clarify the role's core responsibilities and required foundational skills. Your model answers should guide the interviewer to probe for this clarity.
+    *   If both JD and candidate profile are sparse (e.g., TC-EMPTY*, TC-RESUN* if resume is also sparse), generate more fundamental questions appropriate for the general role type indicated. The *interviewer notes* within model answers should reflect that questions are broader due to input limitations.
+    *   When faced with potentially unclear or freeform text in the JD (e.g., TC-JD-STR*), try to extract meaningful requirements. If significant ambiguity persists that hinders tailored question generation, formulate broader questions and indicate in model answer notes that further clarification of the role might be needed during the interview.
 
 **For ALL such scenarios, your generated questions MUST encourage the candidate to articulate connections, demonstrate adaptability, and provide concrete examples. Your model answer guidance for the interviewer MUST focus on evaluating:**
 *   The **depth, complexity, relevance, and tangible outcomes** of the candidate's analogous experiences, projects, or self-study.
@@ -134,8 +139,9 @@ Based on a holistic understanding of ALL available information (JD, Unstop Profi
 1.  **Structure the Interview Flow and Identify Competencies**:
     *   Start with a competency named "Candidate Introduction & Background."
     *   Identify 3-5 other core competencies from the JD, informed by the Unstop profile/resume file content (including educational background and academic achievements). Assign importance (High, Medium, Low).
+    *   Prioritize substance (demonstrated skills, project outcomes) over superficial elements like formatting or excessive buzzwords in the inputs.
 
-2.  **Generate Questions in a Logical Sequence**:
+2.  **Generate Questions in a Logical Sequence & Ensure Variety**:
     *   **"Candidate Introduction & Background" competency**:
         *   "Tell me about yourself."
         *   Questions on academic background, qualifications, academic achievements (from Unstop profile/resume file content).
@@ -143,6 +149,7 @@ Based on a holistic understanding of ALL available information (JD, Unstop Profi
     *   **Other competencies**:
         *   Prioritize **Resume/Profile Project Deep-Dive Question(s)**: If Unstop profile/resume file is provided, ensure questions **directly probe specific projects identified from analyzing the resume file content or Unstop profile**. Ask about: "tech stack used, primary goals, accomplishments, and significant challenges overcome" for Project X, or "role and contributions in Project Y, especially how you handled [specific challenge/goal from project description found in resume/profile]."
         *   Follow with other distinct, insightful questions (2-3 total per competency): Technical, Scenario, Behavioral, sharply tailored to JD and specifics from Unstop profile/resume file content/context (projects, tech stack, goals, accomplishments, challenges, education, past experiences). Apply the "astute evaluator" principles described above when generating these questions.
+        *   Ensure variety in the questions generated for any single competency. Avoid asking multiple questions that probe the exact same skill or experience in only slightly different ways (e.g., TC-KEYWC*).
 
 3.  **For EACH question, provide all fields as specified in the output schema**:
     *   \`question\`: Text of the question.
@@ -223,32 +230,24 @@ const generateInterviewKitFlow = ai.defineFlow(
 
     let finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
     if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-        const diffToAdjust = parseFloat((1.0 - finalSum).toFixed(2)); // Ensure diff is also rounded to avoid precision issues
+        const diffToAdjust = parseFloat((1.0 - finalSum).toFixed(2));
         const lastCrit = validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1];
         lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2));
 
-        // If adjustment made it negative, or if still not 1.0 due to many small items and rounding
         if (lastCrit.weight < 0 || (Math.abs(validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0) - 1.0) > 0.001)) {
-            // Reset and redistribute if things went awry
             let runningSum = 0;
             for(let i=0; i < validatedOutput.scoringRubric.length -1; i++) {
-                // Ensure weights are non-negative after potential previous adjustments.
                 validatedOutput.scoringRubric[i].weight = Math.max(0, validatedOutput.scoringRubric[i].weight);
                 runningSum += validatedOutput.scoringRubric[i].weight;
             }
-            // The last item takes the remainder to make it sum to 1.0, ensuring it's not negative.
-            // This also handles the case where all other items sum up to > 1.0 after faulty previous logic, by forcing last to 0.
             const lastWeight = Math.max(0, 1.0 - runningSum);
             validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1].weight = parseFloat(lastWeight.toFixed(2));
-
-            // Final check: if the sum is still off (e.g., all were 0, last one became 1.0, then more items added or changed)
-            // Or if due to floating point precision after multiple toFixed(2), the sum is slightly off.
-            // Re-calculate sum and adjust the largest weighted item (or first if all equal) to ensure exactly 1.0
+            
             let currentTotal = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
             if (Math.abs(currentTotal - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-                const finalAdjustment = parseFloat((1.0 - currentTotal).toFixed(2));
-                let targetCritForFinalAdj = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
-                targetCritForFinalAdj.weight = parseFloat(Math.max(0, targetCritForFinalAdj.weight + finalAdjustment).toFixed(2));
+                 const finalAdjustment = parseFloat((1.0 - currentTotal).toFixed(2));
+                 let targetCritForFinalAdj = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
+                 targetCritForFinalAdj.weight = parseFloat(Math.max(0, targetCritForFinalAdj.weight + finalAdjustment).toFixed(2));
             }
         }
     }
