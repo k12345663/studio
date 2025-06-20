@@ -204,7 +204,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
 
     let totalWeight = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
     if (validatedOutput.rubricCriteria.length > 0) {
-        if (totalWeight === 0 && validatedOutput.rubricCriteria.length > 0) { // check length > 0
+        if (totalWeight === 0 && validatedOutput.rubricCriteria.length > 0) { 
             const equalWeight = parseFloat((1.0 / validatedOutput.rubricCriteria.length).toFixed(2));
             let sum = 0;
             validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
@@ -220,10 +220,12 @@ const customizeInterviewKitFlow = ai.defineFlow(
             let sumOfNormalizedWeights = 0;
             validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
                 if (index < arr.length -1) {
-                    crit.weight = parseFloat((crit.weight * factor).toFixed(2));
+                    const normalized = crit.weight * factor;
+                    // Ensure weight is not negative and round
+                    crit.weight = parseFloat(Math.max(0, normalized).toFixed(2));
                     sumOfNormalizedWeights += crit.weight;
                 } else {
-                    // Ensure last element gets remaining weight, avoid negative
+                    // Ensure last element gets remaining weight, avoid negative, round
                     crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
                 }
             });
@@ -233,30 +235,24 @@ const customizeInterviewKitFlow = ai.defineFlow(
     // Final check and adjustment for the last element if sum is still off due to accumulated rounding
     let finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
     if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
-        const diffToAdjust = parseFloat((1.0 - finalSum).toFixed(2));
+        const diffToAdjust = 1.0 - finalSum; // No toFixed yet
         const lastCrit = validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1];
-        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2)); // Ensure not negative
+        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2)); 
 
-        // One more pass if the last adjustment made it negative or still not 1.0
-        // This is a safety net for complex rounding scenarios; aims to distribute remainder or deficit
         finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
         if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
             let runningSum = 0;
             for(let i=0; i < validatedOutput.rubricCriteria.length -1; i++) {
-                // ensure individual weights are not negative from prior adjustments
                 validatedOutput.rubricCriteria[i].weight = Math.max(0, validatedOutput.rubricCriteria[i].weight);
                 runningSum += validatedOutput.rubricCriteria[i].weight;
             }
-            // Cap running sum if it somehow exceeded 1 due to prior aggressive adjustments
             runningSum = Math.min(runningSum, 1.0);
             const lastWeight = Math.max(0, 1.0 - runningSum);
             validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1].weight = parseFloat(lastWeight.toFixed(2));
             
-            // Final forceful adjustment on the largest weighted item if still off by a tiny fraction.
             finalSum = validatedOutput.rubricCriteria.reduce((s,c) => s + c.weight, 0);
              if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
-                 const finalAdjustment = parseFloat((1.0 - finalSum).toFixed(2));
-                  // Find criterion with largest weight to absorb final tiny adjustment, or first if all are similar/zero
+                 const finalAdjustment = 1.0 - finalSum;
                  let targetCritForFinalAdj = validatedOutput.rubricCriteria[0];
                  if(validatedOutput.rubricCriteria.length > 1){
                     targetCritForFinalAdj = validatedOutput.rubricCriteria.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.rubricCriteria[0]);

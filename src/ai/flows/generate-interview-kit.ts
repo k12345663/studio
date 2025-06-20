@@ -107,6 +107,7 @@ Your entire output MUST be deeply informed by this holistic understanding. Lever
     *   If both JD and candidate profile are sparse (e.g., TC-EMPTY*, TC-RESUN* if resume is also sparse), generate more fundamental questions appropriate for the general role type indicated. The *interviewer notes* within model answers should reflect that questions are broader due to input limitations.
     *   When faced with potentially unclear or freeform text in the JD (e.g., TC-JD-STR*), try to extract meaningful requirements. If significant ambiguity persists that hinders tailored question generation, formulate broader questions and indicate in model answer notes that further clarification of the role might be needed during the interview.
 
+
 **For ALL such scenarios, your generated questions MUST encourage the candidate to articulate connections, demonstrate adaptability, and provide concrete examples. Your model answer guidance for the interviewer MUST focus on evaluating:**
 *   The **depth, complexity, relevance, and tangible outcomes** of the candidate's analogous experiences, projects, or self-study.
 *   The **transferability** of their existing skills and knowledge to the specific requirements of the role.
@@ -203,7 +204,7 @@ const generateInterviewKitFlow = ai.defineFlow(
      // Ensure rubric weights sum to 1.0
     let totalWeight = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
     if (validatedOutput.scoringRubric.length > 0) {
-        if (totalWeight === 0 && validatedOutput.scoringRubric.length > 0) { // check length > 0
+        if (totalWeight === 0 && validatedOutput.scoringRubric.length > 0) { 
             const equalWeight = parseFloat((1.0 / validatedOutput.scoringRubric.length).toFixed(2));
             let sum = 0;
             validatedOutput.scoringRubric.forEach((crit, index, arr) => {
@@ -219,10 +220,12 @@ const generateInterviewKitFlow = ai.defineFlow(
             let sumOfNormalizedWeights = 0;
             validatedOutput.scoringRubric.forEach((crit, index, arr) => {
                 if (index < arr.length -1) {
-                    crit.weight = parseFloat((crit.weight * factor).toFixed(2));
+                    const normalized = crit.weight * factor;
+                    // Ensure weight is not negative and round
+                    crit.weight = parseFloat(Math.max(0, normalized).toFixed(2));
                     sumOfNormalizedWeights += crit.weight;
                 } else {
-                     // Ensure last element gets remaining weight, avoid negative
+                    // Ensure last element gets remaining weight, avoid negative, round
                     crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
                 }
             });
@@ -232,30 +235,25 @@ const generateInterviewKitFlow = ai.defineFlow(
     // Final check and adjustment for the last element if sum is still off due to accumulated rounding
     let finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
     if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-        const diffToAdjust = parseFloat((1.0 - finalSum).toFixed(2));
+        const diffToAdjust = 1.0 - finalSum; // No toFixed yet
         const lastCrit = validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1];
-        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2)); // Ensure not negative
+        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2)); 
 
-        // One more pass if the last adjustment made it negative or still not 1.0
-        // This is a safety net for complex rounding scenarios; aims to distribute remainder or deficit
+        // One more pass if the last adjustment made it negative or still not 1.0 due to new rounding
         finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
         if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
             let runningSum = 0;
             for(let i=0; i < validatedOutput.scoringRubric.length -1; i++) {
-                // ensure individual weights are not negative from prior adjustments
-                validatedOutput.scoringRubric[i].weight = Math.max(0, validatedOutput.scoringRubric[i].weight);
+                validatedOutput.scoringRubric[i].weight = Math.max(0, validatedOutput.scoringRubric[i].weight); // ensure positive
                 runningSum += validatedOutput.scoringRubric[i].weight;
             }
-            // Cap running sum if it somehow exceeded 1 due to prior aggressive adjustments
-            runningSum = Math.min(runningSum, 1.0);
+            runningSum = Math.min(runningSum, 1.0); // Cap sum
             const lastWeight = Math.max(0, 1.0 - runningSum);
             validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1].weight = parseFloat(lastWeight.toFixed(2));
-
-            // Final forceful adjustment on the largest weighted item if still off by a tiny fraction.
+            
             finalSum = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
              if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-                 const finalAdjustment = parseFloat((1.0 - finalSum).toFixed(2));
-                 // Find criterion with largest weight to absorb final tiny adjustment, or first if all are similar/zero
+                 const finalAdjustment = 1.0 - finalSum; // No toFixed yet
                  let targetCritForFinalAdj = validatedOutput.scoringRubric[0];
                  if(validatedOutput.scoringRubric.length > 1){
                     targetCritForFinalAdj = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
@@ -267,5 +265,4 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-
     
