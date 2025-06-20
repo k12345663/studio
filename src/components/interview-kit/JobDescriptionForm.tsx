@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 export interface JobDescriptionFormSubmitData {
   jobDescription: string;
   unstopProfileLink?: string;
-  candidateResumeDataUri?: string | null; 
+  candidateResumeDataUri?: string | null;
   candidateResumeFileName?: string;
   candidateExperienceContext?: string;
 }
@@ -25,7 +25,7 @@ interface JobDescriptionFormProps {
   isLoading: boolean;
 }
 
-const SUPPORTED_RESUME_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']; 
+const SUPPORTED_RESUME_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 const MAX_FILE_SIZE_MB = 4.5;
 
 export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormProps) {
@@ -43,8 +43,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     const file = event.target.files?.[0];
     if (file) {
       setIsProcessingFile(true);
-      setCandidateResumeDataUri(undefined); 
-      setCandidateResumeFileName(undefined); 
+      setCandidateResumeDataUri(undefined);
+      setCandidateResumeFileName(undefined);
       setResumeDisplayMessage(`Processing ${file.name}...`);
       toast({
         title: "Processing Resume",
@@ -62,8 +62,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsProcessingFile(false);
-        setCandidateResumeDataUri(null); 
-        setCandidateResumeFileName(file.name); 
+        setCandidateResumeDataUri(null);
+        setCandidateResumeFileName(file.name);
         return;
       }
 
@@ -79,8 +79,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsProcessingFile(false);
-        setCandidateResumeDataUri(null); 
-        setCandidateResumeFileName(file.name); 
+        setCandidateResumeDataUri(null);
+        setCandidateResumeFileName(file.name);
         return;
       }
 
@@ -107,7 +107,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           });
           setIsProcessingFile(false);
           if (fileInputRef.current) fileInputRef.current.value = "";
-          setCandidateResumeDataUri(null); 
+          setCandidateResumeDataUri(null);
           setCandidateResumeFileName(file.name);
         };
         reader.readAsDataURL(file);
@@ -123,7 +123,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         });
         setIsProcessingFile(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
-        setCandidateResumeDataUri(null); 
+        setCandidateResumeDataUri(null);
         setCandidateResumeFileName(file.name);
       }
     } else {
@@ -149,7 +149,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
       toast({ variant: "destructive", title: "Missing Input", description: "Unstop Profile Link is required." });
       return;
     }
-    
+
     let parsedUrl;
     try {
         parsedUrl = new URL(unstopProfileLink);
@@ -162,8 +162,8 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         toast({ variant: "destructive", title: "Invalid Unstop URL", description: "The URL must be from the unstop.com domain." });
         return;
     }
-    
-    if (!parsedUrl.pathname.startsWith('/p/')) { 
+
+    if (!parsedUrl.pathname.startsWith('/p/')) {
         toast({ variant: "destructive", title: "Invalid Unstop Profile Path", description: "The Unstop URL does not appear to be a valid profile page. It should typically start with '/p/' after the domain." });
         return;
     }
@@ -261,6 +261,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
                 className="w-full justify-start text-muted-foreground hover:text-foreground border-dashed border-input hover:border-primary"
                 id="candidate-resume-upload-trigger"
                 aria-label="Choose resume file"
+                suppressHydrationWarning={true}
               >
                 {isProcessingFile && <Loader2 size={16} className="mr-2 animate-spin"/>}
                 {!isProcessingFile && candidateResumeDataUri && candidateResumeFileName && candidateResumeDataUri !== null && <FileCheck size={16} className="mr-2 text-green-600"/>}
@@ -302,4 +303,3 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     </Card>
   );
 }
-
