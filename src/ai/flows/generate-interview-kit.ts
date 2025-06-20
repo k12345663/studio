@@ -24,9 +24,9 @@ const difficultyTimeMap: Record<QuestionDifficulty, number> = {
 const GenerateInterviewKitInputSchema = z.object({
   jobDescription: z
     .string()
-    .describe('The job description to generate an interview kit for. This is a primary source material.'),
+    .describe('The job description to generate an interview kit for. This is a primary source material. AI should try to parse meaningful requirements even if it contains HTML/markup or promotional fluff, focusing on core skills and responsibilities.'),
   unstopProfileLink: z.string().optional().describe("The candidate's Unstop profile link. This is a primary source material if provided; AI should (conceptually) treat this as if accessing and deeply analyzing the candidate's entire live profile for skills, projects, experience, education, academic achievements. THIS IS A COMPULSORY INPUT from the user."),
-  candidateResumeDataUri: z.string().optional().describe("A data URI (e.g., 'data:application/pdf;base64,...') of the candidate's resume file (PDF or DOCX). If provided, AI should directly analyze the content of this file."),
+  candidateResumeDataUri: z.string().optional().describe("A data URI (e.g., 'data:application/pdf;base64,...') of the candidate's resume file (PDF or DOCX). If provided, AI should directly analyze the content of this file (skills, projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences)."),
   candidateResumeFileName: z.string().optional().describe("The original file name of the candidate's resume (e.g., 'resume.pdf'). For AI context if resume is provided."),
   candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience." This supplements primary data sources.'),
 });
@@ -70,9 +70,9 @@ const generateInterviewKitPrompt = ai.definePrompt({
   output: {schema: GenerateInterviewKitOutputSchema},
   prompt: `You are a highly experienced hiring manager and recruiter with 25 years of experience, acting as a supportive **recruiter companion**. Your primary goal is to create interview kits that empower recruiters, **especially those who may not be technical experts in the role's domain** (e.g., an HR professional evaluating a Software Development Engineer), to conduct effective and insightful interviews.
 CRITICAL: Before generating content, **THOROUGHLY analyze and synthesize ALL provided inputs**:
-1.  Job Description (Primary Source).
+1.  Job Description (Primary Source. Attempt to extract core requirements even if it contains HTML/markup, promotional fluff, or lacks clear structure. Note any significant ambiguities for the interviewer's awareness in model answers if needed.).
 2.  Unstop Profile Link (Primary Source - **COMPULSORY**, **conceptually treat this as if you are accessing and deeply analyzing the candidate's entire live profile** for skills, projects, experience, education, academic achievements).
-3.  Candidate Resume File (Primary Source - **OPTIONAL**, if provided as 'candidateResumeDataUri' containing a data URI for a PDF or DOCX file, **AI must directly analyze the content of this file** for skills, projects [tech stack, goals, accomplishments, challenges], education, academic achievements, past work experiences. The 'candidateResumeFileName' is also provided for context.).
+3.  Candidate Resume File (Primary Source - **OPTIONAL**, if provided as 'candidateResumeDataUri' containing a data URI for a PDF or DOCX file, **AI must directly analyze the content of this file** for skills, projects [tech stack, goals, accomplishments, challenges], education, academic achievements, past work experiences. If content seems unparseable or heavily image-based, rely more on other inputs and generate broader questions.).
 4.  Candidate Experience Context (Supplements primary sources).
 Your entire output MUST be deeply informed by this holistic understanding. Leverage this holistic understanding to generate not just questions that parrot information from the inputs, but also those that probe deeper into underlying skills, test problem-solving through relevant scenarios, and assess broader competencies critical for the role, even if these aspects are not exhaustively detailed line-by-line in every source document. Your aim is to create an insightful and comprehensive evaluation tool.
 
@@ -80,7 +80,7 @@ Your entire output MUST be deeply informed by this holistic understanding. Lever
 
 *   **Experience Nuances (Years vs. Impact):**
     *   If JD asks for 5 years of 'Project Management' and candidate shows 3 years as 'Coordinator' but *led two major SaaS launches from start to finish* (e.g., TC-EXPPROJ-001): Generate questions probing how the *scope, complexity, leadership demonstrated, and outcomes achieved* in those projects equate to the maturity of a 5-year PM.
-    *   If JD is for a full-time role needing 1-year experience, and candidate has *multiple impressive internships but no formal full-time experience* (e.g., TC-EXPPROJ-012): Generate questions probing how their internship responsibilities, independence, and project ownership mirror full-time expectations.
+    *   If JD is for a full-time role needing 1-year experience, and candidate has *multiple impressive internships but no formal full-time experience* (e.g., TC-EXPPROJ-012): Generate questions probing how their internship responsibilities, independence, and project ownership mirror full-time expectations. Focus on extracting depth, impact, and problem-solving from internship projects.
 
 *   **Skill & Technology Transferability:**
     *   If JD requires 'Gemini API' and candidate has deep 'OpenAI API' experience for *similar tasks* (e.g., TC-EXPPROJ-002): Generate questions about transferring core LLM principles, adapting to Gemini, and leveraging their OpenAI project learnings.
@@ -88,13 +88,13 @@ Your entire output MUST be deeply informed by this holistic understanding. Lever
 
 *   **Career Progression, Gaps, and Motivations:**
     *   If JD seeks a mid-level role and candidate's profile indicates *senior/lead experience (potentially overqualified)* (e.g., TC-EXPPROJ-003): Generate questions probing their motivation for this specific level, expectations, and how they envision contributing effectively.
-    *   If candidate's resume shows an *unexplained employment gap* or a *career break with upskilling* (e.g., TC-EXPPROJ-004, TC-EXPPROJ-011): Generate questions to understand the reason, and any productive activities or skill development (and its depth) during that time.
+    *   If candidate's resume shows an *unexplained employment gap* or a *career break with upskilling* (e.g., TC-EXPPROJ-004, TC-EXPPROJ-011): Generate questions to understand the reason, and any productive activities or skill development (and its depth) during that time. Focus on evaluating the quality and relevance of upskilling.
     *   If candidate shows *frequent job switching* (e.g., TC-EXPPROJ-008): Generate questions about the reasons for transitions and what they seek for long-term commitment now.
     *   If candidate has an *ambiguous role title* like 'Tech Specialist' for a 'Software Developer' JD (e.g., TC-EXPPROJ-015): Generate questions to clarify actual hands-on coding and development contributions versus support or operations.
 
 *   **Bridging Background & Domain Differences:**
-    *   If candidate is a *recent graduate with strong academic/research projects* for a JD requiring practical experience (e.g., TC-EXPPROJ-005): Generate questions that extract practical application, problem-solving, and real-world considerations from their academic work. *Focus on the practical application, problem-solving, and technical depth demonstrated in their projects (academic, personal, or internships); their learning agility, initiative, and ability to connect theoretical knowledge to real-world scenarios; their motivation, understanding of the target domain/role, and career aspirations. Filter certifications or coursework by direct relevance to the role, probing for practical application rather than just completion.*
-    *   If candidate has a *non-traditional background* (e.g., PhD Physics for Data Scientist role) (e.g., TC-EXPPROJ-006): Focus questions on transferable analytical, problem-solving, and quantitative skills, and their strategy to bridge to the new domain's tools/techniques.
+    *   If candidate is a *recent graduate with strong academic/research projects* for a JD requiring practical experience (e.g., TC-EXPPROJ-005): Generate questions that extract practical application, problem-solving, and real-world considerations from their academic work. *Focus on the practical application, problem-solving, and technical depth demonstrated in their projects (academic, personal, or internships); their learning agility, initiative, and ability to connect theoretical knowledge to real-world scenarios; their motivation, understanding of the target domain/role, and career aspirations. Filter certifications or coursework by direct relevance to the role, probing for practical application rather than just completion.* For students with multiple certifications but few projects, probe heavily for applied knowledge. For dropouts/incomplete degrees, probe reasons constructively, focusing on learning journey and skills developed.
+    *   If candidate has a *non-traditional background* (e.g., PhD Physics for Data Scientist role, Commerce to Data, MBA to Product) (e.g., TC-EXPPROJ-006): Focus questions on transferable analytical, problem-solving, and quantitative/business skills, and their strategy to bridge to the new domain's tools/techniques.
     *   If candidate lacks *specific industry experience* (e.g., e-commerce to healthcare tech, gaming to fintech) (e.g., TC-EXPPROJ-007, TC-EXPPROJ-014): Generate questions exploring their adaptability, learning plan for new industry nuances, and how technical skills transfer.
     *   If candidate is *transitioning career domains* (e.g., QA to DevOps) (e.g., TC-EXPPROJ-009): Generate questions probing practical application of newly acquired skills and how their prior domain experience provides unique strengths.
     *   If candidate profile shows a *cross-functional misalignment* (e.g., strong Front-End Dev for UI/UX Designer role lacking design tool experience) (e.g., TC-EXPPROJ-016): Generate questions about their design sensibilities, collaboration with designers, and any exposure to design processes/tools.
@@ -102,11 +102,11 @@ Your entire output MUST be deeply informed by this holistic understanding. Lever
 *   **Verifying Depth of Knowledge:**
     *   If resume claims 'Expertise' in a technology (e.g., Kafka) but context suggests basic exposure (e.g., TC-EXPPROJ-013): Generate deep-diving questions that differentiate true expertise from superficial knowledge (e.g., asking about architecture, scalability, performance tuning, administration beyond default usage).
 
-*   **Handling Vague/Sparse Inputs:**
-    *   If the Job Description is very brief, lacks specific technical details, or seems ambiguous (e.g., TC-JDMIS*, TC-JD-NO*), prioritize generating questions that clarify the role's core responsibilities and required foundational skills. Your model answers should guide the interviewer to probe for this clarity.
-    *   If both JD and candidate profile are sparse (e.g., TC-EMPTY*, TC-RESUN* if resume is also sparse), generate more fundamental questions appropriate for the general role type indicated. The *interviewer notes* within model answers should reflect that questions are broader due to input limitations.
-    *   When faced with potentially unclear or freeform text in the JD (e.g., TC-JD-STR*), try to extract meaningful requirements. If significant ambiguity persists that hinders tailored question generation, formulate broader questions and indicate in model answer notes that further clarification of the role might be needed during the interview.
-
+*   **Handling Vague/Sparse Inputs (Job Description and Candidate Profile):**
+    *   If the Job Description is very brief, lacks specific technical details, or seems ambiguous (e.g., "Hiring engineers", only lists tools, lacks headers/structure, is behavioral-only, or has minor typos/formatting issues; corresponds to cases like TC-JDMIS*, TC-JD-NO*, TC-JD-TOOL*, TC-JD-NOHD*, TC-JD-STR*, TC-JD-BEHV*, TC-JD-TYPO*): Prioritize generating questions that clarify the role's core responsibilities and required foundational skills. If essential details are missing, generate broader questions for a common denominator role type (e.g., general Software Engineer) and instruct the AI to include a note in the model answers for the interviewer, guiding them to probe for this clarity or stating the assumption made.
+    *   If both JD and candidate profile are sparse, or resume content is unparseable (e.g., TC-EMPTY*, TC-RESUN*, \\\`TC-RESUME-IMGOCR-097\\\`, \\\`TC-RESUME-FMT-086\\\`): Generate more fundamental questions appropriate for the general role type indicated. The *interviewer notes* within model answers should reflect that questions are broader due to input limitations or data extraction challenges.
+    *   If JD contains promotional fluff or common blog/HTML markup, focus on extracting core requirements.
+    *   Identify and consolidate redundant information in JDs or profiles to avoid repetitive questioning.
 
 **For ALL such scenarios, your generated questions MUST encourage the candidate to articulate connections, demonstrate adaptability, and provide concrete examples. Your model answer guidance for the interviewer MUST focus on evaluating:**
 *   The **depth, complexity, relevance, and tangible outcomes** of the candidate's analogous experiences, projects, or self-study.
@@ -204,7 +204,7 @@ const generateInterviewKitFlow = ai.defineFlow(
      // Ensure rubric weights sum to 1.0
     let totalWeight = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
     if (validatedOutput.scoringRubric.length > 0) {
-        if (totalWeight === 0 && validatedOutput.scoringRubric.length > 0) { 
+        if (totalWeight === 0 && validatedOutput.scoringRubric.length > 0) {
             const equalWeight = parseFloat((1.0 / validatedOutput.scoringRubric.length).toFixed(2));
             let sum = 0;
             validatedOutput.scoringRubric.forEach((crit, index, arr) => {
@@ -215,51 +215,60 @@ const generateInterviewKitFlow = ai.defineFlow(
                     crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
                 }
             });
-        } else if (Math.abs(totalWeight - 1.0) > 0.001) {
+             totalWeight = validatedOutput.scoringRubric.reduce((s, c) => s + c.weight, 0); // Recalculate
+        }
+        if (Math.abs(totalWeight - 1.0) > 0.001) { // Allow for small floating point inaccuracies
             const factor = 1.0 / totalWeight;
             let sumOfNormalizedWeights = 0;
             validatedOutput.scoringRubric.forEach((crit, index, arr) => {
                 if (index < arr.length -1) {
-                    const normalized = crit.weight * factor;
-                    // Ensure weight is not negative and round
-                    crit.weight = parseFloat(Math.max(0, normalized).toFixed(2));
+                    const normalized = Math.max(0, crit.weight * factor); // Ensure not negative before rounding
+                    crit.weight = parseFloat(normalized.toFixed(2));
                     sumOfNormalizedWeights += crit.weight;
                 } else {
-                    // Ensure last element gets remaining weight, avoid negative, round
+                     // Last element gets the remainder to ensure sum is 1.0
                     crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
                 }
             });
+            // Final check because rounding can still cause slight deviations
+            totalWeight = validatedOutput.scoringRubric.reduce((s, c) => s + c.weight, 0);
+            if (Math.abs(totalWeight - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
+                const diff = 1.0 - totalWeight;
+                validatedOutput.scoringRubric[validatedOutput.scoringRubric.length -1].weight = 
+                    parseFloat(Math.max(0, validatedOutput.scoringRubric[validatedOutput.scoringRubric.length -1].weight + diff).toFixed(2));
+            }
         }
     }
 
-    // Final check and adjustment for the last element if sum is still off due to accumulated rounding
-    let finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
-    if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-        const diffToAdjust = 1.0 - finalSum; // No toFixed yet
-        const lastCrit = validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1];
-        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2)); 
+    // Ensure no individual weight is negative after all adjustments and that the sum is truly 1.0
+    let finalSum = 0;
+    validatedOutput.scoringRubric.forEach(crit => {
+        crit.weight = Math.max(0, crit.weight); // Ensure no negative weights
+        finalSum += crit.weight;
+    });
 
-        // One more pass if the last adjustment made it negative or still not 1.0 due to new rounding
-        finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
-        if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-            let runningSum = 0;
-            for(let i=0; i < validatedOutput.scoringRubric.length -1; i++) {
-                validatedOutput.scoringRubric[i].weight = Math.max(0, validatedOutput.scoringRubric[i].weight); // ensure positive
-                runningSum += validatedOutput.scoringRubric[i].weight;
+    if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
+        // Aggressive redistribution if still not 1.0
+        const currentTotal = validatedOutput.scoringRubric.reduce((sum, r) => sum + r.weight, 0);
+        if (currentTotal > 0) { // Avoid division by zero
+            let cumulativeWeight = 0;
+            for (let i = 0; i < validatedOutput.scoringRubric.length - 1; i++) {
+                const normalized = (validatedOutput.scoringRubric[i].weight / currentTotal);
+                validatedOutput.scoringRubric[i].weight = parseFloat(normalized.toFixed(2));
+                cumulativeWeight += validatedOutput.scoringRubric[i].weight;
             }
-            runningSum = Math.min(runningSum, 1.0); // Cap sum
-            const lastWeight = Math.max(0, 1.0 - runningSum);
-            validatedOutput.scoringRubric[validatedOutput.scoringRubric.length-1].weight = parseFloat(lastWeight.toFixed(2));
-            
-            finalSum = validatedOutput.scoringRubric.reduce((s,c) => s + c.weight, 0);
-             if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-                 const finalAdjustment = 1.0 - finalSum; // No toFixed yet
-                 let targetCritForFinalAdj = validatedOutput.scoringRubric[0];
-                 if(validatedOutput.scoringRubric.length > 1){
-                    targetCritForFinalAdj = validatedOutput.scoringRubric.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.scoringRubric[0]);
-                 }
-                 targetCritForFinalAdj.weight = parseFloat(Math.max(0, targetCritForFinalAdj.weight + finalAdjustment).toFixed(2));
-            }
+            validatedOutput.scoringRubric[validatedOutput.scoringRubric.length - 1].weight = parseFloat(Math.max(0, (1.0 - cumulativeWeight)).toFixed(2));
+        } else if (validatedOutput.scoringRubric.length > 0) { // if total is 0 but criteria exist, distribute equally
+            const equalWeight = parseFloat((1.0 / validatedOutput.scoringRubric.length).toFixed(2));
+            let sum = 0;
+            validatedOutput.scoringRubric.forEach((crit, index, arr) => {
+                 if(index < arr.length -1) {
+                    crit.weight = equalWeight;
+                    sum += equalWeight;
+                } else {
+                    crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
+                }
+            });
         }
     }
     return validatedOutput;

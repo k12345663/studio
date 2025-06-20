@@ -50,9 +50,9 @@ const RubricCriterionSchema = z.object({
 });
 
 const CustomizeInterviewKitInputSchema = z.object({
-  jobDescription: z.string().describe('The job description used to generate the interview kit. This is a primary source material.'),
+  jobDescription: z.string().describe('The job description used to generate the interview kit. This is a primary source material. AI should try to parse meaningful requirements even if it contains HTML/markup or promotional fluff, focusing on core skills and responsibilities.'),
   unstopProfileLink: z.string().optional().describe("The candidate's Unstop profile link (compulsory input). This is a primary source material if provided; AI should (conceptually) treat this as if accessing and deeply analyzing the candidate's entire live profile if it was used and should be considered for refinements."),
-  candidateResumeDataUri: z.string().optional().describe("The data URI of the candidate's resume file (PDF or DOCX) that was used. If provided, AI should consider its content for refinements."),
+  candidateResumeDataUri: z.string().optional().describe("The data URI of the candidate's resume file (PDF or DOCX) that was used. If provided, AI should consider its content for refinements (skills, projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences)."),
   candidateResumeFileName: z.string().optional().describe("The original file name of the candidate's resume, for context."),
   candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements. This supplements primary sources.'),
   competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here. May include "Tell me about yourself". Competencies should be informed by the holistic analysis of JD and candidate profile (Unstop Profile/Resume file content including educational background and academic achievements).'),
@@ -75,13 +75,13 @@ const customizeInterviewKitPrompt = ai.definePrompt({
   input: {schema: CustomizeInterviewKitInputSchema},
   output: {schema: CustomizeInterviewKitOutputSchema},
   prompt: `You are a highly experienced hiring manager and recruiter with 25 years of experience, acting as a supportive **recruiter companion**. Your primary goal is to refine interview kits to empower recruiters, **especially those who may not be technical experts in the role's domain** (e.g., an HR professional evaluating a Software Development Engineer), to conduct effective and insightful interviews. You will be given an interview kit previously generated. This kit was based on a Job Description, an Unstop Profile Link (compulsory), and potentially a Candidate Resume File (optional, provided as a data URI for direct AI analysis of its content, detailing projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and/or Candidate Experience Context. The kit includes questions, model answers, competency importance, question categories, difficulty levels, and estimated times. The hiring manager (the user) has made edits to this kit. Your task is to review these edits and refine the entire kit.
-CRITICAL: Before refining any content, take the time to **thoroughly analyze and synthesize ALL provided details**: the Job Description (primary source), the Unstop Profile Link (primary source - COMPULSORY, **conceptually treat this as if you are accessing and deeply analyzing the candidate's entire live profile**), the Candidate Resume File (primary source - OPTIONAL, if 'candidateResumeDataUri' is provided, **AI must directly analyze the content of this file** for projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences. 'candidateResumeFileName' is for context), any Candidate Experience Context, AND the user's edits. Ensure the refined kit remains highly contextual and tailored based on all original inputs AND the user's explicit edits. Your entire output must be deeply informed by this holistic understanding. When refining, ensure that the kit not only reflects the user's explicit edits and the core inputs but also maintains (or enhances) a level of insightful questioning that might probe beyond the surface-level text. The refined kit should encourage a comprehensive and nuanced evaluation of the candidate, drawing on both specific details and broader relevant concepts.
+CRITICAL: Before refining any content, take the time to **thoroughly analyze and synthesize ALL provided details**: the Job Description (primary source; attempt to extract core requirements even if it contains HTML/markup, promotional fluff, or lacks clear structure), the Unstop Profile Link (primary source - COMPULSORY, **conceptually treat this as if you are accessing and deeply analyzing the candidate's entire live profile**), the Candidate Resume File (primary source - OPTIONAL, if 'candidateResumeDataUri' is provided, **AI must directly analyze the content of this file** for projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences. 'candidateResumeFileName' is for context. If content seems unparseable, rely more on other inputs), any Candidate Experience Context, AND the user's edits. Ensure the refined kit remains highly contextual and tailored based on all original inputs AND the user's explicit edits. Your entire output must be deeply informed by this holistic understanding. When refining, ensure that the kit not only reflects the user's explicit edits and the core inputs but also maintains (or enhances) a level of insightful questioning that might probe beyond the surface-level text. The refined kit should encourage a comprehensive and nuanced evaluation of the candidate, drawing on both specific details and broader relevant concepts.
 
 **Critically, you are an astute evaluator of the candidate's entire profile against the Job Description. Your primary function is to help the (often non-technical) recruiter uncover the candidate's true capabilities, potential, and fit, especially when there isn't a perfect surface-level match. Look beyond keywords to identify strengths, transferable skills, and areas requiring insightful questioning. Prioritize substance (demonstrated skills, project outcomes, problem-solving approaches) over superficial elements like formatting or excessive buzzwords in the inputs. Consider scenarios like, but not limited to:**
 
 *   **Experience Nuances (Years vs. Impact):**
     *   If JD asks for 5 years of 'Project Management' and candidate shows 3 years as 'Coordinator' but *led two major SaaS launches from start to finish* (e.g., TC-EXPPROJ-001): Generate questions probing how the *scope, complexity, leadership demonstrated, and outcomes achieved* in those projects equate to the maturity of a 5-year PM.
-    *   If JD is for a full-time role needing 1-year experience, and candidate has *multiple impressive internships but no formal full-time experience* (e.g., TC-EXPPROJ-012): Generate questions probing how their internship responsibilities, independence, and project ownership mirror full-time expectations.
+    *   If JD is for a full-time role needing 1-year experience, and candidate has *multiple impressive internships but no formal full-time experience* (e.g., TC-EXPPROJ-012): Generate questions probing how their internship responsibilities, independence, and project ownership mirror full-time expectations. Focus on extracting depth, impact, and problem-solving from internship projects.
 
 *   **Skill & Technology Transferability:**
     *   If JD requires 'Gemini API' and candidate has deep 'OpenAI API' experience for *similar tasks* (e.g., TC-EXPPROJ-002): Generate questions about transferring core LLM principles, adapting to Gemini, and leveraging their OpenAI project learnings.
@@ -89,13 +89,13 @@ CRITICAL: Before refining any content, take the time to **thoroughly analyze and
 
 *   **Career Progression, Gaps, and Motivations:**
     *   If JD seeks a mid-level role and candidate's profile indicates *senior/lead experience (potentially overqualified)* (e.g., TC-EXPPROJ-003): Generate questions probing their motivation for this specific level, expectations, and how they envision contributing effectively.
-    *   If candidate's resume shows an *unexplained employment gap* or a *career break with upskilling* (e.g., TC-EXPPROJ-004, TC-EXPPROJ-011): Generate questions to understand the reason, and any productive activities or skill development (and its depth) during that time.
+    *   If candidate's resume shows an *unexplained employment gap* or a *career break with upskilling* (e.g., TC-EXPPROJ-004, TC-EXPPROJ-011): Generate questions to understand the reason, and any productive activities or skill development (and its depth) during that time. Focus on evaluating the quality and relevance of upskilling.
     *   If candidate shows *frequent job switching* (e.g., TC-EXPPROJ-008): Generate questions about the reasons for transitions and what they seek for long-term commitment now.
     *   If candidate has an *ambiguous role title* like 'Tech Specialist' for a 'Software Developer' JD (e.g., TC-EXPPROJ-015): Generate questions to clarify actual hands-on coding and development contributions versus support or operations.
 
 *   **Bridging Background & Domain Differences:**
-    *   If candidate is a *recent graduate with strong academic/research projects* for a JD requiring practical experience (e.g., TC-EXPPROJ-005): Generate questions that extract practical application, problem-solving, and real-world considerations from their academic work. *Focus on the practical application, problem-solving, and technical depth demonstrated in their projects (academic, personal, or internships); their learning agility, initiative, and ability to connect theoretical knowledge to real-world scenarios; their motivation, understanding of the target domain/role, and career aspirations. Filter certifications or coursework by direct relevance to the role, probing for practical application rather than just completion.*
-    *   If candidate has a *non-traditional background* (e.g., PhD Physics for Data Scientist role) (e.g., TC-EXPPROJ-006): Focus questions on transferable analytical, problem-solving, and quantitative skills, and their strategy to bridge to the new domain's tools/techniques.
+    *   If candidate is a *recent graduate with strong academic/research projects* for a JD requiring practical experience (e.g., TC-EXPPROJ-005): Generate questions that extract practical application, problem-solving, and real-world considerations from their academic work. *Focus on the practical application, problem-solving, and technical depth demonstrated in their projects (academic, personal, or internships); their learning agility, initiative, and ability to connect theoretical knowledge to real-world scenarios; their motivation, understanding of the target domain/role, and career aspirations. Filter certifications or coursework by direct relevance to the role, probing for practical application rather than just completion.* For students with multiple certifications but few projects, probe heavily for applied knowledge. For dropouts/incomplete degrees, probe reasons constructively, focusing on learning journey and skills developed.
+    *   If candidate has a *non-traditional background* (e.g., PhD Physics for Data Scientist role, Commerce to Data, MBA to Product) (e.g., TC-EXPPROJ-006): Focus questions on transferable analytical, problem-solving, and quantitative/business skills, and their strategy to bridge to the new domain's tools/techniques.
     *   If candidate lacks *specific industry experience* (e.g., e-commerce to healthcare tech, gaming to fintech) (e.g., TC-EXPPROJ-007, TC-EXPPROJ-014): Generate questions exploring their adaptability, learning plan for new industry nuances, and how technical skills transfer.
     *   If candidate is *transitioning career domains* (e.g., QA to DevOps) (e.g., TC-EXPPROJ-009): Generate questions probing practical application of newly acquired skills and how their prior domain experience provides unique strengths.
     *   If candidate profile shows a *cross-functional misalignment* (e.g., strong Front-End Dev for UI/UX Designer role lacking design tool experience) (e.g., TC-EXPPROJ-016): Generate questions about their design sensibilities, collaboration with designers, and any exposure to design processes/tools.
@@ -103,11 +103,10 @@ CRITICAL: Before refining any content, take the time to **thoroughly analyze and
 *   **Verifying Depth of Knowledge:**
     *   If resume claims 'Expertise' in a technology (e.g., Kafka) but context suggests basic exposure (e.g., TC-EXPPROJ-013): Generate deep-diving questions that differentiate true expertise from superficial knowledge (e.g., asking about architecture, scalability, performance tuning, administration beyond default usage).
 
-*   **Handling Vague/Sparse Inputs:**
-    *   If the original Job Description was very brief, lacked specific technical details, or seemed ambiguous (e.g., TC-JDMIS*, TC-JD-NO*), and the user's edits don't fully clarify this, your refined questions should still aim to probe for core responsibilities and foundational skills. Model answers should guide the interviewer to seek this clarity.
-    *   If both original JD and candidate profile were sparse, and edits remain minimal, continue to generate more fundamental questions. The *interviewer notes* within model answers should reflect that questions are broader due to ongoing input limitations.
+*   **Handling Vague/Sparse Inputs (Job Description and Candidate Profile):**
+    *   If the original Job Description was very brief, lacked specific technical details, or seemed ambiguous (e.g., "Hiring engineers", only lists tools, lacks headers/structure, is behavioral-only, or has minor typos/formatting issues; corresponds to cases like TC-JDMIS*, TC-JD-NO*, TC-JD-TOOL*, TC-JD-NOHD*, TC-JD-STR*, TC-JD-BEHV*, TC-JD-TYPO*), and the user's edits don't fully clarify this, your refined questions should still aim to probe for core responsibilities and foundational skills. Model answers should guide the interviewer to seek this clarity.
+    *   If both original JD and candidate profile were sparse, or resume content was unparseable (e.g., TC-EMPTY*, TC-RESUN*, \\\`TC-RESUME-IMGOCR-097\\\`, \\\`TC-RESUME-FMT-086\\\`) and edits remain minimal, continue to generate more fundamental questions. The *interviewer notes* within model answers should reflect that questions are broader due to ongoing input limitations or data extraction challenges from resume.
     *   When faced with potentially unclear or freeform text in the JD (e.g., TC-JD-STR*), try to extract meaningful requirements. If significant ambiguity persists that hinders tailored question generation, formulate broader questions and indicate in model answer notes that further clarification of the role might be needed during the interview.
-
 
 **For ALL such scenarios, your generated questions MUST encourage the candidate to articulate connections, demonstrate adaptability, and provide concrete examples. Your model answer guidance for the interviewer MUST focus on evaluating:**
 *   The **depth, complexity, relevance, and tangible outcomes** of the candidate's analogous experiences, projects, or self-study.
@@ -204,7 +203,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
 
     let totalWeight = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
     if (validatedOutput.rubricCriteria.length > 0) {
-        if (totalWeight === 0 && validatedOutput.rubricCriteria.length > 0) { 
+        if (totalWeight === 0 && validatedOutput.rubricCriteria.length > 0) {
             const equalWeight = parseFloat((1.0 / validatedOutput.rubricCriteria.length).toFixed(2));
             let sum = 0;
             validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
@@ -215,54 +214,63 @@ const customizeInterviewKitFlow = ai.defineFlow(
                     crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
                 }
             });
-        } else if (Math.abs(totalWeight - 1.0) > 0.001) {
+             totalWeight = validatedOutput.rubricCriteria.reduce((s, c) => s + c.weight, 0); // Recalculate
+        }
+        if (Math.abs(totalWeight - 1.0) > 0.001) { // Allow for small floating point inaccuracies
             const factor = 1.0 / totalWeight;
             let sumOfNormalizedWeights = 0;
             validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
                 if (index < arr.length -1) {
-                    const normalized = crit.weight * factor;
-                    // Ensure weight is not negative and round
-                    crit.weight = parseFloat(Math.max(0, normalized).toFixed(2));
+                    const normalized = Math.max(0, crit.weight * factor); // Ensure not negative before rounding
+                    crit.weight = parseFloat(normalized.toFixed(2));
                     sumOfNormalizedWeights += crit.weight;
                 } else {
-                    // Ensure last element gets remaining weight, avoid negative, round
+                     // Last element gets the remainder to ensure sum is 1.0
                     crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
                 }
             });
+            // Final check because rounding can still cause slight deviations
+            totalWeight = validatedOutput.rubricCriteria.reduce((s, c) => s + c.weight, 0);
+            if (Math.abs(totalWeight - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
+                const diff = 1.0 - totalWeight;
+                validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length -1].weight =
+                    parseFloat(Math.max(0, validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length -1].weight + diff).toFixed(2));
+            }
         }
     }
 
-    // Final check and adjustment for the last element if sum is still off due to accumulated rounding
-    let finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
-    if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
-        const diffToAdjust = 1.0 - finalSum; // No toFixed yet
-        const lastCrit = validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1];
-        lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2)); 
+    // Ensure no individual weight is negative after all adjustments and that the sum is truly 1.0
+    let finalSum = 0;
+    validatedOutput.rubricCriteria.forEach(crit => {
+        crit.weight = Math.max(0, crit.weight); // Ensure no negative weights
+        finalSum += crit.weight;
+    });
 
-        finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
-        if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
-            let runningSum = 0;
-            for(let i=0; i < validatedOutput.rubricCriteria.length -1; i++) {
-                validatedOutput.rubricCriteria[i].weight = Math.max(0, validatedOutput.rubricCriteria[i].weight);
-                runningSum += validatedOutput.rubricCriteria[i].weight;
+    if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
+        // Aggressive redistribution if still not 1.0
+        const currentTotal = validatedOutput.rubricCriteria.reduce((sum, r) => sum + r.weight, 0);
+        if (currentTotal > 0) { // Avoid division by zero
+            let cumulativeWeight = 0;
+            for (let i = 0; i < validatedOutput.rubricCriteria.length - 1; i++) {
+                const normalized = (validatedOutput.rubricCriteria[i].weight / currentTotal);
+                validatedOutput.rubricCriteria[i].weight = parseFloat(normalized.toFixed(2));
+                cumulativeWeight += validatedOutput.rubricCriteria[i].weight;
             }
-            runningSum = Math.min(runningSum, 1.0);
-            const lastWeight = Math.max(0, 1.0 - runningSum);
-            validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1].weight = parseFloat(lastWeight.toFixed(2));
-            
-            finalSum = validatedOutput.rubricCriteria.reduce((s,c) => s + c.weight, 0);
-             if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
-                 const finalAdjustment = 1.0 - finalSum;
-                 let targetCritForFinalAdj = validatedOutput.rubricCriteria[0];
-                 if(validatedOutput.rubricCriteria.length > 1){
-                    targetCritForFinalAdj = validatedOutput.rubricCriteria.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.rubricCriteria[0]);
-                 }
-                 targetCritForFinalAdj.weight = parseFloat(Math.max(0, targetCritForFinalAdj.weight + finalAdjustment).toFixed(2));
-            }
+            validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length - 1].weight = parseFloat(Math.max(0, (1.0 - cumulativeWeight)).toFixed(2));
+        } else if (validatedOutput.rubricCriteria.length > 0) { // if total is 0 but criteria exist, distribute equally
+            const equalWeight = parseFloat((1.0 / validatedOutput.rubricCriteria.length).toFixed(2));
+            let sum = 0;
+            validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
+                 if(index < arr.length -1) {
+                    crit.weight = equalWeight;
+                    sum += equalWeight;
+                } else {
+                    crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
+                }
+            });
         }
     }
     return validatedOutput;
   }
 );
-
     
