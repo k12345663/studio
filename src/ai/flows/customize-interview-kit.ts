@@ -77,7 +77,7 @@ const customizeInterviewKitPrompt = ai.definePrompt({
   prompt: `You are a highly experienced hiring manager and recruiter with 25 years of experience, acting as a supportive **recruiter companion**. Your primary goal is to refine interview kits to empower recruiters, **especially those who may not be technical experts in the role's domain** (e.g., an HR professional evaluating a Software Development Engineer), to conduct effective and insightful interviews. You will be given an interview kit previously generated. This kit was based on a Job Description, an Unstop Profile Link (compulsory), and potentially a Candidate Resume File (optional, provided as a data URI for direct AI analysis of its content, detailing projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and/or Candidate Experience Context. The kit includes questions, model answers, competency importance, question categories, difficulty levels, and estimated times. The hiring manager (the user) has made edits to this kit. Your task is to review these edits and refine the entire kit.
 CRITICAL: Before refining any content, take the time to **thoroughly analyze and synthesize ALL provided details**: the Job Description (primary source), the Unstop Profile Link (primary source - COMPULSORY, **conceptually treat this as if you are accessing and deeply analyzing the candidate's entire live profile**), the Candidate Resume File (primary source - OPTIONAL, if 'candidateResumeDataUri' is provided, **AI must directly analyze the content of this file** for projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences. 'candidateResumeFileName' is for context), any Candidate Experience Context, AND the user's edits. Ensure the refined kit remains highly contextual and tailored based on all original inputs AND the user's explicit edits. Your entire output must be deeply informed by this holistic understanding. When refining, ensure that the kit not only reflects the user's explicit edits and the core inputs but also maintains (or enhances) a level of insightful questioning that might probe beyond the surface-level text. The refined kit should encourage a comprehensive and nuanced evaluation of the candidate, drawing on both specific details and broader relevant concepts.
 
-**Critically, you are an astute evaluator of the candidate's entire profile against the Job Description. Your primary function is to help the (often non-technical) recruiter uncover the candidate's true capabilities, potential, and fit, especially when there isn't a perfect surface-level match. Look beyond keywords to identify strengths, transferable skills, and areas requiring insightful questioning. Consider scenarios like, but not limited to:**
+**Critically, you are an astute evaluator of the candidate's entire profile against the Job Description. Your primary function is to help the (often non-technical) recruiter uncover the candidate's true capabilities, potential, and fit, especially when there isn't a perfect surface-level match. Look beyond keywords to identify strengths, transferable skills, and areas requiring insightful questioning. Prioritize substance (demonstrated skills, project outcomes, problem-solving approaches) over superficial elements like formatting or excessive buzzwords in the inputs. Consider scenarios like, but not limited to:**
 
 *   **Experience Nuances (Years vs. Impact):**
     *   If JD asks for 5 years of 'Project Management' and candidate shows 3 years as 'Coordinator' but *led two major SaaS launches from start to finish* (e.g., TC-EXPPROJ-001): Generate questions probing how the *scope, complexity, leadership demonstrated, and outcomes achieved* in those projects equate to the maturity of a 5-year PM.
@@ -106,6 +106,8 @@ CRITICAL: Before refining any content, take the time to **thoroughly analyze and
 *   **Handling Vague/Sparse Inputs:**
     *   If the original Job Description was very brief, lacked specific technical details, or seemed ambiguous (e.g., TC-JDMIS*, TC-JD-NO*), and the user's edits don't fully clarify this, your refined questions should still aim to probe for core responsibilities and foundational skills. Model answers should guide the interviewer to seek this clarity.
     *   If both original JD and candidate profile were sparse, and edits remain minimal, continue to generate more fundamental questions. The *interviewer notes* within model answers should reflect that questions are broader due to ongoing input limitations.
+    *   When faced with potentially unclear or freeform text in the JD (e.g., TC-JD-STR*), try to extract meaningful requirements. If significant ambiguity persists that hinders tailored question generation, formulate broader questions and indicate in model answer notes that further clarification of the role might be needed during the interview.
+
 
 **For ALL such scenarios, your generated questions MUST encourage the candidate to articulate connections, demonstrate adaptability, and provide concrete examples. Your model answer guidance for the interviewer MUST focus on evaluating:**
 *   The **depth, complexity, relevance, and tangible outcomes** of the candidate's analogous experiences, projects, or self-study.
@@ -226,13 +228,13 @@ const customizeInterviewKitFlow = ai.defineFlow(
             });
         }
     }
-    
+
     let finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
     if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
         const diffToAdjust = parseFloat((1.0 - finalSum).toFixed(2));
         const lastCrit = validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1];
         lastCrit.weight = parseFloat(Math.max(0, lastCrit.weight + diffToAdjust).toFixed(2));
-        
+
         if (lastCrit.weight < 0 || (Math.abs(validatedOutput.rubricCriteria.reduce((s,c) => s + c.weight, 0) - 1.0) > 0.001)) {
             let runningSum = 0;
             for(let i=0; i < validatedOutput.rubricCriteria.length -1; i++) {
@@ -241,11 +243,14 @@ const customizeInterviewKitFlow = ai.defineFlow(
             }
             const lastWeight = Math.max(0, 1.0 - runningSum);
             validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length-1].weight = parseFloat(lastWeight.toFixed(2));
-            
+
             let currentTotal = validatedOutput.rubricCriteria.reduce((s,c) => s + c.weight, 0);
             if (Math.abs(currentTotal - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
                  const finalAdjustment = parseFloat((1.0 - currentTotal).toFixed(2));
-                 let targetCritForFinalAdj = validatedOutput.rubricCriteria.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.rubricCriteria[0]);
+                 let targetCritForFinalAdj = validatedOutput.rubricCriteria[0];
+                 if(validatedOutput.rubricCriteria.length > 1){
+                    targetCritForFinalAdj = validatedOutput.rubricCriteria.reduce((prev, current) => (prev.weight > current.weight) ? prev : current, validatedOutput.rubricCriteria[0]);
+                 }
                  targetCritForFinalAdj.weight = parseFloat(Math.max(0, targetCritForFinalAdj.weight + finalAdjustment).toFixed(2));
             }
         }
@@ -253,4 +258,5 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+
     
