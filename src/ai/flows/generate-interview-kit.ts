@@ -103,8 +103,8 @@ Your entire output MUST be deeply informed by this holistic understanding. Lever
     *   If resume claims 'Expertise' in a technology (e.g., Kafka) but context suggests basic exposure (e.g., TC-EXPPROJ-013): Generate deep-diving questions that differentiate true expertise from superficial knowledge (e.g., asking about architecture, scalability, performance tuning, administration beyond default usage).
 
 *   **Handling Vague/Sparse Inputs (Job Description and Candidate Profile):**
-    *   If the Job Description is very brief, lacks specific technical details, or seems ambiguous (e.g., "Hiring engineers", only lists tools, lacks headers/structure, is behavioral-only, or has minor typos/formatting issues; corresponds to cases like TC-JDMIS*, TC-JD-NO*, TC-JD-TOOL*, TC-JD-NOHD*, TC-JD-STR*, TC-JD-BEHV*, TC-JD-TYPO*): Prioritize generating questions that clarify the role's core responsibilities and required foundational skills. If essential details are missing, generate broader questions for a common denominator role type (e.g., general Software Engineer) and instruct the AI to include a note in the model answers for the interviewer, guiding them to probe for this clarity or stating the assumption made.
-    *   If both JD and candidate profile are sparse, or resume content is unparseable (e.g., TC-EMPTY*, TC-RESUN*, \\\`TC-RESUME-IMGOCR-097\\\`, \\\`TC-RESUME-FMT-086\\\`): Generate more fundamental questions appropriate for the general role type indicated. The *interviewer notes* within model answers should reflect that questions are broader due to input limitations or data extraction challenges.
+    *   If the Job Description is very brief, lacks specific technical details, or seems ambiguous (e.g., "Hiring engineers", only lists tools, lacks headers/structure, is behavioral-only, or has minor typos/formatting issues; corresponds to cases like TC-JDMIS\*, TC-JD-NO\*, TC-JD-TOOL\*, TC-JD-NOHD\*, TC-JD-STR\*, TC-JD-BEHV\*, TC-JD-TYPO\*): Prioritize generating questions that clarify the role's core responsibilities and required foundational skills. If essential details are missing, generate broader questions for a common denominator role type (e.g., general Software Engineer) and instruct the AI to include a note in the model answers for the interviewer, guiding them to probe for this clarity or stating the assumption made.
+    *   If both JD and candidate profile are sparse, or resume content is unparseable (e.g., TC-EMPTY\*, TC-RESUN\*, \`TC-RESUME-IMGOCR-097\`, \`TC-RESUME-FMT-086\`): Generate more fundamental questions appropriate for the general role type indicated. The *interviewer notes* within model answers should reflect that questions are broader due to input limitations or data extraction challenges.
     *   If JD contains promotional fluff or common blog/HTML markup, focus on extracting core requirements.
     *   Identify and consolidate redundant information in JDs or profiles to avoid repetitive questioning.
 
@@ -150,11 +150,11 @@ Based on a holistic understanding of ALL available information (JD, Unstop Profi
     *   **Other competencies**:
         *   Prioritize **Resume/Profile Project Deep-Dive Question(s)**: If Unstop profile/resume file is provided, ensure questions **directly probe specific projects identified from analyzing the resume file content or Unstop profile**. Ask about: "tech stack used, primary goals, accomplishments, and significant challenges overcome" for Project X, or "role and contributions in Project Y, especially how you handled [specific challenge/goal from project description found in resume/profile]."
         *   Follow with other distinct, insightful questions (2-3 total per competency): Technical, Scenario, Behavioral, sharply tailored to JD and specifics from Unstop profile/resume file content/context (projects, tech stack, goals, accomplishments, challenges, education, past experiences). Apply the "astute evaluator" principles described above when generating these questions.
-        *   Ensure variety in the questions generated for any single competency. Avoid asking multiple questions that probe the exact same skill or experience in only slightly different ways (e.g., TC-KEYWC*).
+        *   Ensure variety in the questions generated for any single competency. Avoid asking multiple questions that probe the exact same skill or experience in only slightly different ways (e.g., TC-KEYWC\*).
 
 3.  **For EACH question, provide all fields as specified in the output schema**:
     *   \`question\`: Text of the question.
-    *   \`answer\`: A model answer FOR THE INTERVIEWER'S USE (3-4 concise bullet points). **These bullet points for the recruiter MUST BE EXTREMELY BRIEF AND CRISP, ideally just ABSOLUTELY ESSENTIAL KEYWORDS or CRITICAL SHORT PHRASES, serving as a rapid mental checklist of core elements the candidate should ideally touch upon.** Each bullet MUST outline KEY POINTS A CANDIDATE SHOULD COVER for a strong answer, making it **exceptionally easy for a non-technical recruiter to quickly assess**. Furthermore, each bullet point MUST also include a textual suggestion of its indicative weight or contribution (e.g., 'approx. 2-3 points', 'around 4 points') towards the question's total 10-point score, using whole numbers or small, clear ranges of whole numbers. For example, a bullet point could be: '- Core Concept X mentioned (approx. 3-4 points)'. The collective indicative contributions for all bullet points should paint a clear picture of what constitutes a strong, comprehensive answer that would merit a high score, conceptually aligning towards the 10-point maximum if all aspects are well addressed. **These points should serve as GENERAL EXAMPLES OF STRONG ANSWERS. For general technical or behavioral questions, they must reflect CORE CONCEPTS broken down into their most FUNDAMENTAL, EASILY DIGESTIBLE PARTS (e.g., 'If OOP is asked, interviewer should note if candidate covers: 1. Abstraction mentioned. 2. Encapsulation explained. 3. Inheritance example. 4. Polymorphism concept.', clearly listing these pillars if relevant for a non-technical interviewer).** While generally informed by the overall context (Job Description, candidate profile including Unstop link, resume file content [AI to analyze if provided], projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), for many general questions, the key points should strongly emphasize fundamental concepts or general best practices for answering, rather than requiring every point to be explicitly tied to a specific line in the Job Description. The goal is to provide a solid, SIMPLE baseline for evaluation. Answers must be **basic, clear, and easy for a non-technical recruiter to evaluate**. EXPLICITLY reference key terms, skills, projects, or experiences from JD AND/OR Unstop Profile/Resume File Content when crucial for context. Include guidance on evaluating real-life examples and relevant information shared by the candidate not present on the resume using a note like: 'Note: If the candidate provides relevant real-life examples or discusses experiences/skills not detailed on their resume/profile but clearly relevant to the role, this can indicate greater depth, initiative, or broader experience. The interviewer should assess the relevance and substance of such unstated information against the job requirements.'
+    *   \`answer\`: A model answer FOR THE INTERVIEWER'S USE (3-4 concise bullet points). **These bullet points for the recruiter MUST BE EXTREMELY BRIEF AND CRISP, ideally just ABSOLUTELY ESSENTIAL KEYWORDS or CRITICAL SHORT PHRASES, serving as a rapid mental checklist of core elements the candidate should ideally touch upon.** Each bullet MUST outline KEY POINTS A CANDIDATE SHOULD COVER for a strong answer, making it **exceptionally easy for a non-technical recruiter to quickly assess**. Furthermore, each bullet point MUST also include a textual suggestion of its indicative weight or contribution (e.g., 'approx. 2-3 points', 'around 4 points') towards the question's total 10-point score, using whole numbers or small, clear ranges of whole numbers. For example, a bullet point could be: '- Core Concept X mentioned (approx. 3-4 points)'. The collective indicative contributions for all bullet points should paint a clear picture of what constitutes a strong, comprehensive answer that would merit a high score, conceptually aligning towards the 10-point maximum if all aspects are well addressed. **These points should serve as GENERAL EXAMPLES OF STRONG ANSWERS. For general technical or behavioral questions, they must reflect CORE CONCEPTS broken down into their most FUNDAMENTAL, EASILY DIGESTIBLE PARTS (e.g., 'If OOP is asked, interviewer should note if candidate covers: 1. Abstraction mentioned. 2. Encapsulation explained. 3. Inheritance example. 4. Polymorphism concept.', clearly listing these pillars if relevant for a non-technical interviewer).** While generally informed by the overall context (Job Description, candidate profile including Unstop link, resume file content [AI to analyze if provided], projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), for many general questions, the key points should strongly emphasize fundamental concepts or general best practices for answering, rather than requiring every point to be explicitly tied to a specific line in the Job Description. The goal is to provide a solid, SIMPLE baseline for evaluation. Answers must be **basic, clear, and easy for a non-technical recruiter to evaluate**. EXPLICITLY reference key terms, skills, projects, or experiences from JD AND/OR Unstop Profile/Resume File Content when crucial for context. **Include guidance on evaluating real-life examples and relevant information shared by the candidate not present on the resume using a note like: 'Note: If the candidate provides relevant real-life examples or discusses experiences/skills not detailed on their resume/profile but clearly relevant to the role, this can indicate greater depth, initiative, or broader experience. The interviewer should assess the relevance and substance of such unstated information against the job requirements.'**
         For the "Tell me about yourself" question: if a Unstop profile or resume file is available, the model answer MUST be a guide for the INTERVIEWER. It should outline key points from the candidate's specific background (such as their name, key qualifications, relevant educational background, academic achievements, significant projects from Unstop/resume file content, and notable work history) that would constitute a strong, relevant, and well-structured introduction. This model answer must be written from the interviewer's perspective to help a non-technical recruiter assess relevance and completeness against the candidate's documented profile, rather than being a script for the candidate.
         For resume project deep-dive questions, guide on what to listen for regarding project goals, tech stack, accomplishments, challenges based on AI's analysis of the resume file.
     *   \`type\`: 'Technical', 'Scenario', 'Behavioral'.
@@ -163,7 +163,7 @@ Based on a holistic understanding of ALL available information (JD, Unstop Profi
     *   \`estimatedTimeMinutes\`: Suitable time.
 
 4.  **Create a Scoring Rubric (for a non-technical recruiter)**:
-    *   3-5 weighted criteria. Each MUST be well-defined, distinct, high-quality, actionable, measurable, and **framed for easy use by a non-technical recruiter**. Focus on 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering both resume-based details extracted by AI from file and emergent relevant details)', etc.
+    *   3-5 weighted criteria. Each MUST be well-defined, distinct, high-quality, actionable, measurable, and **framed for easy use by a non-technical recruiter**. Focus on 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering both resume-based details extracted by AI from file and **relevant emergent details shared by the candidate during the interview**)', etc.
     *   Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or academic achievements from JD AND/OR Unstop Profile/Resume File Content (AI to analyze if provided, including projects, education, past experiences) for context. Guide the recruiter to also consider relevant, substantiated information shared by the candidate that may not be on the resume.
     *   Set of criteria must provide broad yet deeply contextual basis for evaluation, **usable by someone not expert in the role's domain**. Weights sum to 1.0. Example: 'Criterion: Technical Communication - Clarity on [specific concept from JD or Unstop/Resume file content, and other relevant technical points discussed]. Weight: 0.25.'
 
@@ -234,43 +234,65 @@ const generateInterviewKitFlow = ai.defineFlow(
             totalWeight = validatedOutput.scoringRubric.reduce((s, c) => s + c.weight, 0);
             if (Math.abs(totalWeight - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
                 const diff = 1.0 - totalWeight;
+                const lastCritWeight = validatedOutput.scoringRubric[validatedOutput.scoringRubric.length -1].weight;
                 validatedOutput.scoringRubric[validatedOutput.scoringRubric.length -1].weight = 
-                    parseFloat(Math.max(0, validatedOutput.scoringRubric[validatedOutput.scoringRubric.length -1].weight + diff).toFixed(2));
+                    parseFloat(Math.max(0, lastCritWeight + diff).toFixed(2));
             }
         }
     }
 
     // Ensure no individual weight is negative after all adjustments and that the sum is truly 1.0
-    let finalSum = 0;
-    validatedOutput.scoringRubric.forEach(crit => {
+    // And handle the case where all weights became zero due to aggressive rounding or tiny initial values
+    let finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => {
         crit.weight = Math.max(0, crit.weight); // Ensure no negative weights
-        finalSum += crit.weight;
-    });
+        return sum + crit.weight;
+    },0);
+    
 
-    if (Math.abs(finalSum - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-        // Aggressive redistribution if still not 1.0
-        const currentTotal = validatedOutput.scoringRubric.reduce((sum, r) => sum + r.weight, 0);
-        if (currentTotal > 0) { // Avoid division by zero
-            let cumulativeWeight = 0;
-            for (let i = 0; i < validatedOutput.scoringRubric.length - 1; i++) {
-                const normalized = (validatedOutput.scoringRubric[i].weight / currentTotal);
-                validatedOutput.scoringRubric[i].weight = parseFloat(normalized.toFixed(2));
-                cumulativeWeight += validatedOutput.scoringRubric[i].weight;
-            }
-            validatedOutput.scoringRubric[validatedOutput.scoringRubric.length - 1].weight = parseFloat(Math.max(0, (1.0 - cumulativeWeight)).toFixed(2));
-        } else if (validatedOutput.scoringRubric.length > 0) { // if total is 0 but criteria exist, distribute equally
+    if (validatedOutput.scoringRubric.length > 0 && Math.abs(finalSum - 1.0) > 0.001) {
+        // If sum is zero but items exist, distribute equally.
+        if (finalSum === 0) {
             const equalWeight = parseFloat((1.0 / validatedOutput.scoringRubric.length).toFixed(2));
-            let sum = 0;
+            let currentSum = 0;
             validatedOutput.scoringRubric.forEach((crit, index, arr) => {
                  if(index < arr.length -1) {
                     crit.weight = equalWeight;
-                    sum += equalWeight;
-                } else {
-                    crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
+                    currentSum += equalWeight;
+                } else { // Last element takes remainder
+                    crit.weight = parseFloat(Math.max(0,(1.0 - currentSum)).toFixed(2));
                 }
             });
+        } else { // If sum is not 1.0 and not 0, redistribute proportionally
+            const scaleFactor = 1.0 / finalSum;
+            let cumulativeWeight = 0;
+            for (let i = 0; i < validatedOutput.scoringRubric.length - 1; i++) {
+                const normalized = (validatedOutput.scoringRubric[i].weight * scaleFactor);
+                validatedOutput.scoringRubric[i].weight = parseFloat(normalized.toFixed(2));
+                cumulativeWeight += validatedOutput.scoringRubric[i].weight;
+            }
+             // Last element takes the remainder to ensure sum is exactly 1.0
+            const lastWeight = 1.0 - cumulativeWeight;
+            validatedOutput.scoringRubric[validatedOutput.scoringRubric.length - 1].weight = parseFloat(Math.max(0, lastWeight).toFixed(2));
         }
     }
+    // Final pass to ensure the last element adjustment for sum to 1.0 didn't make other weights sum > 1
+    // This typically occurs if all weights were tiny and normalized to 0.00, then the last one got 1.00
+    if (validatedOutput.scoringRubric.length > 1) {
+        let checkSum = 0;
+        validatedOutput.scoringRubric.forEach(c => checkSum += c.weight);
+        if (Math.abs(checkSum - 1.0) > 0.001) { // If still off, likely due to rounding small numbers
+           const lastIdx = validatedOutput.scoringRubric.length - 1;
+           let sumExceptLast = 0;
+           for(let i=0; i < lastIdx; i++) {
+               sumExceptLast += validatedOutput.scoringRubric[i].weight;
+           }
+           validatedOutput.scoringRubric[lastIdx].weight = parseFloat(Math.max(0, 1.0 - sumExceptLast).toFixed(2));
+        }
+    } else if (validatedOutput.scoringRubric.length === 1) {
+        validatedOutput.scoringRubric[0].weight = 1.0; // If only one criterion, it must be 1.0
+    }
+
+
     return validatedOutput;
   }
 );
