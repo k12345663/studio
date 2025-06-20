@@ -62,7 +62,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsProcessingFile(false);
-        setCandidateResumeDataUri(null);
+        setCandidateResumeDataUri(null); 
         setCandidateResumeFileName(file.name);
         return;
       }
@@ -79,7 +79,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
         setIsProcessingFile(false);
-        setCandidateResumeDataUri(null);
+        setCandidateResumeDataUri(null); 
         setCandidateResumeFileName(file.name);
         return;
       }
@@ -107,7 +107,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           });
           setIsProcessingFile(false);
           if (fileInputRef.current) fileInputRef.current.value = "";
-          setCandidateResumeDataUri(null);
+          setCandidateResumeDataUri(null); 
           setCandidateResumeFileName(file.name);
         };
         reader.readAsDataURL(file);
@@ -163,9 +163,11 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         return;
     }
 
-    if (!parsedUrl.pathname.startsWith('/p/')) {
-        toast({ variant: "destructive", title: "Invalid Unstop Profile Path", description: "The Unstop URL does not appear to be a valid profile page. It should typically start with '/p/' after the domain." });
-        return;
+    // Removed the strict check for path starting with /p/
+    // A basic check to ensure it's not just the domain root (e.g. "https://unstop.com/")
+    if (parsedUrl.pathname === '/' || parsedUrl.pathname === '') {
+       toast({ variant: "destructive", title: "Invalid Unstop Profile Path", description: "The Unstop URL does not appear to point to a specific profile page. Please provide a full profile URL." });
+       return;
     }
 
 
@@ -261,7 +263,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
                 className="w-full justify-start text-muted-foreground hover:text-foreground border-dashed border-input hover:border-primary"
                 id="candidate-resume-upload-trigger"
                 aria-label="Choose resume file"
-                suppressHydrationWarning={true}
+                suppressHydrationWarning={true} 
               >
                 {isProcessingFile && <Loader2 size={16} className="mr-2 animate-spin"/>}
                 {!isProcessingFile && candidateResumeDataUri && candidateResumeFileName && candidateResumeDataUri !== null && <FileCheck size={16} className="mr-2 text-green-600"/>}
