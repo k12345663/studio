@@ -78,35 +78,37 @@ const customizeInterviewKitPrompt = ai.definePrompt({
 
 **Your Core Evaluation Process:**
 
-CRITICAL: Before refining any content, you must perform the following analysis based on the original inputs provided for generation, supplemented by the user's edits:
+CRITICAL: Before refining any content, you must perform a holistic analysis of ALL original inputs (JD, Unstop Profile, Resume Data, Context) supplemented by the user's edits.
 
-1.  **Identify Role & Detect Transition:**
+1.  **Detect Role Alignment and Career Transitions:**
     *   First, parse the Job Description to identify the target role and its core skill requirements.
     *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided).
-    *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role), you MUST adapt your entire questioning strategy and refinements.
+    *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role, corresponding to test cases like \`TC-CAREER-TRAN-01\`, \`TC-CAREER-TRAN-02\`, \`TC-STUDE-PROJ-061\`), you MUST adapt your entire questioning strategy and refinements.
 
 2.  **Refine Questions Based on Findings & Edits:**
-    *   **If a Career Transition is Detected:** Your refined questions must probe the justification for this shift. If the user's edits don't already do this, steer the kit in this direction. Focus on questions like:
-        *   "What motivates your transition from [Candidate's Past Domain] to [Target Role Domain]?"
-        *   "Which of your past experiences in [Candidate's Past Domain] do you believe are most transferable to this role, and why?"
-        *   "What specific steps have you taken to learn about [Target Role Domain] and acquire the necessary skills (e.g., certifications, mentorship, practical projects)?"
+    *   **If a Career Transition is Detected:** Your refined questions must probe the justification for this shift. If the user's edits don't already do this, steer the kit in this direction. The questions MUST challenge the candidate to build the bridge themselves.
+        *   Generate questions like: "What motivates your transition from [Candidate's Past Domain] to [Target Role Domain]?", "Which of your past experiences in [Candidate's Past Domain] do you believe are most transferable to this role, and why?", and "What specific steps have you taken to learn about [Target Role Domain] (e.g., certifications, mentorship, practical projects)?"
         *   Generate scenario questions relevant to the *new* domain to test their learning and thought process.
     *   **If No Transition (Standard Role Alignment):** Ensure the refined kit still follows a standard real interview pattern: introductory questions, deep-dives into resume/profile projects to validate experience, and questions testing core JD skills.
 
-3.  **Handle Non-Disclosure Cases:**
-    *   If a candidate's profile or answers seem to describe relevant skills and experiences without explicitly stating a previous role title, **focus on the substance of that experience.** Your refined model answers should guide the interviewer to evaluate the *relevance of the described tasks and learnings*, not the title itself.
+3.  **Handle Non-Disclosure Cases & Ambiguity:**
+    *   If a candidate's profile or answers seem to describe relevant skills and experiences without explicitly stating a previous role title (like in \`TC-CAREER-NDA-04\`), **focus on the substance of that experience.** Your refined model answers should guide the interviewer to evaluate the *relevance of the described tasks and learnings*, not the title itself.
+    *   If inputs were vague or unparseable (e.g., cases like \`TC-JDMIS-025\`, \`TC-RESUN-098\`), your refinements should produce broader, more fundamental questions and note in the model answers that the interviewer may need to probe for more detail.
 
 **Model Answer & Rubric Philosophy:**
 
-Your refined guidance for the interviewer must be practical and flexible.
+Your refined guidance for the interviewer must be practical, generalized, and flexible.
 
-*   **Model Answers are Guides, Not Scripts:**
-    *   Provide a few concise bullet points outlining KEY CONCEPTS or points a candidate should cover. **There is no strict requirement for a specific number of points.**
-    *   **Reward Practicality and Originality:** The guidance MUST instruct the interviewer that if a candidate offers **practical, unexpected, or original examples that are relevant to the job**, this is a strong positive signal. Depth and real-world application should be valued more than checking off a list of expected points.
-    *   **The "Note" for Interviewers:** Every model answer must include guidance like: *'Note: A strong answer demonstrates understanding, not just recall. If the candidate provides relevant real-life examples or discusses experiences/skills not detailed on their resume but clearly relevant to the role, this indicates greater depth and should be assessed positively.'*
-    *   **"Tell me about yourself" (Exception):** The model answer for this MUST be a descriptive guide FOR THE INTERVIEWER, framed to help a non-technical recruiter assess relevance by pulling specific details from the candidate's profile (e.g., '*Candidate should mention their project on X...*', '*Should highlight achievement Y...*').
-
+*   **Model Answers are Generalized Evaluation Guides, Not Rigid Scripts:**
+    *   The bullet points should represent GENERALIZED principles, core concepts, or key thought processes to listen for. They are not a verbatim checklist, and there is no strict number of points required.
+    *   **CRITICAL "Note for Interviewer" Section:** Every single refined model answer MUST include a "Note for the Interviewer" that provides a framework for evaluation. This note should guide the recruiter on how to assess answers, instructing them to listen for:
+        *   **How the candidate justifies their fit,** especially if their background doesn't perfectly match the JD.
+        *   **How they connect their experience to the company's potential growth.**
+        *   **Practicality and Originality:** Explicitly state that if a candidate provides a different, but highly relevant and practical answer from their own experience, it should be viewed as a strong positive. The goal is to evaluate real-world problem-solving, not rote memorization.
+        *   **Partial Answers:** Guide the interviewer to assess the depth of the points that *were* covered, rather than just penalizing for missing points.
+*   **"Tell me about yourself" (Exception):** The model answer for this MUST be a descriptive guide FOR THE INTERVIEWER, framed to help a non-technical recruiter assess relevance by pulling specific details from the candidate's profile (e.g., '*Candidate should connect their project on X to our need for Y...*', '*Should highlight achievement Z as evidence of their drive...*').
 *   **Scoring Rubric:** The rubric criteria must be well-defined, distinct, high-quality, actionable, and measurable. They should focus on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate. Ensure weights sum to 1.0.
+
 
 Job Description (Primary Source, for context):
 {{{jobDescription}}}
