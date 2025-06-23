@@ -83,7 +83,7 @@ CRITICAL: Before refining any content, you must perform the following analysis b
 1.  **Identify Role & Detect Transition:**
     *   First, parse the Job Description to identify the target role and its core skill requirements.
     *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided).
-    *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Product Management background applying for a Sales Manager role), you MUST adapt your entire questioning strategy and refinements.
+    *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role), you MUST adapt your entire questioning strategy and refinements.
 
 2.  **Refine Questions Based on Findings & Edits:**
     *   **If a Career Transition is Detected:** Your refined questions must probe the justification for this shift. If the user's edits don't already do this, steer the kit in this direction. Focus on questions like:
@@ -101,7 +101,7 @@ CRITICAL: Before refining any content, you must perform the following analysis b
 Your refined guidance for the interviewer must be practical and flexible.
 
 *   **Model Answers are Guides, Not Scripts:**
-    *   Provide a few concise bullet points outlining KEY CONCEPTS or points a candidate should cover. **There is no strict requirement for 4 or 5 points.**
+    *   Provide a few concise bullet points outlining KEY CONCEPTS or points a candidate should cover. **There is no strict requirement for a specific number of points.**
     *   **Reward Practicality and Originality:** The guidance MUST instruct the interviewer that if a candidate offers **practical, unexpected, or original examples that are relevant to the job**, this is a strong positive signal. Depth and real-world application should be valued more than checking off a list of expected points.
     *   **The "Note" for Interviewers:** Every model answer must include guidance like: *'Note: A strong answer demonstrates understanding, not just recall. If the candidate provides relevant real-life examples or discusses experiences/skills not detailed on their resume but clearly relevant to the role, this indicates greater depth and should be assessed positively.'*
     *   **"Tell me about yourself" (Exception):** The model answer for this MUST be a descriptive guide FOR THE INTERVIEWER, framed to help a non-technical recruiter assess relevance by pulling specific details from the candidate's profile (e.g., '*Candidate should mention their project on X...*', '*Should highlight achievement Y...*').
