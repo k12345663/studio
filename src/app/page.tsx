@@ -174,7 +174,7 @@ export default function Home() {
       let description = `Failed to generate kit. Please try again.`;
       const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
       if (inputForAI?.candidateResumeDataUri && (errorMessage.includes("media") || errorMessage.includes("parse") || errorMessage.includes("content") || errorMessage.includes("file") || errorMessage.includes("request entity"))) {
-        description = "Error generating kit. The resume file might be unreadable or corrupted. Please try a different resume file or generate the kit without one.";
+        description = "Error generating kit. The AI couldn't process the resume content. The file might be corrupted, password-protected, or in a very complex format. Please try a different file or generate the kit without a resume.";
       }
       toast({ variant: "destructive", title: "Error Generating Kit", description });
       setInterviewKit(null);
@@ -201,7 +201,7 @@ export default function Home() {
       let description = `Failed to update kit. Please try again.`;
       const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
        if (inputForAI?.candidateResumeDataUri && (errorMessage.includes("media") || errorMessage.includes("parse") || errorMessage.includes("content") || errorMessage.includes("file") || errorMessage.includes("request entity")) ) {
-        description = "Error updating kit. If you uploaded a resume, it might be unreadable or corrupted. Please try a different resume file or generate the kit without one.";
+        description = "Error updating kit. The AI couldn't process the resume content. The file might be corrupted, password-protected, or in a very complex format. Please try generating a new kit with a different file or without one.";
       }
       toast({ variant: "destructive", title: "Error Updating Kit", description });
     } finally {
