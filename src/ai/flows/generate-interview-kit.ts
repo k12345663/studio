@@ -135,7 +135,7 @@ Candidate Experience Context (additional notes):
 {{{candidateExperienceContext}}}
 {{/if}}
 
-Based on a holistic understanding of ALL available information (JD, Unstop Profile, and the content of the Candidate Resume File if provided, plus any context), generate the interview kit:
+Based on a holistic understanding of ALL available information (JD, Unstop Profile, and the content of the Candidate Resume File if provided, plus any context), generate the interview kit following a REAL INTERVIEW PATTERN:
 
 1.  **Structure the Interview Flow and Identify Competencies**:
     *   Start with a competency named "Candidate Introduction & Background."
@@ -150,7 +150,7 @@ Based on a holistic understanding of ALL available information (JD, Unstop Profi
     *   **Other competencies**:
         *   Prioritize **Resume/Profile Project Deep-Dive Question(s)**: If Unstop profile/resume file is provided, ensure questions **directly probe specific projects identified from analyzing the resume file content or Unstop profile**. Ask about: "tech stack used, primary goals, accomplishments, and significant challenges overcome" for Project X, or "role and contributions in Project Y, especially how you handled [specific challenge/goal from project description found in resume/profile]."
         *   Follow with other distinct, insightful questions (2-3 total per competency): Technical, Scenario, Behavioral, sharply tailored to JD and specifics from Unstop profile/resume file content/context (projects, tech stack, goals, accomplishments, challenges, education, past experiences). Apply the "astute evaluator" principles described above when generating these questions.
-        *   Ensure variety in the questions generated for any single competency. Avoid asking multiple questions that probe the exact same skill or experience in only slightly different ways (e.g., TC-KEYWC\\*).
+        *   Ensure variety in the questions generated for any single competency. Avoid asking multiple questions that probe the exact same skill or experience in only slightly different ways (e.g., TC-KEYWC\*).
 
 3.  **For EACH question, provide all fields as specified in the output schema**:
     *   \`question\`: Text of the question.
