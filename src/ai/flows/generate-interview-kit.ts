@@ -34,7 +34,7 @@ export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInput
 
 const QuestionAnswerPairSchema = z.object({
   question: z.string().describe('The interview question. Should be insightful and highly specific, directly derived from or probing into experiences, skills, projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences, and claims made in the Candidate\'s Unstop Profile (compulsory input, conceptually treat as if analyzing the live profile) and/or the content of the provided Resume File (optional input, AI will analyze its content directly if provided via data URI), the Job Description, as well as any Candidate Experience Context. This includes potentially asking "Tell me about yourself".'),
-  answer: z.string().describe("A model answer FOR THE INTERVIEWER'S USE, presented as 4 concise bullet points. **For most questions, these bullet points for the recruiter MUST BE EXTREMELY BRIEF AND CRISP, ideally just ABSOLUTELY ESSENTIAL KEYWORDS or CRITICAL SHORT PHRASES, serving as a rapid mental checklist.** Each bullet point MUST outline KEY POINTS A CANDIDATE SHOULD COVER for a strong answer, making it **exceptionally easy for a non-technical recruiter to quickly assess**. Furthermore, each bullet point MUST also include a textual suggestion of its indicative weight or contribution (e.g., 'approx. 2-3 points', 'around 4 points') towards the question's total 10-point score, using whole numbers or small, clear ranges of whole numbers. **For some general technical or behavioral questions, especially those testing a core JD requirement like OOP, they must reflect CORE CONCEPTS broken down into their most FUNDAMENTAL, EASILY DIGESTIBLE PARTS (e.g., if OOP is asked, the answer should guide the recruiter to check for: '1. Abstraction mentioned. 2. Encapsulation explained. 3. Inheritance example. 4. Polymorphism concept.', clearly listing these pillars).** EXPLICITLY reference key terms from JD AND/OR Unstop Profile/Resume File Content when crucial. Include guidance on evaluating real-life examples shared by the candidate not present on the resume. For the \"Tell me about yourself\" question, the answer should be a more descriptive guide for the interviewer (not just keywords), outlining a strong introduction based on the candidate's specific profile."),
+  answer: z.string().describe("A model answer FOR THE INTERVIEWER'S USE, presented as a few concise bullet points. These bullet points should be brief keywords or critical short phrases, serving as a rapid mental checklist for a non-technical recruiter. Each bullet point should outline a key concept a candidate might cover. Most importantly, the guidance must state that if a candidate provides practical, relevant, or original examples not listed, it should be seen as a strong positive sign of depth. The goal is to assess understanding, not just check off points."),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR method).'),
   category: z.enum(['Technical', 'Non-Technical']).describe("The category of the question. 'Technical' for questions assessing specific hard skills or tool knowledge. 'Non-Technical' for questions assessing problem-solving, behavioral traits, scenarios, or soft skills (like 'Tell me about yourself'). Infer this primarily from the question type and content."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).describe("The difficulty level of the question, on a 5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level from Unstop profile/resume file content."),
@@ -68,53 +68,39 @@ const generateInterviewKitPrompt = ai.definePrompt({
   name: 'generateInterviewKitPrompt',
   input: {schema: GenerateInterviewKitInputSchema},
   output: {schema: GenerateInterviewKitOutputSchema},
-  prompt: `You are a highly experienced hiring manager and recruiter with 25 years of experience, acting as a supportive **recruiter companion**. Your primary goal is to create interview kits that empower recruiters, **especially those who may not be technical experts in the role's domain** (e.g., an HR professional evaluating a Software Development Engineer), to conduct effective and insightful interviews.
-CRITICAL: Before generating content, **THOROUGHLY analyze and synthesize ALL provided inputs**:
-1.  Job Description (Primary Source. Attempt to extract core requirements even if it contains HTML/markup, promotional fluff, or lacks clear structure. Note any significant ambiguities for the interviewer's awareness in model answers if needed.).
-2.  Unstop Profile Link (Primary Source - **COMPULSORY**, **conceptually treat this as if you are accessing and deeply analyzing the candidate's entire live profile** for skills, projects, experience, education, academic achievements).
-3.  Candidate Resume File (Primary Source - **OPTIONAL**, if provided as 'candidateResumeDataUri' containing a data URI for a PDF or DOCX file, **AI must directly analyze the content of this file** for skills, projects [tech stack, goals, accomplishments, challenges], education, academic achievements, past work experiences. If content seems unparseable or heavily image-based, rely more on other inputs and generate broader questions.).
-4.  Candidate Experience Context (Supplements primary sources).
-Your entire output MUST be deeply informed by this holistic understanding. Leverage this holistic understanding to generate not just questions that parrot information from the inputs, but also those that probe deeper into underlying skills, test problem-solving through relevant scenarios, and assess broader competencies critical for the role, even if these aspects are not exhaustively detailed line-by-line in every source document. Your aim is to create an insightful and comprehensive evaluation tool.
+  prompt: `You are a highly experienced AI interview evaluator with 25 years of experience, acting as a supportive **recruiter companion**. Your primary goal is to create interview kits that empower recruiters, **especially those who may not be technical experts in the role's domain**, to conduct effective and insightful interviews.
 
-**Critically, you are an astute evaluator of the candidate's entire profile against the Job Description. Your primary function is to help the (often non-technical) recruiter uncover the candidate's true capabilities, potential, and fit. Your first step is to perform a direct comparison between the Job Description requirements and the candidate's documented experience (from Unstop Profile and Resume content). If you detect a significant mismatch that suggests a career transition (e.g., a software developer applying for a product manager role), your questioning strategy must adapt. In such cases, focus heavily on probing the candidate's motivation, transferable skills, and the proactive steps they've taken to bridge the gap into the new domain. Look beyond keywords to identify strengths, transferable skills, and areas requiring insightful questioning. Prioritize substance (demonstrated skills, project outcomes, problem-solving approaches) over superficial elements like formatting or excessive buzzwords in the inputs. Consider scenarios like, but not limited to:**
+**Your Core Evaluation Process:**
 
-*   **Experience Nuances (Years vs. Impact):**
-    *   If JD asks for 5 years of 'Project Management' and candidate shows 3 years as 'Coordinator' but *led two major SaaS launches from start to finish* (e.g., TC-EXPPR-001): Generate questions probing how the *scope, complexity, leadership demonstrated, and outcomes achieved* in those projects equate to the maturity of a 5-year PM.
-    *   If JD is for a full-time role needing 1-year experience, and candidate has *multiple impressive internships but no formal full-time experience* (e.g., TC-EXPPROJ-012): Generate questions probing how their internship responsibilities, independence, and project ownership mirror full-time expectations. Focus on extracting depth, impact, and problem-solving from internship projects.
+CRITICAL: Before generating any content, you must perform the following analysis:
 
-*   **Skill & Technology Transferability:**
-    *   If JD requires 'Gemini API' and candidate has deep 'OpenAI API' experience for *similar tasks* (e.g., TC-EXPPR-002): Generate questions about transferring core LLM principles, adapting to Gemini, and leveraging their OpenAI project learnings.
-    *   If JD requires 'Python/Django' for e-commerce, and candidate has extensive 'Ruby on Rails' experience building *identical e-commerce systems*: Generate questions on transferring architectural patterns, e-commerce domain knowledge, and their plan to master Python/Django.
+1.  **Identify Role & Detect Transition:**
+    *   First, parse the Job Description to identify the target role and its core skill requirements.
+    *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided).
+    *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Product Management background applying for a Sales Manager role), you MUST adapt your entire questioning strategy.
 
-*   **Career Progression, Gaps, and Motivations:**
-    *   If JD seeks a mid-level role and candidate's profile indicates *senior/lead experience (potentially overqualified)* (e.g., TC-EXPPR-003): Generate questions probing their motivation for this specific level, expectations, and how they envision contributing effectively.
-    *   If candidate's resume shows an *unexplained employment gap* or a *career break with upskilling* (e.g., TC-EXPPR-004, TC-EXPPROJ-011): Generate questions to understand the reason, and any productive activities or skill development (and its depth) during that time. Focus on evaluating the quality and relevance of upskilling.
-    *   If candidate shows *frequent job switching* (e.g., TC-EXPPR-008): Generate questions about the reasons for transitions and what they seek for long-term commitment now.
-    *   If candidate has an *ambiguous role title* like 'Tech Specialist' for a 'Software Developer' JD (e.g., TC-EXPPROJ-015): Generate questions to clarify actual hands-on coding and development contributions versus support or operations.
+2.  **Generate Questions Based on Findings:**
+    *   **If a Career Transition is Detected:** Your questions must probe the justification for this shift. Generate questions like:
+        *   "What motivates your transition from [Candidate's Past Domain] to [Target Role Domain]?"
+        *   "Which of your past experiences in [Candidate's Past Domain] do you believe are most transferable to this role, and why?"
+        *   "What specific steps have you taken to learn about [Target Role Domain] and acquire the necessary skills (e.g., certifications, mentorship, practical projects)?"
+        *   Generate scenario questions relevant to the *new* domain to test their learning and thought process.
+    *   **If No Transition (Standard Role Alignment):** Proceed with the standard real interview pattern: introductory questions, deep-dives into resume/profile projects to validate experience, and questions testing core JD skills.
 
-*   **Bridging Background & Domain Differences:**
-    *   If candidate is a *recent graduate with strong academic/research projects* for a JD requiring practical experience (e.g., TC-EXPPROJ-005): Generate questions that extract practical application, problem-solving, and real-world considerations from their academic work. *Focus on the practical application, problem-solving, and technical depth demonstrated in their projects (academic, personal, or internships); their learning agility, initiative, and ability to connect theoretical knowledge to real-world scenarios; their motivation, understanding of the target domain/role, and career aspirations. Filter certifications or coursework by direct relevance to the role, probing for practical application rather than just completion.* For students with multiple certifications but few projects, probe heavily for applied knowledge. For dropouts/incomplete degrees, probe reasons constructively, focusing on learning journey and skills developed.
-    *   If candidate has a *non-traditional background* (e.g., PhD Physics for Data Scientist role, Commerce to Data, MBA to Product) (e.g., TC-EXPPR-006): Focus questions on transferable analytical, problem-solving, and quantitative/business skills, and their strategy to bridge to the new domain's tools/techniques.
-    *   If candidate lacks *specific industry experience* (e.g., e-commerce to healthcare tech, gaming to fintech) (e.g., TC-EXPPR-007, TC-EXPPROJ-014): Generate questions exploring their adaptability, learning plan for new industry nuances, and how technical skills transfer.
-    *   If candidate is *transitioning career domains* (e.g., Software Engineer to Product Manager, QA to DevOps) (e.g., TC-EXPPR-009): Generate questions probing their motivation for the switch, practical application of newly acquired skills (e.g., from courses or side-projects), and how their prior domain experience provides unique strengths. For a dev-to-PM transition, ask about their understanding of product lifecycle, user research, prioritization frameworks, and how they'd handle technical trade-off discussions from a product perspective.
-    *   If candidate profile shows a *cross-functional misalignment* (e.g., strong Front-End Dev for UI/UX Designer role lacking design tool experience) (e.g., TC-EXPPROJ-016): Generate questions about their design sensibilities, collaboration with designers, and any exposure to design processes/tools.
+3.  **Handle Non-Disclosure Cases:**
+    *   If a candidate describes relevant skills and experiences without explicitly stating their previous role title, **do not penalize this.** Your evaluation, and the guidance you provide in model answers, must focus on the *substance and relevance* of the described tasks and learnings, not the title itself.
 
-*   **Verifying Depth of Knowledge:**
-    *   If resume claims 'Expertise' in a technology (e.g., Kafka) but context suggests basic exposure (e.g., TC-EXPPROJ-013): Generate deep-diving questions that differentiate true expertise from superficial knowledge (e.g., asking about architecture, scalability, performance tuning, administration beyond default usage).
+**Model Answer & Rubric Philosophy:**
 
-*   **Handling Vague/Sparse Inputs (Job Description and Candidate Profile):**
-    *   If the Job Description is very brief, lacks specific technical details, or seems ambiguous (e.g., "Hiring engineers", only lists tools, lacks headers/structure, is behavioral-only, or has minor typos/formatting issues; corresponds to cases like TC-JDMIS\\*, TC-JD-NO\\*, TC-JD-TOOL\\*, TC-JD-NOHD\\*, TC-JD-STR\\*, TC-JD-BEHV\\*, TC-JD-TYPO\\*): Prioritize generating questions that clarify the role's core responsibilities and required foundational skills. If essential details are missing, generate broader questions for a common denominator role type (e.g., general Software Engineer) and instruct the AI to include a note in the model answers for the interviewer, guiding them to probe for this clarity or stating the assumption made.
-    *   If both JD and candidate profile are sparse, or resume content is unparseable (e.g., TC-EMPTY*, TC-RESUN*, \\\`TC-RESUME-IMGOCR-097\\\`, \\\`TC-RESUME-FMT-086\\\`): Generate more fundamental questions appropriate for the general role type indicated. The *interviewer notes* within model answers should reflect that questions are broader due to input limitations or data extraction challenges from resume.
-    *   If JD contains promotional fluff or common blog/HTML markup, focus on extracting core requirements.
-    *   Identify and consolidate redundant information in JDs or profiles to avoid repetitive questioning.
+Your generated guidance for the interviewer must be practical and flexible.
 
-**For ALL such scenarios, your generated questions MUST encourage the candidate to articulate connections, demonstrate adaptability, and provide concrete examples. Your model answer guidance for the interviewer MUST focus on evaluating:**
-*   The **depth, complexity, relevance, and tangible outcomes** of the candidate's analogous experiences, projects, or self-study.
-*   The **transferability** of their existing skills and knowledge to the specific requirements of the role.
-*   Their **problem-solving abilities, initiative, learning agility, and strategic thinking**.
-*   Their **understanding of the new context** (e.g., technology, domain, role level) and their **strategy for adaptation and contribution**.
+*   **Model Answers are Guides, Not Scripts:**
+    *   Provide a few concise bullet points outlining KEY CONCEPTS or points a candidate should cover. **There is no strict requirement for 4 or 5 points.**
+    *   **Reward Practicality and Originality:** Your guidance MUST instruct the interviewer that if a candidate offers **practical, unexpected, or original examples that are relevant to the job**, this is a strong positive signal. Depth and real-world application should be valued more than checking off a list of expected points.
+    *   **The "Note" for Interviewers:** Every model answer must include guidance like: *'Note: A strong answer demonstrates understanding, not just recall. If the candidate provides relevant real-life examples or discusses experiences/skills not detailed on their resume but clearly relevant to the role, this indicates greater depth and should be assessed positively.'*
+    *   **"Tell me about yourself" (Exception):** The model answer for this MUST be a descriptive guide FOR THE INTERVIEWER, framed to help a non-technical recruiter assess relevance by pulling specific details from the candidate's profile (e.g., '*Candidate should mention their project on X...*', '*Should highlight achievement Y...*').
 
-**The Interviewer Note in model answers MUST consistently guide the recruiter to focus on the *quality, impact, and relevance of demonstrated skills and adaptability*, which can often be more telling than direct keyword matches or years in a title. Encourage the interviewer to assess the candidate's ability to connect their learning and experiences to the role's demands and to consider relevant information shared by the candidate that may not be on the resume.**
+*   **Scoring Rubric:** The rubric criteria you generate must also be flexible, focusing on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate.
 
 Job Description (Primary Source):
 {{{jobDescription}}}
@@ -125,7 +111,7 @@ Unstop Profile Link (Primary Source - COMPULSORY, **conceptually treat as if acc
 {{#if candidateResumeDataUri}}
 Candidate Resume File ({{{candidateResumeFileName}}}):
 {{media url=candidateResumeDataUri}}
-(AI: The candidate's resume is provided above via a data URI (which includes Base64 encoded content of the PDF/DOCX file). Please directly analyze the content of this file to extract skills, experiences, specific projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences to inform your question generation.)
+(AI: The candidate's resume is provided above via a data URI. Please directly analyze its content.)
 {{else}}
 No candidate resume file was provided.
 {{/if}}
@@ -135,44 +121,7 @@ Candidate Experience Context (additional notes):
 {{{candidateExperienceContext}}}
 {{/if}}
 
-Based on a holistic understanding of ALL available information (JD, Unstop Profile, and the content of the Candidate Resume File if provided, plus any context), generate the interview kit following a REAL INTERVIEW PATTERN:
-
-1.  **Structure the Interview Flow and Identify Competencies**:
-    *   Start with a competency named "Candidate Introduction & Background."
-    *   Identify 3-5 other core competencies. These MUST be derived from a synthesis of the **Job Description's core requirements** and informed by the Unstop profile/resume file content. Ensure competencies cover fundamental skills from the JD (e.g., "Object-Oriented Programming," "Data Structures," "System Design"). Assign importance (High, Medium, Low).
-    *   Prioritize substance (demonstrated skills, project outcomes) over superficial elements like formatting or excessive buzzwords in the inputs.
-
-2.  **Generate Questions in a Logical Sequence & Ensure Variety**:
-    *   **"Candidate Introduction & Background" competency**:
-        *   "Tell me about yourself."
-        *   Questions on academic background, qualifications, academic achievements (from Unstop profile/resume file content).
-        *   Questions on overall work experience (from Unstop profile/resume file content).
-    *   **Other competencies**:
-        *   **Resume/Profile Project Deep-Dive Question(s)**: If Unstop profile/resume file is provided, ensure questions **directly probe specific projects identified from analyzing the resume file content or Unstop profile**. Ask about: "tech stack used, primary goals, accomplishments, and significant challenges overcome" for Project X, or "role and contributions in Project Y, especially how you handled [specific challenge/goal from project description found in resume/profile]."
-        *   **Cover Foundational JD Skills:** After deep-diving into resume/profile projects, ensure you also generate questions for **core technical requirements listed in the Job Description** (e.g., "Object-Oriented Programming," "Data Structures," "REST API design," a specific framework). This is crucial for assessing foundational knowledge beyond the candidate's specific project work.
-        *   Follow with other distinct, insightful questions (2-3 total per competency): Technical, Scenario, Behavioral, sharply tailored to JD and specifics from Unstop profile/resume file content/context (projects, tech stack, goals, accomplishments, challenges, education, past experiences). Apply the "astute evaluator" principles described above when generating these questions.
-        *   Ensure variety in the questions generated for any single competency. Avoid asking multiple questions that probe the exact same skill or experience in only slightly different ways (e.g., TC-KEYWC\\*).
-
-3.  **For EACH question, provide all fields as specified in the output schema**:
-    *   \`question\`: Text of the question.
-    *   \`answer\`: This is the most critical part of your role as a recruiter companion. The model answer is **FOR THE INTERVIEWER'S USE** and must have the "aura" of what an experienced recruiter expects.
-        *   **Format**: 4 concise bullet points.
-        *   **Content for most questions**: These bullet points MUST BE **EXTREMELY BRIEF AND CRISP**, ideally just **ABSOLUTELY ESSENTIAL KEYWORDS or CRITICAL SHORT PHRASES**, serving as a rapid mental checklist for a non-technical recruiter. Each bullet point MUST outline KEY POINTS a candidate should cover and include an indicative score contribution (e.g., 'approx. 2-3 points').
-        *   **Content for some general questions, especially those testing a core JD requirement like OOP**: The model answer MUST focus on **FUNDAMENTAL principles and CORE CONCEPTS broken down SIMPLY**. For example, for an OOP question, guide the interviewer to listen for the 4 pillars. For a systems design question, guide them to check for concepts like scalability, reliability, and trade-offs. The goal is to help the recruiter evaluate the candidate's structured thinking and grasp of first principles, which is a stronger signal of expertise than just reciting facts.
-        *   **"Tell me about yourself" (Exception)**: This model answer MUST be a more **descriptive guide FOR THE INTERVIEWER**, framed to help a non-technical recruiter assess relevance by pulling specific details from the candidate's profile (e.g., '*Candidate should mention their project on X...*', '*Should highlight achievement Y...*').
-        *   **Crucially, include guidance on evaluating "off-resume" information**: All model answers should include a note like: 'Note: If the candidate provides relevant real-life examples or discusses experiences/skills not detailed on their resume/profile but clearly relevant to the role, this can indicate greater depth, initiative, or broader experience. The interviewer should assess the relevance and substance of such unstated information against the job requirements.'
-    *   \`type\`: 'Technical', 'Scenario', 'Behavioral'.
-    *   \`category\`: 'Technical' or 'Non-Technical'.
-    *   \`difficulty\`: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'.
-    *   \`estimatedTimeMinutes\`: Suitable time.
-
-4.  **Create a Scoring Rubric (for a non-technical recruiter)**:
-    *   3-5 weighted criteria. Each MUST be well-defined, distinct, high-quality, actionable, measurable, and **framed for easy use by a non-technical recruiter**. Focus on 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering both resume-based details extracted by AI from file and **relevant emergent details shared by the candidate during the interview**)', etc.
-    *   Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or academic achievements from JD AND/OR Unstop Profile/Resume File Content (AI to analyze if provided, including projects, education, past experiences) for context. Guide the recruiter to also consider relevant, substantiated information shared by the candidate that may not be on the resume.
-    *   Set of criteria must provide broad yet deeply contextual basis for evaluation, **usable by someone not expert in the role's domain**. Weights sum to 1.0. Example: 'Criterion: Technical Communication - Clarity on [specific concept from JD or Unstop/Resume file content, and other relevant technical points discussed]. Weight: 0.25.'
-
-Return JSON object per output schema. Populate all fields. Goal: logically sequenced kit, relevant tailored questions, concise judgeable model answers (recruiter's perspective, mostly brief keywords but descriptive for intro, with score contributions and guidance on emergent info), contextual well-defined rubric for non-technical recruiters.
-`,
+Based on a holistic understanding of ALL available information, generate the interview kit following a REAL INTERVIEW PATTERN. Adhere to all the principles described above. Structure the competencies and questions logically, provide insightful and flexible model answers, and create a practical, context-aware scoring rubric. The final kit must be a comprehensive and effective tool for a recruiter, especially one who is not a domain expert.`,
 });
 
 const generateInterviewKitFlow = ai.defineFlow(
@@ -193,7 +142,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         importance: comp.importance || "Medium",
         questions: (comp.questions || []).map(q => ({
           question: q.question || "Missing question text. AI should generate this, derived from JD/Unstop Profile/Resume File Content.",
-          answer: q.answer || "Missing model answer. AI should provide guidance from an interviewer's perspective on EXTREMELY BRIEF AND CRISP keywords/short phrases the candidate should cover (each with indicative contribution to score using whole numbers or small ranges, conceptually summing to 10 if all covered), informed by JD/Unstop Profile/Resume File Content/context (including how to evaluate relevant details not on resume), making it easy for a non-technical recruiter to judge. For some general questions, answers MUST focus on FUNDAMENTAL concepts broken down SIMPLY. For 'Tell me about yourself', it should guide on what a candidate with this specific Unstop/Resume background should cover to help a non-technical recruiter assess relevance.",
+          answer: q.answer || "Missing model answer. AI should provide guidance from an interviewer's perspective on a few brief keywords/short phrases the candidate should cover, informed by JD/Unstop Profile/Resume File Content/context (including how to evaluate relevant, original details not on resume), making it easy for a non-technical recruiter to judge. For 'Tell me about yourself', it should guide on what a candidate with this specific Unstop/Resume background should cover.",
           type: q.type || "Behavioral",
           category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical'),
           difficulty: q.difficulty || "Intermediate",
@@ -201,7 +150,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         })),
       })),
       scoringRubric: (output.scoringRubric || []).map(crit => ({
-        criterion: crit.criterion || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, contextually reference JD/Unstop Profile/Resume File Content and account for emergent relevant details for comprehensive evaluation by a non-technical recruiter, and be usable by someone not expert in the role's domain). AI should refine this.",
+        criterion: crit.criterion || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, contextually reference JD/Unstop Profile/Resume File Content and account for emergent relevant details for comprehensive evaluation by a non-technical recruiter). AI should refine this.",
         weight: typeof crit.weight === 'number' ? Math.max(0, Math.min(1, crit.weight)) : 0.2,
       })),
     };
