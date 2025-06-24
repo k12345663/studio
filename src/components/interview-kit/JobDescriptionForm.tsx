@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck, Paperclip, AlertTriangle } from 'lucide-react';
+import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck, Paperclip, AlertTriangle, ClipboardList } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from '@/components/ui/textarea';
 
@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 export interface JobDescriptionFormSubmitData {
   jobDescription: string;
   unstopProfileLink?: string;
+  unstopProfileDetails?: string;
   candidateResumeDataUri?: string | null;
   candidateResumeFileName?: string;
   candidateExperienceContext?: string;
@@ -31,6 +32,7 @@ const MAX_FILE_SIZE_MB = 4.5;
 export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormProps) {
   const [jobDescription, setJobDescription] = useState('');
   const [unstopProfileLink, setUnstopProfileLink] = useState('');
+  const [unstopProfileDetails, setUnstopProfileDetails] = useState('');
   const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined | null>(undefined);
   const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
   const [resumeDisplayMessage, setResumeDisplayMessage] = useState(`Attach resume (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB) or leave blank.`);
@@ -177,6 +179,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     onSubmit({
       jobDescription: jobDescription.trim(),
       unstopProfileLink: unstopProfileLink.trim(),
+      unstopProfileDetails: unstopProfileDetails.trim() || undefined,
       candidateResumeDataUri: candidateResumeDataUri,
       candidateResumeFileName: candidateResumeFileName,
       candidateExperienceContext: candidateExperienceContext.trim() || undefined,
@@ -233,6 +236,22 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               disabled={isLoading || isProcessingFile}
               aria-label="Unstop Profile Link Input"
               required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="unstop-profile-details" className="font-semibold text-foreground text-md flex items-center">
+              <ClipboardList size={18} className="mr-2 text-primary" /> Unstop Profile Details (Optional)
+            </Label>
+            <Textarea
+              id="unstop-profile-details"
+              value={unstopProfileDetails}
+              onChange={(e) => setUnstopProfileDetails(e.target.value)}
+              placeholder="For best results, paste the candidate's skills, experience, and projects from their Unstop profile here."
+              className="min-h-[150px] text-sm p-3 rounded-lg shadow-inner bg-input/80 focus:bg-background"
+              rows={6}
+              disabled={isLoading || isProcessingFile}
+              aria-label="Unstop Profile Details Text Input"
             />
           </div>
 

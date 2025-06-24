@@ -4,8 +4,7 @@
 import { useState, useCallback } from 'react';
 import { generateInterviewKit, type GenerateInterviewKitInput, type GenerateInterviewKitOutput } from '@/ai/flows/generate-interview-kit';
 import { customizeInterviewKit, type CustomizeInterviewKitInput, type CustomizeInterviewKitOutput } from '@/ai/flows/customize-interview-kit';
-import { scrapeUnstopProfile } from '@/app/actions';
-import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty, QuestionCategory, ScrapedData } from '@/types/interview-kit';
+import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty, QuestionCategory } from '@/types/interview-kit';
 import { generateId, difficultyTimeMap } from '@/types/interview-kit';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -142,7 +141,7 @@ export default function Home() {
     setInterviewKit(null);
     setJobDescription(data.jobDescription);
     setUnstopProfileLink(data.unstopProfileLink);
-    setUnstopProfileDetails('');
+    setUnstopProfileDetails(data.unstopProfileDetails);
     setCandidateResumeDataUri(data.candidateResumeDataUri);
     setCandidateResumeFileName(data.candidateResumeFileName);
     setCandidateExperienceContext(data.candidateExperienceContext);
@@ -161,34 +160,13 @@ export default function Home() {
         return;
       }
 
-      setLoadingMessage("Fetching data from Unstop profile...");
-      toast({ title: "Fetching Profile...", description: "Please wait while we gather details from the candidate's Unstop profile." });
-      const scrapedData = await scrapeUnstopProfile(data.unstopProfileLink);
-
-      if (scrapedData.error) {
-        throw new Error(`Unstop Profile Scraping Failed: ${scrapedData.error}`);
-      }
-
-      const profileDetailsString = [
-        scrapedData.name ? `Name: ${scrapedData.name}` : '',
-        scrapedData.college ? `College: ${scrapedData.college}` : '',
-        scrapedData.skills ? `\nSkills:\n${scrapedData.skills}` : '',
-        scrapedData.experience ? `\nWork Experience:\n${scrapedData.experience}` : '',
-        scrapedData.competitions ? `\nCompetitions & Hackathons:\n${scrapedData.competitions}` : ''
-      ].filter(Boolean).join('\n').trim();
-
-      if (!profileDetailsString) {
-        throw new Error("Could not extract any text from the Unstop profile. Please check the URL or try again.");
-      }
-      setUnstopProfileDetails(profileDetailsString);
-
       setLoadingMessage("Generating your interview kit...");
-      toast({ title: "Generating Kit...", description: "Profile data fetched successfully. Now creating your kit." });
+      toast({ title: "Generating Kit...", description: "Creating your tailored interview kit." });
 
       inputForAI = {
         jobDescription: data.jobDescription,
         unstopProfileLink: data.unstopProfileLink,
-        unstopProfileDetails: profileDetailsString,
+        unstopProfileDetails: data.unstopProfileDetails,
         candidateResumeDataUri: data.candidateResumeDataUri === null ? undefined : data.candidateResumeDataUri,
         candidateResumeFileName: data.candidateResumeFileName,
         candidateExperienceContext: data.candidateExperienceContext,
@@ -196,7 +174,7 @@ export default function Home() {
 
       const output = await generateInterviewKit(inputForAI);
       if (output && output.competencies && output.scoringRubric) {
-        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, profileDetailsString, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
+        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.unstopProfileDetails, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
         setShowInputs(false);
       } else {
@@ -303,7 +281,7 @@ export default function Home() {
                  {unstopProfileDetails && (
                   <div>
                     <h3 className="font-medium mb-1 text-foreground flex items-center">
-                       <ClipboardList size={16} className="mr-2 text-primary/80"/> Scraped Unstop Profile Details:
+                       <ClipboardList size={16} className="mr-2 text-primary/80"/> Pasted Unstop Profile Details:
                     </h3>
                     <div className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-lg bg-input/50 shadow-inner custom-scrollbar">
                       {unstopProfileDetails}
