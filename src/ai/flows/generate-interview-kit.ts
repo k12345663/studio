@@ -56,7 +56,7 @@ const GenerateInterviewKitOutputSchema = z.object({
   competencies: z.array(CompetencySchema).describe('An array of 4-6 core competencies for the job. The first competency should ideally cover "Candidate Introduction & Background" including "Tell me about yourself", academic background, and general experience questions. Subsequent competencies should cover skills/projects (from Unstop profile/resume file content [AI to analyze if provided]) AND fundamental requirements from the JD (like OOP). Questions should be sequenced logically. Competencies themselves should be informed by the holistic analysis of JD and candidate profile (Unstop link/resume file content, including educational background and academic achievements).'),
   scoringRubric: z
     .array(ScoringCriterionSchema)
-    .describe("The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, well-defined, distinct, high-quality, actionable, measurable, and explicitly referencing key phrases from the Job Description AND/OR Candidate's Unstop Profile/Resume File Content (AI to analyze if provided, including specific project details, educational background, academic achievements, and past work experiences, and guiding the interviewer to also consider relevant information shared by the candidate that may not be on the resume) to provide a broad yet deeply contextual basis for comprehensive candidate evaluation. Frame criteria to be easily usable by a non-technical recruiter, focusing on aspects like clarity, relevance, and depth. For example: 'Criterion: Technical Communication Clarity. Weight: 0.3. (Assesses how clearly the candidate explains technical concepts from the JD or mentioned in their Unstop profile/resume file, and any other relevant technical details they discuss.)'"),
+    .describe("The 3-5 weighted scoring rubric criteria for the interview. Criteria MUST be contextually derived, well-defined, distinct, high-quality, actionable, measurable, and explicitly referencing key phrases from the Job Description AND/OR Candidate's Unstop Profile/Resume File Content (AI to analyze if provided, including specific project details, educational background, academic achievements, and past work experiences, and guiding the interviewer to also consider relevant information shared by the candidate that may not be on the resume) to provide a broad yet deeply contextual basis for comprehensive candidate evaluation. Frame criteria to be easily usable by a non-technical recruiter, focusing on aspects like clarity, relevance, and depth. For example: 'Criterion: Technical Communication Clarity. Weight: 0.3. (Assesses how clearly the candidate explains technical concepts from the JD or mentioned in their Unstop profile/resume file, and any other technical details they discuss.)'"),
 });
 export type GenerateInterviewKitOutput = z.infer<typeof GenerateInterviewKitOutputSchema>;
 
@@ -74,17 +74,19 @@ const generateInterviewKitPrompt = ai.definePrompt({
 
 **Stage 1: Input Quality and Integrity Check**
 First, analyze the provided Job Description, Unstop Profile, and Resume for completeness, clarity, and potential issues.
-*   **Handle Edge Cases:** If inputs are sparse, generic, or conflicting (e.g., empty JD, vague profile, Unstop/resume mismatch), note this and generate broader, more fundamental questions. If inputs are entirely missing, you cannot proceed.
-*   **Authenticity Flags:** Look for signs of AI-generated content, buzzword stuffing without substance, or duplicated content across roles. If detected, generate more situational and experiential questions to probe for genuine, hands-on knowledge.
+*   **Handle Edge Cases:** If inputs are sparse, generic (e.g., JD is just a title), or conflicting (e.g., profile name mismatch), note this and generate broader, more fundamental questions. If inputs are entirely missing, you cannot proceed.
+*   **Authenticity Flags:** Look for signs of AI-generated content, buzzword stuffing without substance (e.g., profile full of buzzwords but no projects), or duplicated content across roles. If detected, generate more situational and experiential questions to probe for genuine, hands-on knowledge.
+*   **Input Quality:** Attempt to strip HTML/markup from the JD. If the resume is unparsable (e.g., two-column layout, special fonts), rely on other available information.
 
 **Stage 2: Candidate-Role Profile Matching & Scenario Identification**
-CRITICAL: Synthesize all information to identify the primary scenario that best describes the candidate's situation relative to the role. This is your most important analytical step. Choose one:
+CRITICAL: Synthesize all information to identify the primary scenario that best describes the candidate's situation relative to the role. This is your most important analytical step. Choose one from this extensive list:
 *   **Standard Role Alignment:** The candidate's profile generally matches the role's requirements in terms of skills, experience level, and domain.
-*   **Career Transition:** The candidate's core domain (e.g., IT, Civil Engg, Physics) differs significantly from the role's domain (e.g., Sales, Data Science, Fintech), requiring a probe into transferable skills and motivation.
-*   **Seniority Mismatch:** The candidate is either A) **Overqualified:** Has significantly more experience than required or is applying for a more junior role. Or B) **Underqualified by Years:** Has fewer years of formal experience than required, but their profile showcases strong, relevant project leadership or high-impact contributions.
+*   **Career Transition:** The candidate's core domain (e.g., IT, Civil Engg) differs significantly from the role's domain (e.g., Sales, Data Science).
+*   **Seniority Mismatch (Overqualified):** The candidate has significantly more experience than required (e.g., 15 years for a 10-year role) or is applying for a more junior role.
+*   **Seniority Mismatch (Underqualified by Years):** The candidate has fewer years of formal experience than required, but their profile showcases strong, relevant project leadership or high-impact contributions.
 *   **Technology Mismatch:** The candidate's primary tech stack (e.g., React, AWS) differs from the role's required stack (e.g., Vue, GCP), but the underlying concepts are related.
-*   **Experience Gap / Career Break:** The profile shows unexplained employment gaps or a formal career break (potentially used for upskilling).
-*   **Academic-to-Professional Transition:** The candidate is a recent graduate or has a profile dominated by internships and academic projects, lacking extensive full-time experience.
+*   **Experience Gap / Career Break:** The profile shows unexplained employment gaps or a formal career break (potentially with upskilling).
+*   **Academic-to-Professional Transition:** The candidate is a recent graduate or has a profile dominated by internships, research papers, and academic projects, lacking extensive full-time experience.
 *   **Frequent Job Changer / Freelancer:** The candidate has a history of frequent job switching or primarily freelance work and is now applying for a permanent role.
 *   **Ambiguous/Vague Profile:** The profile or JD is sparse on details, uses buzzwords without projects, has unclear role titles, or seems copy-pasted.
 
@@ -93,7 +95,8 @@ Your generated kit MUST follow a standard real interview pattern, adapted to the
 *   **Question 1 MUST be "Tell me about yourself."** This is the mandatory starting point.
 *   **Then, adapt the very next questions to the identified scenario:**
     *   **For Career/Tech Transition:** Immediately probe the justification for the shift. Ask "What motivates this transition?" and critically, "What proactive steps have you taken to prepare for this new field/technology?".
-    *   **For Seniority Mismatch:** If **Overqualified**, ask "What appeals to you about this specific position at this stage in your career?". If **Underqualified by Years**, shift focus from the time gap to the quality of their projects. Ask, "The role asks for X years, your profile shows Y. Can you walk me through how [Specific Project] has prepared you for this position's demands?".
+    *   **For Overqualified:** Ask "What appeals to you about this specific position at this stage in your career?".
+    *   **For Underqualified by Years:** Shift focus from the time gap to the quality of their projects. Ask, "The role asks for X years, your profile shows Y. Can you walk me through how [Specific Project] has prepared you for this position's demands?".
     *   **For Experience Gap:** Respectfully ask for context, e.g., "I noticed a gap in your timeline between [Date] and [Date]. Could you share what you were focused on during that period?".
     *   **For Academic/Internship Profile:** Prioritize questions that validate the depth and individual contribution to academic or internship projects.
     *   **For Job Hopper/Freelancer:** Ask about career motivations and what they're seeking in a long-term, team-based role.
@@ -259,4 +262,6 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+    
+
     

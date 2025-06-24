@@ -78,28 +78,34 @@ const customizeInterviewKitPrompt = ai.definePrompt({
 
 **Your Core Evaluation Process: A Multi-Stage Deep Analysis**
 
-**Stage 1: Holistic Re-Analysis of All Inputs**
-CRITICAL: Before refining any content, you must perform a holistic re-analysis of ALL original inputs (JD, Unstop Profile, Resume Data, Context) supplemented by the user's edits. Check for input quality, authenticity clues (e.g., buzzwords, duplicated content), and inconsistencies.
+**Stage 1: Holistic Re-Analysis of All Inputs & Integrity Check**
+CRITICAL: Before refining any content, you must perform a holistic re-analysis of ALL original inputs (JD, Unstop Profile, Resume Data, Context) supplemented by the user's edits.
+*   **Handle Edge Cases:** If inputs are sparse, generic (e.g., JD is just a title), or conflicting (e.g., profile name mismatch), note this and generate broader, more fundamental questions. If inputs are entirely missing, you cannot proceed.
+*   **Authenticity Flags:** Look for signs of AI-generated content, buzzword stuffing without substance (e.g., profile full of buzzwords but no projects), or duplicated content across roles. If detected, generate more situational and experiential questions to probe for genuine, hands-on knowledge.
+*   **Input Quality:** Attempt to strip HTML/markup from the JD. If the resume is unparsable (e.g., two-column layout, special fonts), rely on other available information.
 
 **Stage 2: Candidate-Role Profile Matching & Scenario Identification**
-Synthesize all information to identify the primary scenario describing the candidate's situation. This is your most critical step. Choose one:
+Synthesize all information to identify the primary scenario describing the candidate's situation. This is your most critical step. Choose one from this extensive list:
 *   **Standard Role Alignment:** The candidate's profile generally matches the role's requirements.
-*   **Career Transition:** The candidate's domain (e.g., IT, Civil Engg) differs significantly from the role's domain (e.g., Sales, Fintech).
-*   **Seniority Mismatch:** The candidate is either significantly more experienced (overqualified) than required or less experienced by years but has strong projects (underqualified by years).
+*   **Career Transition:** The candidate's core domain (e.g., IT, Civil Engg) differs significantly from the role's domain (e.g., Sales, Data Science).
+*   **Seniority Mismatch (Overqualified):** The candidate has significantly more experience than required (e.g., 15 years for a 10-year role) or is applying for a more junior role.
+*   **Seniority Mismatch (Underqualified by Years):** The candidate has fewer years of formal experience than required, but their profile showcases strong, relevant project leadership or high-impact contributions.
 *   **Technology Mismatch:** The candidate's primary tech stack (e.g., React, AWS) differs from the role's required stack (e.g., Vue, GCP), but the underlying concepts are related.
-*   **Experience Gap / Career Break:** The profile shows employment gaps or a formal career break (potentially with upskilling).
-*   **Academic-to-Professional Transition:** The candidate is a recent graduate or has a profile dominated by internships and academic projects.
-*   **Freelancer/Job-Hopper Profile:** The candidate has a history of frequent job switching or freelance work and is applying for a permanent role.
-*   **Ambiguous/Vague Profile:** The profile or JD is sparse on details, uses buzzwords without projects, or has unclear role titles.
+*   **Experience Gap / Career Break:** The profile shows unexplained employment gaps or a formal career break (potentially with upskilling).
+*   **Academic-to-Professional Transition:** The candidate is a recent graduate or has a profile dominated by internships, research papers, and academic projects, lacking extensive full-time experience.
+*   **Frequent Job Changer / Freelancer:** The candidate has a history of frequent job switching or primarily freelance work and is now applying for a permanent role.
+*   **Ambiguous/Vague Profile:** The profile or JD is sparse on details, uses buzzwords without projects, has unclear role titles, or seems copy-pasted.
 
 **Stage 3: Refine Questions with an Adaptive, Logical Sequence**
 Your refined kit MUST follow a standard real interview pattern. Review the user's edits and ensure the overall flow remains logical according to the identified scenario.
 *   **The first question should generally be "Tell me about yourself."**
 *   **Then, ensure the flow follows the appropriate path based on your Stage 2 analysis:**
     *   **For Career/Tech Transition:** The questions immediately following the intro MUST probe the justification for the shift. Ask about proactive steps taken to bridge the gap (e.g., "What have you done to prepare for this new field/technology?").
-    *   **For Seniority Mismatch:** If overqualified, ask "What appeals to you about this specific position at this stage in your career?". If underqualified but with strong projects, the questions must prioritize validating the quality and impact of project experience over the lack of years.
+    *   **For Overqualified:** Ask "What appeals to you about this specific position at this stage in your career?".
+    *   **For Underqualified by Years:** Shift focus from the time gap to the quality of their projects. The questions must prioritize validating the impact and leadership scope of project experience over the lack of years. Ask "The role asks for X years, your profile shows Y. Can you walk me through how [Specific Project] has prepared you for this position's demands?".
     *   **For Experience Gap:** Respectfully ask for context about the gap and any learning or projects undertaken during that time.
-    *   **For Academic/Internship Profile:** Prioritize questions that validate the depth of academic projects and readiness for full-time responsibilities. Ask about individual contributions.
+    *   **For Academic/Internship Profile:** Prioritize questions that validate the depth of academic projects and readiness for full-time responsibilities. Ask about individual contributions in team projects.
+    *   **For Job Hopper/Freelancer:** Ask about career motivations and what they're seeking in a long-term, team-based role.
     *   **For Standard Role Alignment:** The questions following the intro should be deep-dives into their resume/profile projects to validate their experience.
 *   **Overall Flow:** Ensure that project-specific and skill-validation questions come before more general technical or behavioral questions. Your refinement should preserve this natural interview progression.
 
@@ -281,4 +287,6 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+    
+
     
