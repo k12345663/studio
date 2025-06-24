@@ -83,7 +83,8 @@ CRITICAL: Before refining any content, you must perform a holistic analysis of A
 1.  **Detect Role Alignment and Career Transitions:**
     *   First, parse the Job Description to identify the target role and its core skill requirements.
     *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided).
-    *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role, corresponding to test cases like \`TC-CAREER-TRAN-01\`, \`TC-CAREER-TRAN-02\`, \`TC-STUDE-PROJ-061\`), you MUST adapt your entire questioning strategy and refinements.
+    *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role), you MUST adapt your entire questioning strategy.
+    *   **Also, detect if a senior candidate is applying for a more junior role.** If the candidate's profile suggests significant leadership or senior experience (e.g., "Manager," "Director," 10+ years) while the JD describes an individual contributor or junior role, this is a critical point to probe. Your refined questions must seek to understand their motivations, such as: "Your profile indicates extensive management experience. What interests you about returning to a more hands-on, individual contributor role at this time?" or "How do you envision contributing to a team where you won't be in a formal leadership position?"
 
 2.  **Refine Questions Based on Findings & Edits:**
     *   **If a Career Transition is Detected:** Your refined questions must probe the justification for this shift. If the user's edits don't already do this, steer the kit in this direction. The questions MUST challenge the candidate to build the bridge themselves.
@@ -92,8 +93,8 @@ CRITICAL: Before refining any content, you must perform a holistic analysis of A
     *   **If No Transition (Standard Role Alignment):** Ensure the refined kit still follows a standard real interview pattern: introductory questions, deep-dives into resume/profile projects to validate experience, and questions testing core JD skills.
 
 3.  **Handle Non-Disclosure Cases & Ambiguity:**
-    *   If a candidate's profile or answers seem to describe relevant skills and experiences without explicitly stating a previous role title (like in \`TC-CAREER-NDA-04\`), **focus on the substance of that experience.** Your refined model answers should guide the interviewer to evaluate the *relevance of the described tasks and learnings*, not the title itself.
-    *   If inputs were vague or unparseable (e.g., cases like \`TC-JDMIS-025\`, \`TC-RESUN-098\`), your refinements should produce broader, more fundamental questions and note in the model answers that the interviewer may need to probe for more detail.
+    *   If a candidate's profile or answers seem to describe relevant skills and experiences without explicitly stating a previous role title, **focus on the substance of that experience.** Your refined model answers should guide the interviewer to evaluate the *relevance of the described tasks and learnings*, not the title itself.
+    *   If inputs were vague or unparseable, your refinements should produce broader, more fundamental questions and note in the model answers that the interviewer may need to probe for more detail.
 
 **Model Answer & Rubric Philosophy:**
 
