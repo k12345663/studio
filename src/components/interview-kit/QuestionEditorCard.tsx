@@ -141,16 +141,13 @@ export function QuestionEditorCard({
           <Label htmlFor={`${uniqueIdPrefix}-modelAnswer`} className="font-semibold text-md flex items-center text-foreground">
              <Type size={16} className="mr-2 text-primary"/> Model Answer (Interviewer's Guide)
           </Label>
-          <Textarea
+          <div
             id={`${uniqueIdPrefix}-modelAnswer`}
-            value={question.modelAnswer}
-            onChange={(e) => handleInputChange('modelAnswer', e.target.value)}
-            placeholder="3-4 brief bullet points for the interviewer, with indicative marks..."
-            className="mt-1 text-sm p-3 rounded-lg shadow-inner bg-input/80 focus:bg-background"
-            rows={4}
-            disabled={isLoading}
+            className="mt-1 text-sm p-3 rounded-lg bg-input/50 shadow-inner border border-border/50 whitespace-pre-wrap min-h-[100px] prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
             aria-label={`Model answer for question ${questionIndex + 1}`}
-          />
+          >
+            {question.modelAnswer}
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-5 gap-y-4 items-end pt-2">
@@ -268,3 +265,5 @@ export function QuestionEditorCard({
     </Card>
   );
 }
+
+    
