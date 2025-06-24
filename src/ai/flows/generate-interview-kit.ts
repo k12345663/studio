@@ -96,13 +96,13 @@ Your generated kit MUST follow a logical, real-world interview sequence, adapted
 *   **Step 1: Introduction (The mandatory first question).**
     *   The first question in the entire kit MUST be "Tell me about yourself."
 *   **Step 2: Motivation & Alignment (The next 1-2 questions).**
-    *   Immediately after the introduction, you MUST address the primary scenario identified in Stage 2.
-    *   **For Career/Tech Transition:** Ask "What motivates this transition?" and "What proactive steps have you taken to prepare for this new field/technology?".
-    *   **For Overqualified:** Ask "What appeals to you about this specific position at this stage in your career?".
-    *   **For Underqualified by Years:** Ask, "The role asks for X years of experience, and your profile shows Y. Can you walk me through how [Specific Project from their profile] has prepared you for the demands of this position?".
-    *   **For Experience Gap:** Respectfully ask for context, e.g., "I noticed a gap in your timeline between [Date] and [Date]. Could you share what you were focused on during that period?".
-    *   **For Academic/Internship Profile:** Ask about their career goals and why they're interested in this specific industry/role post-graduation.
-    *   **For Job Hopper/Freelancer:** Ask about their career motivations and what they're seeking in a long-term, team-based role.
+    *   Immediately after the introduction, you MUST address the primary scenario identified in Stage 2 with subtle, probing questions.
+    *   **For Career/Tech Transition:** Ask about their motivation and preparation. Example: "I see you've built a strong background in [Previous Domain]. What has sparked your interest in moving into [New Domain]?" or "This role uses [Technology Y] heavily. Based on your experience with related technologies, how would you approach getting up to speed?"
+    *   **For Overqualified:** Probe their motivation for this specific role. Example: "This role seems to be a slight departure from your previous senior positions. What about this particular opportunity caught your interest?"
+    *   **For Underqualified by Years:** Focus on the quality and impact of their project experience over the lack of years. Example: "This role typically requires deep experience. Could you walk me through a project where you took on significant responsibilities that showcase your readiness for this level of challenge?"
+    *   **For Experience Gap:** Respectfully ask for context. Example: "I noticed a period on your profile where you weren't in a formal role. Could you share what you were focused on during that time?"
+    *   **For Academic/Internship Profile:** Validate the depth of academic projects and their readiness for full-time responsibilities.
+    *   **For Job Hopper/Freelancer:** Probe their career motivations and what they're seeking in a long-term, team-based role.
     *   **For Standard Role Alignment:** Proceed directly to the next step (Deep Dives).
 *   **Step 3: Experience Deep Dive (The core of the interview).**
     *   Following the motivation questions, generate questions that are deep dives into their most relevant projects and work experiences from their Unstop profile details and resume. This is for validating their hands-on experience.
@@ -110,13 +110,13 @@ Your generated kit MUST follow a logical, real-world interview sequence, adapted
     *   Conclude with more general technical, scenario, or behavioral questions that test core skills from the Job Description but are not tied to a specific project.
 
 **Stage 4: Model Answer & Rubric Philosophy**
-Your generated guidance for the interviewer must be practical, generalized, and flexible.
+Your generated guidance for the interviewer must be practical, generalized, and flexible. The resume and profile are for YOUR ANALYSIS ONLY. Do not mention them in the final output.
 *   **Model Answers are Your Core Tool for the Recruiter:** These are generalized evaluation guides for the INTERVIEWER'S EYES ONLY.
     *   **Format:** The answer must be 3-4 concise bullet points. AVOID long sentences or paragraphs.
     *   **Indicative Scoring:** Each bullet point must have a suggested point value (e.g., '(~3 points)') that logically sums to 10.
     *   **Note for Interviewer (MANDATORY):** Every model answer must end with a "Note for Interviewer". This note should guide on scoring partial answers and explicitly state that if a candidate provides a different but highly relevant, practical answer from their own experience, it should be viewed as a **significant PLUS**. The goal is to evaluate insight, not rote memorization.
 *   **For Transition/Mismatch Questions:** The guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role/tech.** The strength of their argument is what's being tested.
-*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. Analyze the candidate's profile (Unstop details, resume content) and provide bullet points on what a compelling narrative should include, using specific examples from their background. For example: '- Listen for how they link experience in [Specific Project from Resume] to [Key Requirement from JD]. (~4 points)', '- Assess if they connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]. (~3 points)', '- Check for a clear, concise summary of their background and future goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling and ability to connect their past to this specific opportunity.
+*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. **Do not summarize the candidate's resume.** Instead, provide bullet points on what a compelling narrative from a candidate with this background should sound like. For example: '- Listen for how they connect their most significant past experiences to the key requirements of *this* role. (~4 points)', '- Assess if they can articulate how a past accomplishment demonstrates their potential to achieve our company's goals. (~3 points)', '- Check for a clear, concise summary of their background and future career goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling and ability to connect their past to this specific opportunity.
 *   **Scoring Rubric:** Rubric criteria must be flexible and context-aware, focusing on assessing clarity, relevance, problem-solving, and adaptability.
 
 Job Description (Primary Source):

@@ -103,12 +103,12 @@ Your refined kit MUST follow a logical, real-world interview sequence. Review th
     *   The first question in the kit should generally be "Tell me about yourself."
 *   **Step 2: Motivation & Alignment.**
     *   The questions immediately following the introduction MUST probe the primary scenario identified in Stage 2.
-    *   **For Career/Tech Transition:** Questions should probe the justification for the shift and proactive steps taken.
-    *   **For Overqualified:** Questions should probe their motivation for a more junior role.
-    *   **For Underqualified by Years:** Questions should focus on the quality and impact of their project experience over the lack of years.
-    *   **For Experience Gap:** Questions should respectfully ask for context about the gap.
-    *   **For Academic/Internship Profile:** Questions should validate the depth of academic projects and readiness for full-time responsibilities.
-    *   **For Job Hopper/Freelancer:** Questions should probe career motivations and what they're seeking in a long-term role.
+    *   **For Career/Tech Transition:** Generate questions that probe the justification for the shift and proactive steps taken. Example: "I see you've built a strong background in [Previous Domain]. What has sparked your interest in moving into [New Domain]?" or "This role uses [Technology Y] heavily. Based on your experience with related technologies, how would you approach getting up to speed?"
+    *   **For Overqualified:** Ask questions probing their motivation for this specific role. Example: "This role seems to be a slight departure from your previous senior positions. What about this particular opportunity caught your interest?"
+    *   **For Underqualified by Years:** Generate questions that focus on the quality and impact of their project experience. Example: "Could you walk me through a project where you took on responsibilities that might typically be expected of someone with more years of experience? What was the outcome?"
+    *   **For Experience Gap:** Ask questions that respectfully ask for context. Example: "I noticed a period on your profile where you weren't in a formal role. Could you share what you were focused on during that time?"
+    *   **For Academic/Internship Profile:** Ask questions that validate the depth of academic projects and readiness for full-time responsibilities.
+    *   **For Job Hopper/Freelancer:** Ask questions that probe career motivations and what they're seeking in a long-term role.
     *   **For Standard Role Alignment:** Questions should move directly to deep dives.
 *   **Step 3: Experience Deep Dive.**
     *   Ensure that questions about specific projects from their Unstop profile and resume come after the initial alignment questions.
@@ -117,13 +117,13 @@ Your refined kit MUST follow a logical, real-world interview sequence. Review th
 
 
 **Stage 4: Model Answer & Rubric Philosophy**
-Your generated guidance for the interviewer must be practical, generalized, and flexible.
+Your generated guidance for the interviewer must be practical, generalized, and flexible. The resume and profile are for YOUR ANALYSIS ONLY. Do not mention them in the final output.
 *   **Model Answers are Your Core Tool for the Recruiter:** These are generalized evaluation guides for the INTERVIEWER'S EYES ONLY.
     *   **Format:** The answer must be 3-4 concise bullet points. AVOID long sentences or paragraphs.
     *   **Indicative Scoring:** Each bullet point must have a suggested point value (e.g., '(~3 points)') that logically sums to 10.
     *   **Note for Interviewer (MANDATORY):** Every model answer must end with a "Note for Interviewer". This note should guide on scoring partial answers and explicitly state that if a candidate provides a different but highly relevant, practical answer from their own experience, it should be viewed as a **significant PLUS**. The goal is to evaluate insight, not rote memorization.
 *   **For Transition/Mismatch Questions:** The guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role/tech.** The strength of their argument is what's being tested. For questions about proactive steps, the note should emphasize looking for tangible evidence (courses, projects, etc.).
-*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. Analyze the candidate's profile (Unstop details, resume content) and provide bullet points on what a compelling narrative should include, using specific examples from their background. For example: '- Listen for how they link experience in [Specific Project from Resume] to [Key Requirement from JD]. (~4 points)', '- Assess if they connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]. (~3 points)', '- Check for a clear, concise summary of their background and future goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling and ability to connect their past to this specific opportunity.
+*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. **Do not summarize the candidate's resume.** Instead, provide bullet points on what a compelling narrative from a candidate with this background should sound like. For example: '- Listen for how they connect their most significant past experiences to the key requirements of *this* role. (~4 points)', '- Assess if they can articulate how a past accomplishment demonstrates their potential to achieve our company's goals. (~3 points)', '- Check for a clear, concise summary of their background and future career goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling and ability to connect their past to this specific opportunity.
 *   **Scoring Rubric:** Rubric criteria must be flexible, focusing on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate.
 
 Job Description (Primary Source, for context):
