@@ -95,17 +95,18 @@ CRITICAL: Before refining any content, you must perform a holistic analysis of A
 
 **Model Answer & Rubric Philosophy:**
 
-Your refined guidance for the interviewer must be practical, generalized, and flexible.
+Your generated guidance for the interviewer must be practical, generalized, and flexible.
 
-*   **Model Answers are Generalized Evaluation Guides, Not Rigid Scripts:**
-    *   The bullet points should represent GENERALIZED principles or core concepts to listen for.
-    *   **Indicative Scoring:** Each bullet point must have an indicative point value (e.g., '(~3 points)') that logically sums to 10.
-    *   **CRITICAL Note for Interviewer:** Every refined model answer must also guide the interviewer that if a candidate provides a different, but highly relevant and practical answer from their own experience, it should be viewed as a **significant PLUS** and can be awarded points.
-    *   **Crucially for Career Transitions:** When refining transition-related questions, ensure the model answer guides the interviewer to evaluate **how well the candidate articulates the connection between their past projects/learnings and the requirements of the new role.** The focus is on the logic and persuasiveness of their justification, especially if they have no direct experience in the new field.
+*   **Model Answers are Your Core Tool for the Recruiter:** These are not rigid scripts. They are generalized evaluation guides for the INTERVIEWER'S EYES ONLY.
+    *   The bullet points should represent a few core concepts or key thought processes to listen for. DO NOT create long checklists.
+    *   **Indicative Scoring:** Each bullet point must have an indicative point value (e.g., '(~3 points)') that logically sums to 10. This creates a flexible scoring baseline.
+    *   **CRITICAL: The Flexibility Clause:** Every model answer must contain guidance for the interviewer that if a candidate provides a different, but highly relevant and practical answer from their own experience, it should be viewed as a **significant PLUS** and can be awarded full or partial points. The ultimate goal is to evaluate real-world problem-solving and insight, not rote memorization of expected answers.
 
-*   **"Tell me about yourself" (Exception):** When refining this, ensure it remains a descriptive guide **FOR THE INTERVIEWER**, not a script for the candidate. It should pull specific details from the candidate's profile and suggest what a strong answer should connect, to help a non-technical recruiter assess relevance.
+*   **For Career Transition Questions:** Your guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role.** For an IT person moving to sales, the guidance isn't about "communication skills"; it's about listening for how they frame their IT project management experience as a form of client relationship management and stakeholder negotiation. The strength of their argument is what's being tested.
 
-*   **Scoring Rubric:** The rubric criteria must be well-defined, distinct, and actionable. They should focus on assessing clarity, relevance, problem-solving, and the ability to connect past experience to the target role, accounting for emergent information. Ensure weights sum to 1.0.
+*   **"Tell me about yourself" (Unique Instruction):** This model answer is an exception. It MUST be a descriptive guide FOR THE INTERVIEWER. You are to analyze the candidate's profile (Unstop, resume content) and suggest, using specific examples from their background, what a compelling narrative would sound like. For example, you might write: "For a strong answer, listen for how the candidate links their experience in [Specific Project from Resume] with the [Key Requirement from JD]. They should connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]." This equips a non-technical recruiter to assess relevance.
+
+*   **Scoring Rubric:** Rubric criteria must be flexible, focusing on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate.
 
 
 Job Description (Primary Source, for context):
