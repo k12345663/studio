@@ -32,6 +32,7 @@ export interface ClientRubricCriterion {
 export interface InterviewKit {
   jobDescription: string;
   unstopProfileLink?: string;
+  unstopProfileDetails?: string;
   candidateResumeFileName?: string;
   candidateResumeDataUri?: string; // Will be undefined if not provided or if client-side processing error (null means error)
   candidateExperienceContext?: string;

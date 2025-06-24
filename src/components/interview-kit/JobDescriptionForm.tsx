@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck, Paperclip, AlertTriangle, Info } from 'lucide-react';
+import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck, Paperclip, AlertTriangle, Info, ClipboardList } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 export interface JobDescriptionFormSubmitData {
   jobDescription: string;
   unstopProfileLink?: string;
+  unstopProfileDetails?: string;
   candidateResumeDataUri?: string | null;
   candidateResumeFileName?: string;
   candidateExperienceContext?: string;
@@ -32,9 +33,10 @@ const MAX_FILE_SIZE_MB = 4.5;
 export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormProps) {
   const [jobDescription, setJobDescription] = useState('');
   const [unstopProfileLink, setUnstopProfileLink] = useState('');
+  const [unstopProfileDetails, setUnstopProfileDetails] = useState('');
   const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined | null>(undefined);
   const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
-  const [resumeDisplayMessage, setResumeDisplayMessage] = useState<string>(`Attach resume (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB) or leave blank.`);
+  const [resumeDisplayMessage, setResumeDisplayMessage] = useState(`Attach resume (PDF/DOCX, max ${MAX_FILE_SIZE_MB}MB) or leave blank.`);
   const [candidateExperienceContext, setCandidateExperienceContext] = useState('');
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -178,6 +180,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     onSubmit({
       jobDescription: jobDescription.trim(),
       unstopProfileLink: unstopProfileLink.trim(),
+      unstopProfileDetails: unstopProfileDetails.trim() || undefined,
       candidateResumeDataUri: candidateResumeDataUri,
       candidateResumeFileName: candidateResumeFileName,
       candidateExperienceContext: candidateExperienceContext.trim() || undefined,
@@ -234,7 +237,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs p-1">
-                      The AI uses this URL conceptually as a key source. It doesn't fetch live data from the page, but uses the link as context to generate relevant questions.
+                      Provide the candidate's Unstop profile URL. While the AI doesn't fetch live data, the link provides important context. For best results, paste profile details below.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -251,9 +254,22 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               aria-label="Unstop Profile Link Input"
               required
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              The AI uses this URL conceptually. Ensure it's a public and valid Unstop profile URL.
-            </p>
+          </div>
+
+           <div className="space-y-2">
+            <Label htmlFor="unstop-profile-details" className="font-semibold text-foreground text-md flex items-center">
+              <ClipboardList size={18} className="mr-2 text-primary" /> Unstop Profile Details (Optional, Recommended)
+            </Label>
+            <Textarea
+              id="unstop-profile-details"
+              value={unstopProfileDetails}
+              onChange={(e) => setUnstopProfileDetails(e.target.value)}
+              placeholder="For best results, paste the candidate's key Unstop profile sections here (e.g., Skills, Experience, Projects, Education). The AI will analyze this text directly."
+              className="min-h-[150px] text-sm p-3 rounded-lg shadow-inner bg-input/80 focus:bg-background"
+              rows={6}
+              disabled={isLoading || isProcessingFile}
+              aria-label="Unstop Profile Details Input"
+            />
           </div>
 
           <div className="space-y-2">
@@ -320,5 +336,3 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     </Card>
   );
 }
-
-    

@@ -7,7 +7,7 @@
  * It allows recruiters to tweak question wording, re-weight scoring criteria, and regenerate questions.
  * It emphasizes a recruiter-centric approach, especially for non-technical evaluators,
  * focusing on generic yet pillar-covering answers and guidance on real-life examples.
- * It aims to maintain a logical question flow and deep engagement with JD, Unstop profile link, and candidate resume file content.
+ * It aims to maintain a logical question flow and deep engagement with JD, Unstop profile details, and candidate resume file content.
  * It also guides the AI to consider information shared by the candidate during the interview that might not be on the resume.
  * - customizeInterviewKit - A function that handles the interview kit customization process.
  * - CustomizeInterviewKitInput - The input type for the customizeInterviewKit function.
@@ -31,7 +31,7 @@ const QuestionSchema = z.object({
   id: z.string().describe('Unique identifier for the question.'),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('Type of question.'),
   category: z.enum(['Technical', 'Non-Technical']).optional().describe("Category of the question ('Technical' or 'Non-Technical'). Preserve or update if changed by user."),
-  text: z.string().describe('The text of the question. **Do not add any prefix like "Question 1:" or "1."**. Ensure it is insightful and specific, considering JD, Unstop Profile (compulsory input, conceptually treat as if analyzing the live profile) and Candidate Resume File Content (optional input, AI will analyze its content directly if provided via data URI, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context).'),
+  text: z.string().describe('The text of the question. **Do not add any prefix like "Question 1:" or "1."**. Ensure it is insightful and specific, considering JD, Unstop Profile Details (pasted text to be analyzed directly), and Candidate Resume File Content (optional input, AI will analyze its content directly if provided via data URI, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context).'),
   modelAnswer: z.string().describe("A model answer FOR THE INTERVIEWER'S USE. **CRITICAL: Format this as 3-4 concise bullet points, not a paragraph.** Each bullet point must suggest an indicative contribution to the question's 10-point score (e.g., 'approx. 2-3 points'). These points are a rapid mental checklist for a non-technical recruiter. **Every model answer must include a 'Note for Interviewer' section** that explains how to evaluate partial answers and explicitly states that if a candidate provides practical, relevant, or original examples not listed, it should be seen as a strong positive sign of depth. The goal is to assess understanding, not just check off points."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).optional().describe("The difficulty level of the question (5-point scale)."),
   estimatedTimeMinutes: z.number().optional().describe('Suitable estimated time in minutes to answer this question.'),
@@ -41,21 +41,22 @@ const CompetencySchema = z.object({
   id: z.string().describe('Unique identifier for the competency.'),
   name: z.string().describe('Name of the competency.'),
   importance: z.enum(['High', 'Medium', 'Low']).optional().describe('The importance of this competency for the role.'),
-  questions: z.array(QuestionSchema).describe('Array of questions for the competency. Ensure questions and answers maintain high quality if modified or regenerated, referencing JD and candidate profile (Unstop Profile Link - compulsory, conceptually treat as if analyzing the live profile, and especially the Resume File Content - optional input, AI will analyze its content directly if provided via data URI, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences). Try to maintain a logical sequence of questions within competencies if edits allow.'),
+  questions: z.array(QuestionSchema).describe('Array of questions for the competency. Ensure questions and answers maintain high quality if modified or regenerated, referencing JD and candidate profile (Unstop Profile Details - pasted text to be analyzed directly, and especially the Resume File Content - optional input, AI will analyze its content directly if provided via data URI, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences). Try to maintain a logical sequence of questions within competencies if edits allow.'),
 });
 
 const RubricCriterionSchema = z.object({
-  name: z.string().describe("Name of the well-defined, distinct, and high-quality criterion, framed for easy use by a non-technical recruiter. It must be actionable, measurable, and directly relevant to assessing candidate suitability. Focus on parameters like 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering resume file details [AI to analyze if provided] and relevant emergent information shared by candidate)'. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate's Unstop Profile/Resume File Content (including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, or past work experiences) where appropriate. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively, understandable by someone not expert in the role's domain."),
+  name: z.string().describe("Name of the well-defined, distinct, and high-quality criterion, framed for easy use by a non-technical recruiter. It must be actionable, measurable, and directly relevant to assessing candidate suitability. Focus on parameters like 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering resume file details [AI to analyze if provided] and relevant emergent information shared by candidate)'. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate's Unstop Profile Details/Resume File Content (including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, or past work experiences) where appropriate. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively, understandable by someone not expert in the role's domain."),
   weight: z.number().describe('Weight of the criterion (a value between 0.0 and 1.0, should sum to 1.0 across all criteria).'),
 });
 
 const CustomizeInterviewKitInputSchema = z.object({
   jobDescription: z.string().describe('The job description used to generate the interview kit. This is a primary source material. AI should try to parse meaningful requirements even if it contains HTML/markup or promotional fluff, focusing on core skills and responsibilities.'),
-  unstopProfileLink: z.string().optional().describe("The candidate's Unstop profile link (compulsory input). This is a primary source material if provided; AI should (conceptually) treat this as if accessing and deeply analyzing the candidate's entire live profile if it was used and should be considered for refinements."),
+  unstopProfileLink: z.string().optional().describe("The candidate's Unstop profile link (for context only)."),
+  unstopProfileDetails: z.string().optional().describe("A block of text pasted from the candidate's Unstop profile. This is a primary source for analysis."),
   candidateResumeDataUri: z.string().optional().describe("The data URI of the candidate's resume file (PDF or DOCX) that was used. If provided, AI should consider its content for refinements (skills, projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences)."),
   candidateResumeFileName: z.string().optional().describe("The original file name of the candidate's resume, for context."),
   candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements. This supplements primary sources.'),
-  competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here. May include "Tell me about yourself". Competencies should be informed by the holistic analysis of JD and candidate profile (Unstop Profile/Resume file content including educational background and academic achievements), and cover core JD skills.'),
+  competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here. May include "Tell me about yourself". Competencies should be informed by the holistic analysis of JD and candidate profile (Unstop Profile details/Resume file content including educational background and academic achievements), and cover core JD skills.'),
   rubricCriteria: z.array(RubricCriterionSchema).describe('Array of rubric criteria with weights. User edits are reflected here.'),
 });
 export type CustomizeInterviewKitInput = z.infer<typeof CustomizeInterviewKitInputSchema>;
@@ -79,7 +80,7 @@ const customizeInterviewKitPrompt = ai.definePrompt({
 **Your Core Evaluation Process: A Multi-Stage Deep Analysis**
 
 **Stage 1: Holistic Re-Analysis of All Inputs & Integrity Check**
-CRITICAL: Before refining any content, you must perform a holistic re-analysis of ALL original inputs (JD, Unstop Profile, Resume Data, Context) supplemented by the user's edits.
+CRITICAL: Before refining any content, you must perform a holistic re-analysis of ALL original inputs (JD, Unstop Profile Details, Resume Data, Context) supplemented by the user's edits.
 *   **Handle Edge Cases:** If inputs are sparse, generic (e.g., JD is just a title), or conflicting (e.g., profile name mismatch), note this and generate broader, more fundamental questions. If inputs are entirely missing, you cannot proceed.
 *   **Authenticity Flags:** Look for signs of AI-generated content, buzzword stuffing without substance (e.g., profile full of buzzwords but no projects), or duplicated content across roles. If detected, generate more situational and experiential questions to probe for genuine, hands-on knowledge.
 *   **Input Quality:** Attempt to strip HTML/markup from the JD. If the resume is unparsable (e.g., two-column layout, special fonts), rely on other available information.
@@ -122,14 +123,19 @@ Your generated guidance for the interviewer must be practical, generalized, and 
     *   **Indicative Scoring:** Each bullet point must have a suggested point value (e.g., '(~3 points)') that logically sums to 10.
     *   **Note for Interviewer (MANDATORY):** Every model answer must end with a "Note for Interviewer". This note should guide on scoring partial answers and explicitly state that if a candidate provides a different but highly relevant, practical answer from their own experience, it should be viewed as a **significant PLUS**. The goal is to evaluate insight, not rote memorization.
 *   **For Transition/Mismatch Questions:** The guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role/tech.** The strength of their argument is what's being tested. For questions about proactive steps, the note should emphasize looking for tangible evidence (courses, projects, etc.).
-*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. Analyze the candidate's profile (Unstop, resume content) and provide bullet points on what a compelling narrative should include, using specific examples from their background. For example: '- Listen for how they link experience in [Specific Project from Resume] to [Key Requirement from JD]. (~4 points)', '- Assess if they connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]. (~3 points)', '- Check for a clear, concise summary of their background and future goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling and ability to connect their past to this specific opportunity.
+*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. Analyze the candidate's profile (Unstop details, resume content) and provide bullet points on what a compelling narrative should include, using specific examples from their background. For example: '- Listen for how they link experience in [Specific Project from Resume] to [Key Requirement from JD]. (~4 points)', '- Assess if they connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]. (~3 points)', '- Check for a clear, concise summary of their background and future goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling and ability to connect their past to this specific opportunity.
 *   **Scoring Rubric:** Rubric criteria must be flexible, focusing on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate.
 
 Job Description (Primary Source, for context):
 {{{jobDescription}}}
 
-Unstop Profile Link (Primary Source - COMPULSORY, for context and primary reference; **conceptually treat as if accessing and deeply analyzing the live profile**):
+Unstop Profile Link (for context only):
 {{{unstopProfileLink}}}
+
+{{#if unstopProfileDetails}}
+Unstop Profile Details (Primary Source for Analysis):
+{{{unstopProfileDetails}}}
+{{/if}}
 
 {{#if candidateResumeDataUri}}
 Candidate Resume File ({{{candidateResumeFileName}}}):
@@ -293,4 +299,3 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-    

@@ -14,11 +14,12 @@ import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Briefcase, LinkIcon, FileCheck, Zap, MessageSquare, Info, AlertTriangle } from 'lucide-react';
+import { FileText, Briefcase, LinkIcon, FileCheck, Zap, MessageSquare, Info, AlertTriangle, ClipboardList } from 'lucide-react';
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>('');
   const [unstopProfileLink, setUnstopProfileLink] = useState<string | undefined>(undefined);
+  const [unstopProfileDetails, setUnstopProfileDetails] = useState<string | undefined>(undefined);
   const [candidateResumeDataUri, setCandidateResumeDataUri] = useState<string | undefined | null>(undefined); // null indicates client-side processing error
   const [candidateResumeFileName, setCandidateResumeFileName] = useState<string | undefined>(undefined);
   const [candidateExperienceContext, setCandidateExperienceContext] = useState<string | undefined>(undefined);
@@ -27,10 +28,11 @@ export default function Home() {
   const [showInputs, setShowInputs] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, unstopLink?: string, resumeDataUri?: string | null, resumeFileName?: string, expContext?: string): InterviewKit => {
+  const mapOutputToClientKit = useCallback((output: GenerateInterviewKitOutput, jdToStore: string, unstopLink?: string, unstopDetails?: string, resumeDataUri?: string | null, resumeFileName?: string, expContext?: string): InterviewKit => {
     return {
       jobDescription: jdToStore,
       unstopProfileLink: unstopLink,
+      unstopProfileDetails: unstopDetails,
       candidateResumeDataUri: resumeDataUri === null ? undefined : resumeDataUri, // Store as undefined if client processing failed
       candidateResumeFileName: resumeFileName,
       candidateExperienceContext: expContext,
@@ -62,6 +64,7 @@ export default function Home() {
     return {
       jobDescription: clientKit.jobDescription,
       unstopProfileLink: clientKit.unstopProfileLink,
+      unstopProfileDetails: clientKit.unstopProfileDetails,
       candidateResumeDataUri: clientKit.candidateResumeDataUri,
       candidateResumeFileName: clientKit.candidateResumeFileName,
       candidateExperienceContext: clientKit.candidateExperienceContext,
@@ -122,6 +125,7 @@ export default function Home() {
     return {
       jobDescription: existingKit.jobDescription,
       unstopProfileLink: existingKit.unstopProfileLink,
+      unstopProfileDetails: existingKit.unstopProfileDetails,
       candidateResumeDataUri: existingKit.candidateResumeDataUri,
       candidateResumeFileName: existingKit.candidateResumeFileName,
       candidateExperienceContext: existingKit.candidateExperienceContext,
@@ -136,6 +140,7 @@ export default function Home() {
     setInterviewKit(null);
     setJobDescription(data.jobDescription);
     setUnstopProfileLink(data.unstopProfileLink);
+    setUnstopProfileDetails(data.unstopProfileDetails);
     setCandidateResumeDataUri(data.candidateResumeDataUri);
     setCandidateResumeFileName(data.candidateResumeFileName);
     setCandidateExperienceContext(data.candidateExperienceContext);
@@ -157,13 +162,14 @@ export default function Home() {
       inputForAI = {
         jobDescription: data.jobDescription,
         unstopProfileLink: data.unstopProfileLink,
+        unstopProfileDetails: data.unstopProfileDetails,
         candidateResumeDataUri: data.candidateResumeDataUri === null ? undefined : data.candidateResumeDataUri,
         candidateResumeFileName: data.candidateResumeFileName,
         candidateExperienceContext: data.candidateExperienceContext,
       };
       const output = await generateInterviewKit(inputForAI);
       if (output && output.competencies && output.scoringRubric) {
-        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
+        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.unstopProfileDetails, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
         setShowInputs(false);
       } else {
@@ -216,6 +222,7 @@ export default function Home() {
   const handleStartOver = () => {
     setJobDescription('');
     setUnstopProfileLink(undefined);
+    setUnstopProfileDetails(undefined);
     setCandidateResumeDataUri(undefined);
     setCandidateResumeFileName(undefined);
     setCandidateExperienceContext(undefined);
@@ -264,6 +271,16 @@ export default function Home() {
                     </h3>
                     <div className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-lg bg-input/50 shadow-inner custom-scrollbar">
                       {unstopProfileLink}
+                    </div>
+                  </div>
+                )}
+                 {unstopProfileDetails && (
+                  <div>
+                    <h3 className="font-medium mb-1 text-foreground flex items-center">
+                       <ClipboardList size={16} className="mr-2 text-primary/80"/> Unstop Profile Details:
+                    </h3>
+                    <div className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-lg bg-input/50 shadow-inner custom-scrollbar">
+                      {unstopProfileDetails}
                     </div>
                   </div>
                 )}
