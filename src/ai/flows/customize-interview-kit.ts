@@ -32,7 +32,7 @@ const QuestionSchema = z.object({
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('Type of question.'),
   category: z.enum(['Technical', 'Non-Technical']).optional().describe("Category of the question ('Technical' or 'Non-Technical'). Preserve or update if changed by user."),
   text: z.string().describe('The text of the question. **Do not add any prefix like "Question 1:" or "1."**. Ensure it is insightful and specific, considering JD, Unstop Profile (compulsory input, conceptually treat as if analyzing the live profile) and Candidate Resume File Content (optional input, AI will analyze its content directly if provided via data URI, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context).'),
-  modelAnswer: z.string().describe("A model answer FOR THE INTERVIEWER'S USE, presented as a few concise bullet points. Each bullet point must suggest an indicative contribution to the question's 10-point score (e.g., 'approx. 2-3 points'). These points are a rapid mental checklist for a non-technical recruiter. Most importantly, the guidance must state that if a candidate provides practical, relevant, or original examples not listed, it should be seen as a strong positive sign of depth. The goal is to assess understanding, not just check off points."),
+  modelAnswer: z.string().describe("A model answer FOR THE INTERVIEWER'S USE. **CRITICAL: Format this as a few concise bullet points, not a paragraph.** Each bullet point must suggest an indicative contribution to the question's 10-point score (e.g., 'approx. 2-3 points'). These points are a rapid mental checklist for a non-technical recruiter. Most importantly, the guidance must state that if a candidate provides practical, relevant, or original examples not listed, it should be seen as a strong positive sign of depth. The goal is to assess understanding, not just check off points."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).optional().describe("The difficulty level of the question (5-point scale)."),
   estimatedTimeMinutes: z.number().optional().describe('Suitable estimated time in minutes to answer this question.'),
 });
@@ -61,7 +61,7 @@ const CustomizeInterviewKitInputSchema = z.object({
 export type CustomizeInterviewKitInput = z.infer<typeof CustomizeInterviewKitInputSchema>;
 
 const CustomizeInterviewKitOutputSchema = z.object({
-  competencies: z.array(CompetencySchema).describe("Array of customized core competencies, including importance, and questions with category, difficulty/time. Questions and answers should be high-quality. Model answers should be brief, interviewer-focused checklists. For 'Tell me about yourself', model answers should be a more descriptive interviewer-focused guide based on the Unstop Profile/Resume file content. All answers must guide on evaluating relevant details not on the resume and rewarding practical, original insights."),
+  competencies: z.array(CompetencySchema).describe("Array of customized core competencies, including importance, and questions with category, difficulty/time. Questions and answers should be high-quality. Model answers should be brief, interviewer-focused checklists presented as concise bullet points. All answers must guide on evaluating relevant details not on the resume and rewarding practical, original insights."),
   rubricCriteria: z.array(RubricCriterionSchema).describe("Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria are well-defined, actionable, measurable, and reference JD/candidate profile for a contextual evaluation usable by non-technical recruiters, accounting for emergent candidate information."),
 });
 export type CustomizeInterviewKitOutput = z.infer<typeof CustomizeInterviewKitOutputSchema>;
@@ -98,13 +98,13 @@ CRITICAL: Before refining any content, you must perform a holistic analysis of A
 Your generated guidance for the interviewer must be practical, generalized, and flexible.
 
 *   **Model Answers are Your Core Tool for the Recruiter:** These are not rigid scripts. They are generalized evaluation guides for the INTERVIEWER'S EYES ONLY.
-    *   The bullet points should represent a few core concepts or key thought processes to listen for. DO NOT create long checklists.
+    *   **The bullet points should be brief, direct, and represent a few core concepts to listen for.** AVOID long sentences or paragraph-style points. DO NOT create long checklists.
     *   **Indicative Scoring:** Each bullet point must have an indicative point value (e.g., '(~3 points)') that logically sums to 10. This creates a flexible scoring baseline.
     *   **CRITICAL: The Flexibility Clause:** Every model answer must contain guidance for the interviewer that if a candidate provides a different, but highly relevant and practical answer from their own experience, it should be viewed as a **significant PLUS** and can be awarded full or partial points. The ultimate goal is to evaluate real-world problem-solving and insight, not rote memorization of expected answers.
 
 *   **For Career Transition Questions:** Your guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role.** For an IT person moving to sales, the guidance isn't about "communication skills"; it's about listening for how they frame their IT project management experience as a form of client relationship management and stakeholder negotiation. The strength of their argument is what's being tested.
 
-*   **"Tell me about yourself" (Unique Instruction):** This model answer is an exception. It MUST be a descriptive guide FOR THE INTERVIEWER. You are to analyze the candidate's profile (Unstop, resume content) and suggest, using specific examples from their background, what a compelling narrative would sound like. For example, you might write: "For a strong answer, listen for how the candidate links their experience in [Specific Project from Resume] with the [Key Requirement from JD]. They should connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]." This equips a non-technical recruiter to assess relevance.
+*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. Analyze the candidate's profile (Unstop, resume content) and provide bullet points on what a compelling narrative should include, using specific examples from their background. For example: '- Listen for how they link experience in [Specific Project from Resume] to [Key Requirement from JD]. (~4 points)', '- Assess if they connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]. (~3 points)', '- Check for a clear, concise summary of their background and future goals. (~3 points)'. This equips a non-technical recruiter to assess relevance.
 
 *   **Scoring Rubric:** Rubric criteria must be flexible, focusing on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate.
 
@@ -277,6 +277,4 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-    
-
     
