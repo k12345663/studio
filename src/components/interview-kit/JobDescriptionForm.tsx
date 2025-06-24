@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck, Paperclip, AlertTriangle } from 'lucide-react';
+import { Send, FileText, LinkIcon, MessageSquare, UploadCloud, Loader2, FileCheck, Paperclip, AlertTriangle, Info } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 export interface JobDescriptionFormSubmitData {
@@ -163,8 +164,6 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
         return;
     }
 
-    // Removed the strict check for path starting with /p/
-    // A basic check to ensure it's not just the domain root (e.g. "https://unstop.com/")
     if (parsedUrl.pathname === '/' || parsedUrl.pathname === '') {
        toast({ variant: "destructive", title: "Invalid Unstop Profile Path", description: "The Unstop URL does not appear to point to a specific profile page. Please provide a full profile URL." });
        return;
@@ -222,9 +221,25 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="unstop-profile-link" className="font-semibold text-foreground text-md flex items-center">
-              <LinkIcon size={18} className="mr-2 text-primary" /> Unstop Profile Link <span className="text-red-500 ml-1">*</span>
-            </Label>
+            <div className="flex items-center gap-1.5">
+               <Label htmlFor="unstop-profile-link" className="font-semibold text-foreground text-md flex items-center">
+                <LinkIcon size={18} className="mr-2 text-primary" /> Unstop Profile Link <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" aria-label="More info" className="cursor-help rounded-full text-muted-foreground hover:text-foreground">
+                      <Info size={14} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs p-1">
+                      The AI uses this URL conceptually as a key source. It doesn't fetch live data from the page, but uses the link as context to generate relevant questions.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <Input
               id="unstop-profile-link"
               type="url"
@@ -237,7 +252,7 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
               required
             />
             <p className="text-xs text-muted-foreground mt-1">
-              AI will analyze this profile. Ensure it's a public and valid Unstop profile URL.
+              The AI uses this URL conceptually. Ensure it's a public and valid Unstop profile URL.
             </p>
           </div>
 
@@ -305,3 +320,5 @@ export function JobDescriptionForm({ onSubmit, isLoading }: JobDescriptionFormPr
     </Card>
   );
 }
+
+    
