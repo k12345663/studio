@@ -79,14 +79,12 @@ CRITICAL: Before generating any content, you must perform a holistic analysis of
     *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided).
     *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** This comparison is the basis for your entire question generation strategy.
     *   If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role), you MUST adapt your questioning strategy.
-    *   If you detect a **senior candidate** (e.g., "Manager," "Director," 10+ years) applying for a more junior role, this is a critical point to probe.
 
 2.  **Generate Questions in a Logical Sequence:** Your generated kit MUST follow a standard real interview pattern.
     *   **Question 1 MUST be "Tell me about yourself."** This is the mandatory starting point.
     *   **Then, follow the appropriate path based on your analysis:**
         *   **Path A: Career Transition Detected:** Your very next questions MUST probe the justification for this shift. Challenge the candidate to build the bridge themselves with questions like: "What motivates your transition from [Candidate's Past Domain] to [Target Role Domain]?", "Which of your past experiences do you believe are most transferable and why?", "What steps have you taken to learn about [Target Role Domain]?". Only *after* probing the transition should you ask about specific projects, framing the questions to highlight their relevance to the *new* role.
-        *   **Path B: Seniority Mismatch Detected:** If you detect a candidate who appears overqualified or is applying for a more junior role than their experience suggests (e.g., JD requires 10 years experience, candidate has 15; or a former Manager applying for a non-management role), your questions immediately following the introduction MUST probe this. Ask direct but respectful questions like: "Your experience seems to exceed the requirements for this role. What specifically about this position interests you at this stage in your career?" or "After holding a management position, what motivates you to apply for a role as an individual contributor?". Only *after* addressing this should you proceed to discuss their specific experiences and work.
-        *   **Path C: Standard Role Alignment:** Your next questions should be deep-dives into their resume/profile projects to validate their experience directly.
+        *   **Path B: Standard Role Alignment:** Your next questions should be deep-dives into their resume/profile projects to validate their experience directly.
     *   **After these initial targeted questions,** you should then generate other technical, scenario, or behavioral questions that test core skills from the Job Description.
 
 3.  **Handle Non-Disclosure Cases & Ambiguity:**
@@ -254,4 +252,6 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+    
+
     

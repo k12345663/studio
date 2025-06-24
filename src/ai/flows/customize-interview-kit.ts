@@ -85,14 +85,12 @@ CRITICAL: Before refining any content, you must perform a holistic analysis of A
     *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided).
     *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** This comparison is the basis for your entire refinement strategy.
     *   If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role), your refinements must prioritize questions that probe this transition.
-    *   If you detect a **senior candidate** (e.g., "Manager," "Director," 10+ years) applying for a more junior role, this is a critical point to probe.
 
 2.  **Refine Questions while Maintaining a Logical Sequence:** Your refined kit MUST follow a standard real interview pattern. Review the user's edits and ensure the overall flow remains logical.
     *   **The first question should generally be "Tell me about yourself."**
     *   **Then, ensure the flow follows the appropriate path based on your analysis:**
         *   **Path A: Career Transition Detected:** The questions immediately following the intro should probe the justification for the shift. If the user has removed these, you should refine other questions or add notes to steer the conversation back to this crucial topic. Questions should challenge the candidate to build the bridge themselves (e.g., "What motivates your transition?," "Which past experiences are most transferable and why?," "What steps have you taken to learn about this new domain?").
-        *   **Path B: Seniority Mismatch Detected:** If you detect a candidate who appears overqualified or is applying for a more junior role than their experience suggests (e.g., JD requires 10 years, candidate has 15), ensure the questions immediately following the introduction probe this motivation. If the user has edited or removed such questions, your refinements should steer the conversation back to this critical point. The flow must be: 1. Introduction, 2. Questioning the seniority change, 3. Discussing past work and experiences.
-        *   **Path C: Standard Role Alignment:** The questions following the intro should be deep-dives into their resume/profile projects to validate their experience directly.
+        *   **Path B: Standard Role Alignment:** The questions following the intro should be deep-dives into their resume/profile projects to validate their experience directly.
     *   **Overall Flow:** Ensure that project-specific and skill-validation questions come before more general technical or behavioral questions. Your refinement should preserve this natural interview progression.
 
 3.  **Handle Non-Disclosure Cases & Ambiguity:**
@@ -279,4 +277,6 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+    
+
     
