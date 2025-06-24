@@ -83,8 +83,8 @@ CRITICAL: Before generating any content, you must perform a holistic analysis of
 2.  **Generate Questions in a Logical, Adaptive Sequence:** Your generated kit MUST follow a standard real interview pattern.
     *   **Question 1 MUST be "Tell me about yourself."** This is the mandatory starting point.
     *   **Then, follow the appropriate path based on your analysis:**
-        *   **Path A: Mismatch Detected (Career or Seniority Transition):** Your very next questions MUST probe the justification for this shift. Challenge the candidate to build the bridge themselves. Examples:
-            *   For career transition: "What motivates your transition from [Candidate's Past Domain] to [Target Role Domain]?", "Your background is in [X], can you walk me through how you see your projects and learnings there preparing you for the challenges of a [Y] role?"
+        *   **Path A: Mismatch Detected (Career or Seniority Transition):** Your very next questions MUST probe the justification for this shift. Challenge the candidate to build the bridge themselves and to demonstrate their proactivity. Examples:
+            *   For career transition: "What motivates your transition from [Candidate's Past Domain] to [Target Role Domain]?", "What proactive steps have you taken to prepare for a career in [Target Role Domain], given your background is in [Candidate's Past Domain]?", "Your background is in [X], can you walk me through how you see your projects and learnings there preparing you for the challenges of a [Y] role?"
             *   For seniority transition: "Your profile shows extensive experience, including leadership roles. What appeals to you about this specific position at this stage in your career?"
         *   **Path B: Standard Role Alignment:** Your next questions should be deep-dives into their resume/profile projects to validate their experience directly.
     *   **After these initial targeted questions,** you should then generate other technical, scenario, or behavioral questions that test core skills from the Job Description.
