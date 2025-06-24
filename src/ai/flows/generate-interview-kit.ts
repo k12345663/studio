@@ -90,18 +90,23 @@ CRITICAL: Synthesize all information to identify the primary scenario that best 
 *   **Frequent Job Changer / Freelancer:** The candidate has a history of frequent job switching or primarily freelance work and is now applying for a permanent role.
 *   **Ambiguous/Vague Profile:** The profile or JD is sparse on details, uses buzzwords without projects, has unclear role titles, or seems copy-pasted.
 
-**Stage 3: Generate Questions with an Adaptive, Logical Sequence**
-Your generated kit MUST follow a standard real interview pattern, adapted to the scenario you identified in Stage 2.
-*   **Question 1 MUST be "Tell me about yourself."** This is the mandatory starting point.
-*   **Then, adapt the very next questions to the identified scenario:**
-    *   **For Career/Tech Transition:** Immediately probe the justification for the shift. Ask "What motivates this transition?" and critically, "What proactive steps have you taken to prepare for this new field/technology?".
+**Stage 3: Generate Questions with a Standard Interview Funnel Sequence**
+Your generated kit MUST follow a logical, real-world interview sequence, adapted to the scenario you identified in Stage 2. The sequence is critical for a natural conversation flow.
+*   **Step 1: Introduction (The mandatory first question).**
+    *   The first question in the entire kit MUST be "Tell me about yourself."
+*   **Step 2: Motivation & Alignment (The next 1-2 questions).**
+    *   Immediately after the introduction, you MUST address the primary scenario identified in Stage 2.
+    *   **For Career/Tech Transition:** Ask "What motivates this transition?" and "What proactive steps have you taken to prepare for this new field/technology?".
     *   **For Overqualified:** Ask "What appeals to you about this specific position at this stage in your career?".
-    *   **For Underqualified by Years:** Shift focus from the time gap to the quality of their projects. Ask, "The role asks for X years, your profile shows Y. Can you walk me through how [Specific Project] has prepared you for this position's demands?".
+    *   **For Underqualified by Years:** Ask, "The role asks for X years of experience, and your profile shows Y. Can you walk me through how [Specific Project from their profile] has prepared you for the demands of this position?".
     *   **For Experience Gap:** Respectfully ask for context, e.g., "I noticed a gap in your timeline between [Date] and [Date]. Could you share what you were focused on during that period?".
-    *   **For Academic/Internship Profile:** Prioritize questions that validate the depth and individual contribution to academic or internship projects.
-    *   **For Job Hopper/Freelancer:** Ask about career motivations and what they're seeking in a long-term, team-based role.
-    *   **For Standard Role Alignment:** Proceed directly to deep-dives into their most relevant projects to validate experience.
-*   **Overall Flow:** After these initial targeted questions, generate other technical, scenario, or behavioral questions that test core skills from the Job Description.
+    *   **For Academic/Internship Profile:** Ask about their career goals and why they're interested in this specific industry/role post-graduation.
+    *   **For Job Hopper/Freelancer:** Ask about their career motivations and what they're seeking in a long-term, team-based role.
+    *   **For Standard Role Alignment:** Proceed directly to the next step (Deep Dives).
+*   **Step 3: Experience Deep Dive (The core of the interview).**
+    *   Following the motivation questions, generate questions that are deep dives into their most relevant projects and work experiences from their Unstop profile and resume. This is for validating their hands-on experience.
+*   **Step 4: Broader Skill Assessment (The final section).**
+    *   Conclude with more general technical, scenario, or behavioral questions that test core skills from the Job Description but are not tied to a specific project.
 
 **Stage 4: Model Answer & Rubric Philosophy**
 Your generated guidance for the interviewer must be practical, generalized, and flexible.
@@ -262,6 +267,4 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-    
-
     

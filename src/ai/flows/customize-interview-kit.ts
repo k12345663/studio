@@ -96,18 +96,24 @@ Synthesize all information to identify the primary scenario describing the candi
 *   **Frequent Job Changer / Freelancer:** The candidate has a history of frequent job switching or primarily freelance work and is now applying for a permanent role.
 *   **Ambiguous/Vague Profile:** The profile or JD is sparse on details, uses buzzwords without projects, has unclear role titles, or seems copy-pasted.
 
-**Stage 3: Refine Questions with an Adaptive, Logical Sequence**
-Your refined kit MUST follow a standard real interview pattern. Review the user's edits and ensure the overall flow remains logical according to the identified scenario.
-*   **The first question should generally be "Tell me about yourself."**
-*   **Then, ensure the flow follows the appropriate path based on your Stage 2 analysis:**
-    *   **For Career/Tech Transition:** The questions immediately following the intro MUST probe the justification for the shift. Ask about proactive steps taken to bridge the gap (e.g., "What have you done to prepare for this new field/technology?").
-    *   **For Overqualified:** Ask "What appeals to you about this specific position at this stage in your career?".
-    *   **For Underqualified by Years:** Shift focus from the time gap to the quality of their projects. The questions must prioritize validating the impact and leadership scope of project experience over the lack of years. Ask "The role asks for X years, your profile shows Y. Can you walk me through how [Specific Project] has prepared you for this position's demands?".
-    *   **For Experience Gap:** Respectfully ask for context about the gap and any learning or projects undertaken during that time.
-    *   **For Academic/Internship Profile:** Prioritize questions that validate the depth of academic projects and readiness for full-time responsibilities. Ask about individual contributions in team projects.
-    *   **For Job Hopper/Freelancer:** Ask about career motivations and what they're seeking in a long-term, team-based role.
-    *   **For Standard Role Alignment:** The questions following the intro should be deep-dives into their resume/profile projects to validate their experience.
-*   **Overall Flow:** Ensure that project-specific and skill-validation questions come before more general technical or behavioral questions. Your refinement should preserve this natural interview progression.
+**Stage 3: Refine Questions While Maintaining a Standard Interview Funnel Sequence**
+Your refined kit MUST follow a logical, real-world interview sequence. Review the user's edits and ensure the overall flow remains logical according to the identified scenario. The sequence is critical.
+*   **Step 1: Introduction.**
+    *   The first question in the kit should generally be "Tell me about yourself."
+*   **Step 2: Motivation & Alignment.**
+    *   The questions immediately following the introduction MUST probe the primary scenario identified in Stage 2.
+    *   **For Career/Tech Transition:** Questions should probe the justification for the shift and proactive steps taken.
+    *   **For Overqualified:** Questions should probe their motivation for a more junior role.
+    *   **For Underqualified by Years:** Questions should focus on the quality and impact of their project experience over the lack of years.
+    *   **For Experience Gap:** Questions should respectfully ask for context about the gap.
+    *   **For Academic/Internship Profile:** Questions should validate the depth of academic projects and readiness for full-time responsibilities.
+    *   **For Job Hopper/Freelancer:** Questions should probe career motivations and what they're seeking in a long-term role.
+    *   **For Standard Role Alignment:** Questions should move directly to deep dives.
+*   **Step 3: Experience Deep Dive.**
+    *   Ensure that questions about specific projects from their Unstop profile and resume come after the initial alignment questions.
+*   **Step 4: Broader Skill Assessment.**
+    *   Ensure that general technical, scenario, or behavioral questions come last in the sequence. Your refinement should preserve this natural interview progression.
+
 
 **Stage 4: Model Answer & Rubric Philosophy**
 Your generated guidance for the interviewer must be practical, generalized, and flexible.
@@ -287,6 +293,4 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-    
-
     
