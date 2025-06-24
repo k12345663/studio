@@ -75,18 +75,19 @@ const generateInterviewKitPrompt = ai.definePrompt({
 CRITICAL: Before generating any content, you must perform a holistic analysis of ALL available information.
 
 1.  **Detect Role Alignment and Experience Gaps:**
-    *   First, parse the Job Description to identify the target role, its core skills, and required years of experience.
-    *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided) to understand their background, skills, and projects.
+    *   First, parse the Job Description to identify the target role, its core skills, required years of experience, and technology stack.
+    *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided) to understand their background, skills, projects, and tech stack.
     *   **Crucially, compare the candidate against the role's requirements.** This comparison forms your generation strategy. You must identify one of these key scenarios:
         *   **Career Transition:** The candidate's domain (e.g., IT) differs from the role's domain (e.g., Sales).
-        *   **Seniority Mismatch (Overqualified):** The candidate has significantly more experience (e.g., 15 years) than required (e.g., 5-7 years).
+        *   **Seniority Mismatch (Overqualified):** The candidate has significantly more experience (e.g., 15 years) than required (e.g., 5-7 years) or is applying for a more junior role.
         *   **Experience Gap with Strong Projects (Underqualified by years):** The candidate has fewer years of formal experience than required, but their profile showcases strong, relevant project leadership, high-impact contributions, or advanced skills that could compensate.
+        *   **Technology Mismatch with Related Skills:** The candidate's primary tech stack (e.g., React, AWS) differs from the role's required stack (e.g., Vue, GCP), but the underlying concepts are related.
         *   **Standard Role Alignment:** The candidate's profile generally matches the role's requirements.
 
 2.  **Generate Questions in a Logical, Adaptive Sequence:** Your generated kit MUST follow a standard real interview pattern.
     *   **Question 1 MUST be "Tell me about yourself."** This is the mandatory starting point.
     *   **Then, adapt the very next questions to the scenario you identified:**
-        *   **For Career Transition or Seniority Mismatch:** Probe the justification for the shift. Ask about motivation and proactive steps taken (e.g., "What motivates your transition?", "What proactive steps have you taken to prepare for this new field?", "What appeals to you about this specific position at this stage in your career?").
+        *   **For Career Transition, Seniority Mismatch, or Technology Mismatch:** Probe the justification for the shift. Ask about motivation and proactive steps taken (e.g., "What motivates your transition?", "What proactive steps have you taken to prepare for this new field/technology?", "What appeals to you about this specific position at this stage in your career?").
         *   **For Experience Gap with Strong Projects:** Shift focus from the lack of years to the quality of their experience. Ask questions that allow them to demonstrate their advanced capabilities. Examples: "The role asks for 5 years of experience, and your profile shows 3. Can you walk me through how the scope and leadership responsibilities of [Specific Project] have prepared you for the demands of this position?", "Describe the most significant challenge you faced on [Project X] and how you led the team to overcome it."
         *   **For Standard Role Alignment:** Proceed directly to deep-dives into their most relevant projects to validate experience.
     *   **After these initial targeted questions,** you should then generate other technical, scenario, or behavioral questions that test core skills from the Job Description.
@@ -102,7 +103,7 @@ Your generated guidance for the interviewer must be practical, generalized, and 
     *   **Indicative Scoring:** Each bullet point must have a suggested point value (e.g., '(~3 points)') that logically sums to 10.
     *   **Note for Interviewer (MANDATORY):** Every model answer must end with a "Note for Interviewer". This note should guide on scoring partial answers and explicitly state that if a candidate provides a different but highly relevant, practical answer from their own experience, it should be viewed as a **significant PLUS**. The goal is to evaluate insight, not rote memorization.
 
-*   **For Career Transition Questions:** Your guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role.** The strength of their argument is what's being tested. For questions about proactive steps, the note should emphasize looking for tangible evidence (courses, projects, etc.).
+*   **For Transition Questions (Career, Seniority, Tech):** Your guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role/tech.** The strength of their argument is what's being tested. For questions about proactive steps, the note should emphasize looking for tangible evidence (courses, projects, etc.).
 
 *   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. Analyze the candidate's profile (Unstop, resume content) and provide bullet points on what a compelling narrative should include, using specific examples from their background. For example: '- Listen for how they link experience in [Specific Project from Resume] to [Key Requirement from JD]. (~4 points)', '- Assess if they connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]. (~3 points)', '- Check for a clear, concise summary of their background and future goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling and ability to connect their past to this specific opportunity.
 

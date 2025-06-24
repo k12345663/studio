@@ -81,13 +81,18 @@ const customizeInterviewKitPrompt = ai.definePrompt({
 CRITICAL: Before refining any content, you must perform a holistic analysis of ALL original inputs (JD, Unstop Profile, Resume Data, Context) supplemented by the user's edits.
 
 1.  **Detect Role Alignment and Experience Gaps:**
-    *   First, parse the Job Description and candidate's profile to re-evaluate the candidate against the role's requirements (skills, years of experience).
-    *   **Crucially, identify which scenario is present:** Career Transition, Seniority Mismatch (Overqualified), Experience Gap with Strong Projects (Underqualified by years), or Standard Role Alignment. This comparison is the basis for your entire refinement strategy.
+    *   First, parse the Job Description and candidate's profile to re-evaluate the candidate against the role's requirements (skills, years of experience, technology stack).
+    *   **Crucially, identify which scenario is present:**
+        *   **Career Transition:** The candidate's domain (e.g., IT) differs from the role's domain (e.g., Sales).
+        *   **Seniority Mismatch:** The candidate has significantly more experience (e.g., 15 years) than required (e.g., 5-7 years), or is applying for a more junior role.
+        *   **Experience Gap with Strong Projects:** The candidate has fewer years of formal experience than required, but their profile showcases strong, relevant project leadership or impact.
+        *   **Technology Mismatch with Related Skills:** The candidate's primary tech stack (e.g., React, AWS) differs from the role's required stack (e.g., Vue, GCP), but the underlying concepts are related.
+        *   **Standard Role Alignment:** The candidate's profile generally matches the role's requirements.
 
 2.  **Refine Questions while Maintaining a Logical, Adaptive Sequence:** Your refined kit MUST follow a standard real interview pattern. Review the user's edits and ensure the overall flow remains logical according to the detected scenario.
     *   **The first question should generally be "Tell me about yourself."**
     *   **Then, ensure the flow follows the appropriate path:**
-        *   **For Career Transition or Seniority Mismatch:** The questions immediately following the intro should probe the justification for the shift. If the user has removed these, you should refine other questions or add notes to steer the conversation back to this crucial topic.
+        *   **For Career Transition, Seniority Mismatch, or Technology Mismatch:** The questions immediately following the intro should probe the justification for the shift. If the user has removed these, you should refine other questions or add notes to steer the conversation back to this crucial topic. Ask about proactive steps taken to bridge the gap (e.g., courses, self-study, projects in the new tech).
         *   **For Experience Gap with Strong Projects:** The questions should prioritize validating the quality and impact of project experience over the lack of years. If the user has added questions about the time gap, you can refine them to be more about how their project leadership compensates for it.
         *   **For Standard Role Alignment:** The questions following the intro should be deep-dives into their resume/profile projects to validate their experience.
     *   **Overall Flow:** Ensure that project-specific and skill-validation questions come before more general technical or behavioral questions. Your refinement should preserve this natural interview progression.
@@ -103,7 +108,7 @@ Your generated guidance for the interviewer must be practical, generalized, and 
     *   **Indicative Scoring:** Each bullet point must have a suggested point value (e.g., '(~3 points)') that logically sums to 10.
     *   **Note for Interviewer (MANDATORY):** Every model answer must end with a "Note for Interviewer". This note should guide on scoring partial answers and explicitly state that if a candidate provides a different but highly relevant, practical answer from their own experience, it should be viewed as a **significant PLUS**. The goal is to evaluate insight, not rote memorization.
 
-*   **For Career Transition Questions:** Your guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role.** The strength of their argument is what's being tested. For questions about proactive steps, the note should emphasize looking for tangible evidence (courses, projects, etc.).
+*   **For Transition Questions (Career, Seniority, Tech):** Your guidance is even more critical. The model answers must help the interviewer evaluate **how persuasively the candidate connects their past to the new role/tech.** The strength of their argument is what's being tested. For questions about proactive steps, the note should emphasize looking for tangible evidence (courses, projects, etc.).
 
 *   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. Analyze the candidate's profile (Unstop, resume content) and provide bullet points on what a compelling narrative should include, using specific examples from their background. For example: '- Listen for how they link experience in [Specific Project from Resume] to [Key Requirement from JD]. (~4 points)', '- Assess if they connect their achievement of [Specific Accomplishment from Resume] to the goal of [Business Objective from JD]. (~3 points)', '- Check for a clear, concise summary of their background and future goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling and ability to connect their past to this specific opportunity.
 
