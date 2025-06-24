@@ -40,6 +40,15 @@ export interface InterviewKit {
   scoringRubric: ClientRubricCriterion[];
 }
 
+export interface ScrapedData {
+  name?: string;
+  college?: string;
+  experience?: string;
+  skills?: string;
+  competitions?: string;
+  error?: string;
+}
+
 // Helper function to generate unique IDs
 export const generateId = (prefix: string = 'id') => {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;

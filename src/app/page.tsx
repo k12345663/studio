@@ -4,7 +4,8 @@
 import { useState, useCallback } from 'react';
 import { generateInterviewKit, type GenerateInterviewKitInput, type GenerateInterviewKitOutput } from '@/ai/flows/generate-interview-kit';
 import { customizeInterviewKit, type CustomizeInterviewKitInput, type CustomizeInterviewKitOutput } from '@/ai/flows/customize-interview-kit';
-import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty, QuestionCategory } from '@/types/interview-kit';
+import { scrapeUnstopProfile } from '@/app/actions';
+import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty, QuestionCategory, ScrapedData } from '@/types/interview-kit';
 import { generateId, difficultyTimeMap } from '@/types/interview-kit';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -25,6 +26,7 @@ export default function Home() {
   const [candidateExperienceContext, setCandidateExperienceContext] = useState<string | undefined>(undefined);
   const [interviewKit, setInterviewKit] = useState<InterviewKit | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('Generating your interview kit, please wait...');
   const [showInputs, setShowInputs] = useState<boolean>(false);
   const { toast } = useToast();
 
@@ -140,7 +142,7 @@ export default function Home() {
     setInterviewKit(null);
     setJobDescription(data.jobDescription);
     setUnstopProfileLink(data.unstopProfileLink);
-    setUnstopProfileDetails(data.unstopProfileDetails);
+    setUnstopProfileDetails('');
     setCandidateResumeDataUri(data.candidateResumeDataUri);
     setCandidateResumeFileName(data.candidateResumeFileName);
     setCandidateExperienceContext(data.candidateExperienceContext);
@@ -159,17 +161,42 @@ export default function Home() {
         return;
       }
 
+      setLoadingMessage("Fetching data from Unstop profile...");
+      toast({ title: "Fetching Profile...", description: "Please wait while we gather details from the candidate's Unstop profile." });
+      const scrapedData = await scrapeUnstopProfile(data.unstopProfileLink);
+
+      if (scrapedData.error) {
+        throw new Error(`Unstop Profile Scraping Failed: ${scrapedData.error}`);
+      }
+
+      const profileDetailsString = [
+        scrapedData.name ? `Name: ${scrapedData.name}` : '',
+        scrapedData.college ? `College: ${scrapedData.college}` : '',
+        scrapedData.skills ? `\nSkills:\n${scrapedData.skills}` : '',
+        scrapedData.experience ? `\nWork Experience:\n${scrapedData.experience}` : '',
+        scrapedData.competitions ? `\nCompetitions & Hackathons:\n${scrapedData.competitions}` : ''
+      ].filter(Boolean).join('\n').trim();
+
+      if (!profileDetailsString) {
+        throw new Error("Could not extract any text from the Unstop profile. Please check the URL or try again.");
+      }
+      setUnstopProfileDetails(profileDetailsString);
+
+      setLoadingMessage("Generating your interview kit...");
+      toast({ title: "Generating Kit...", description: "Profile data fetched successfully. Now creating your kit." });
+
       inputForAI = {
         jobDescription: data.jobDescription,
         unstopProfileLink: data.unstopProfileLink,
-        unstopProfileDetails: data.unstopProfileDetails,
+        unstopProfileDetails: profileDetailsString,
         candidateResumeDataUri: data.candidateResumeDataUri === null ? undefined : data.candidateResumeDataUri,
         candidateResumeFileName: data.candidateResumeFileName,
         candidateExperienceContext: data.candidateExperienceContext,
       };
+
       const output = await generateInterviewKit(inputForAI);
       if (output && output.competencies && output.scoringRubric) {
-        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.unstopProfileDetails, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
+        setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, profileDetailsString, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
         toast({ title: "Success!", description: "Interview kit generated." });
         setShowInputs(false);
       } else {
@@ -177,9 +204,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error generating interview kit:", error);
-      let description = `Failed to generate kit. Please try again.`;
-      const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-      if (inputForAI?.candidateResumeDataUri && (errorMessage.includes("media") || errorMessage.includes("parse") || errorMessage.includes("content") || errorMessage.includes("file") || errorMessage.includes("request entity") || errorMessage.includes("document has no pages"))) {
+      let description = error instanceof Error ? error.message : "An unknown error occurred.";
+      if (inputForAI?.candidateResumeDataUri && (description.toLowerCase().includes("media") || description.toLowerCase().includes("parse") || description.toLowerCase().includes("content") || description.toLowerCase().includes("file") || description.toLowerCase().includes("request entity") || description.toLowerCase().includes("document has no pages"))) {
         description = "Error generating kit. The AI couldn't process the resume content. The file might be corrupted, password-protected, or in a very complex format. Please try a different file or generate the kit without a resume.";
       }
       toast({ variant: "destructive", title: "Error Generating Kit", description });
@@ -240,7 +266,7 @@ export default function Home() {
 
           {isLoading && !interviewKit && (
             <div className="flex justify-center py-10">
-              <LoadingIndicator text="Generating your interview kit, please wait..." />
+              <LoadingIndicator text={loadingMessage} />
             </div>
           )}
 
@@ -277,7 +303,7 @@ export default function Home() {
                  {unstopProfileDetails && (
                   <div>
                     <h3 className="font-medium mb-1 text-foreground flex items-center">
-                       <ClipboardList size={16} className="mr-2 text-primary/80"/> Unstop Profile Details:
+                       <ClipboardList size={16} className="mr-2 text-primary/80"/> Scraped Unstop Profile Details:
                     </h3>
                     <div className="whitespace-pre-wrap text-muted-foreground max-h-48 overflow-y-auto p-3 border rounded-lg bg-input/50 shadow-inner custom-scrollbar">
                       {unstopProfileDetails}
@@ -339,7 +365,7 @@ export default function Home() {
               </CardHeader>
               <CardContent className="pb-8 pt-2">
                 <p className="text-base text-foreground/80 max-w-2xl mx-auto mb-6">
-                 Paste a job description, provide the candidate's Unstop profile link, and optionally attach their resume. RecruTake will instantly generate relevant questions, model answers, difficulty ratings, timings, categories, and a consistent scoring rubric tailored for your interview.
+                 Paste a job description, provide the candidate's Unstop profile link, and optionally attach their resume. RecruTake will automatically fetch profile data and instantly generate a tailored interview kit.
                 </p>
                  <div className="flex items-center justify-center text-sm text-muted-foreground bg-accent/10 p-3 rounded-lg max-w-md mx-auto">
                     <Info size={18} className="mr-2 text-accent" />
