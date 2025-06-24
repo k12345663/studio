@@ -23,19 +23,6 @@ interface QuestionEditorCardProps {
   isLoading?: boolean;
 }
 
-const getQuestionTypeIcon = (type: ClientQuestion['type']) => {
-  switch (type) {
-    case 'Technical':
-      return <Wrench className="h-4 w-4 mr-2 text-primary" aria-label="Technical Question" />;
-    case 'Scenario':
-      return <Puzzle className="h-4 w-4 mr-2 text-purple-500" aria-label="Scenario Question" />; // Consider adding purple to theme or using accent
-    case 'Behavioral':
-      return <Users className="h-4 w-4 mr-2 text-green-500" aria-label="Behavioral Question" />; // Consider adding green to theme or using accent
-    default:
-      return <HelpCircle className="h-4 w-4 mr-2 text-muted-foreground" aria-label="Generic Question" />;
-  }
-};
-
 const DifficultyBadge: React.FC<{ difficulty: ClientQuestion['difficulty'] }> = ({ difficulty }) => {
   let badgeClass = "bg-muted text-muted-foreground"; // Default/fallback
   let icon: React.ReactNode = <HelpCircle className="h-3 w-3 mr-1" />;
@@ -116,11 +103,14 @@ export function QuestionEditorCard({
     <Card className="shadow-lg bg-card border border-border/60 rounded-xl overflow-hidden transition-all hover:shadow-xl">
       <CardHeader className="pb-4 pt-4 px-5 bg-muted/20 border-b border-border/50">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <CardTitle className="text-lg font-semibold flex items-center text-foreground">
-            {getQuestionTypeIcon(question.type)}
-            Question {questionIndex + 1} 
-            <Badge variant="outline" className="ml-3 text-xs border-muted-foreground/30 text-muted-foreground">{question.type}</Badge>
-          </CardTitle>
+            <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
+                    {questionIndex + 1}
+                </span>
+                <CardTitle className="text-lg font-semibold text-foreground">
+                    {question.type} Question
+                </CardTitle>
+            </div>
           <div className="flex flex-wrap items-center gap-2">
             <CategoryBadge category={question.category} />
             <DifficultyBadge difficulty={question.difficulty} />
