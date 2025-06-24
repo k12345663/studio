@@ -74,34 +74,37 @@ const generateInterviewKitPrompt = ai.definePrompt({
 
 CRITICAL: Before generating any content, you must perform a holistic analysis of ALL available information.
 
-1.  **Detect Role Alignment and Career Transitions:**
+1.  **Detect Role Alignment and Career/Seniority Transitions:**
     *   First, parse the Job Description to identify the target role and its core skill requirements.
     *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided).
     *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** This comparison is the basis for your entire question generation strategy.
-    *   If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role), you MUST adapt your questioning strategy.
+    *   If you detect a significant mismatch that suggests a **career transition** (e.g., a Software Engineer applying for a Sales role) OR a **seniority mismatch** (e.g., a candidate with 15 years experience applying for a role requiring 5), you MUST adapt your questioning strategy.
 
-2.  **Generate Questions in a Logical Sequence:** Your generated kit MUST follow a standard real interview pattern.
+2.  **Generate Questions in a Logical, Adaptive Sequence:** Your generated kit MUST follow a standard real interview pattern.
     *   **Question 1 MUST be "Tell me about yourself."** This is the mandatory starting point.
     *   **Then, follow the appropriate path based on your analysis:**
-        *   **Path A: Career Transition Detected:** Your very next questions MUST probe the justification for this shift. Challenge the candidate to build the bridge themselves with questions like: "What motivates your transition from [Candidate's Past Domain] to [Target Role Domain]?", "Which of your past experiences do you believe are most transferable and why?", "What steps have you taken to learn about [Target Role Domain]?". Only *after* probing the transition should you ask about specific projects, framing the questions to highlight their relevance to the *new* role.
+        *   **Path A: Mismatch Detected (Career or Seniority Transition):** Your very next questions MUST probe the justification for this shift. Challenge the candidate to build the bridge themselves. Examples:
+            *   For career transition: "What motivates your transition from [Candidate's Past Domain] to [Target Role Domain]?", "Your background is in [X], can you walk me through how you see your projects and learnings there preparing you for the challenges of a [Y] role?"
+            *   For seniority transition: "Your profile shows extensive experience, including leadership roles. What appeals to you about this specific position at this stage in your career?"
         *   **Path B: Standard Role Alignment:** Your next questions should be deep-dives into their resume/profile projects to validate their experience directly.
     *   **After these initial targeted questions,** you should then generate other technical, scenario, or behavioral questions that test core skills from the Job Description.
 
-3.  **Handle Non-Disclosure Cases & Ambiguity:**
-    *   If a candidate describes relevant skills and experiences without explicitly stating their previous role title, **do not penalize this.** Your evaluation, and the guidance you provide in model answers, must focus on the *substance and relevance* of the described tasks and learnings, not the title itself.
-    *   If inputs are vague or unparseable, generate broader, more fundamental questions and note in the model answers that the interviewer may need to probe for more detail.
+3.  **Handle Non-Disclosure Cases & Ambiguity:** If a candidate describes relevant skills and experiences without explicitly stating their previous role title, **do not penalize this.** Your evaluation, and the guidance you provide in model answers, must focus on the *substance and relevance* of the described tasks and learnings, not the title itself.
 
 **Model Answer & Rubric Philosophy:**
 
 Your generated guidance for the interviewer must be practical, generalized, and flexible.
 
 *   **Model Answers are Generalized Evaluation Guides, Not Rigid Scripts:**
-    *   Your generated model answers are for the INTERVIEWER'S EYES ONLY. They must be brief, high-level guides.
-    *   The bullet points should represent GENERALIZED principles, core concepts, or key thought processes to listen for. They are not a verbatim checklist.
-    *   **Indicative Scoring:** Each bullet point in the model answer must have an indicative point value (e.g., '(~3 points)'). This provides a loose framework for scoring, but is not a rigid calculation. The total of these indicative points should logically sum to 10 for each question.
-    *   **CRITICAL: Note for Interviewer:** Every model answer must also guide the interviewer that if a candidate provides a different, but highly relevant and practical answer from their own experience, it should be viewed as a **significant PLUS** and can be awarded points, even if it's not one of the checklist items. The goal is to evaluate real-world problem-solving, not rote memorization.
-*   **"Tell me about yourself" (Exception):** The model answer for this specific question is unique. It MUST be a descriptive guide **FOR THE INTERVIEWER**, not a script for the candidate. It should be framed to help a non-technical recruiter assess the relevance of the candidate's introduction. To do this, you will pull specific details from the candidate's profile (Unstop, resume content) and suggest what a strong answer should connect. For example: '*Candidate should connect their project on X to our need for Y...*', '*Listen for how they frame their past experience at Z as preparation for this role...*'. The goal is to equip the interviewer to evaluate how well the candidate can tell their own story and connect it to the job.
-*   **Scoring Rubric:** The rubric criteria you generate must also be flexible, focusing on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate.
+    *   They are for the INTERVIEWER'S EYES ONLY and must be brief, high-level guides.
+    *   The bullet points should represent GENERALIZED principles, core concepts, or key thought processes to listen for.
+    *   **Indicative Scoring:** Each bullet point must have an indicative point value (e.g., '(~3 points)') that logically sums to 10.
+    *   **CRITICAL Note for Interviewer:** Every model answer must guide the interviewer that if a candidate provides a different, but highly relevant and practical answer from their own experience, it should be viewed as a **significant PLUS** and can be awarded points. The goal is to evaluate real-world problem-solving.
+    *   **Crucially for Career Transitions:** The model answers for transition questions must guide the interviewer to evaluate **how well the candidate articulates the connection between their past and the new role.** The focus is on the strength of their argument. For an IT person moving to sales, the guidance should be to listen for how they connect IT project management to client relationship building, not just listing "communication skills."
+
+*   **"Tell me about yourself" (Exception):** This model answer is unique. It MUST be a descriptive guide **FOR THE INTERVIEWER**. It should pull specific details from the candidate's profile and suggest what a strong answer should connect, equipping the interviewer to evaluate how well the candidate tells their own story in relation to the job.
+
+*   **Scoring Rubric:** Rubric criteria must be flexible, focusing on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate.
 
 Job Description (Primary Source):
 {{{jobDescription}}}

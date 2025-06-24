@@ -80,33 +80,32 @@ const customizeInterviewKitPrompt = ai.definePrompt({
 
 CRITICAL: Before refining any content, you must perform a holistic analysis of ALL original inputs (JD, Unstop Profile, Resume Data, Context) supplemented by the user's edits.
 
-1.  **Detect Role Alignment and Career Transitions:**
-    *   First, parse the Job Description to identify the target role and its core skill requirements.
-    *   Next, analyze the candidate's profile (Unstop Profile and Resume content, if provided).
-    *   **Crucially, compare the candidate's documented skills and experience against the target role's requirements.** This comparison is the basis for your entire refinement strategy.
-    *   If you detect a significant mismatch that suggests a **career transition** (e.g., a candidate with a Software Engineering background applying for a Sales Manager role), your refinements must prioritize questions that probe this transition.
+1.  **Detect Role Alignment and Career/Seniority Transitions:**
+    *   First, parse the Job Description and candidate's profile to identify the target role versus the candidate's background.
+    *   **Crucially, re-evaluate if a career or seniority transition is present.** This comparison is the basis for your entire refinement strategy.
 
-2.  **Refine Questions while Maintaining a Logical Sequence:** Your refined kit MUST follow a standard real interview pattern. Review the user's edits and ensure the overall flow remains logical.
+2.  **Refine Questions while Maintaining a Logical, Adaptive Sequence:** Your refined kit MUST follow a standard real interview pattern. Review the user's edits and ensure the overall flow remains logical.
     *   **The first question should generally be "Tell me about yourself."**
     *   **Then, ensure the flow follows the appropriate path based on your analysis:**
-        *   **Path A: Career Transition Detected:** The questions immediately following the intro should probe the justification for the shift. If the user has removed these, you should refine other questions or add notes to steer the conversation back to this crucial topic. Questions should challenge the candidate to build the bridge themselves (e.g., "What motivates your transition?," "Which past experiences are most transferable and why?," "What steps have you taken to learn about this new domain?").
+        *   **Path A: Mismatch Detected (Career or Seniority Transition):** The questions immediately following the intro should probe the justification for the shift. If the user has removed these, you should refine other questions or add notes to steer the conversation back to this crucial topic. Questions should challenge the candidate to build the bridge themselves (e.g., "What motivates your transition?," "Which past experiences are most transferable and why?").
         *   **Path B: Standard Role Alignment:** The questions following the intro should be deep-dives into their resume/profile projects to validate their experience directly.
     *   **Overall Flow:** Ensure that project-specific and skill-validation questions come before more general technical or behavioral questions. Your refinement should preserve this natural interview progression.
 
-3.  **Handle Non-Disclosure Cases & Ambiguity:**
-    *   If a candidate's profile or answers seem to describe relevant skills and experiences without explicitly stating a previous role title, **focus on the substance of that experience.** Your refined model answers should guide the interviewer to evaluate the *relevance of the described tasks and learnings*, not the title itself.
-    *   If inputs were vague or unparseable, your refinements should produce broader, more fundamental questions and note in the model answers that the interviewer may need to probe for more detail.
+3.  **Handle Non-Disclosure Cases & Ambiguity:** If a candidate's profile seems to describe relevant skills without explicitly stating a previous role title, **focus on the substance of that experience.** Your refined model answers should guide the interviewer to evaluate the *relevance of the described tasks and learnings*, not the title itself.
 
 **Model Answer & Rubric Philosophy:**
 
 Your refined guidance for the interviewer must be practical, generalized, and flexible.
 
 *   **Model Answers are Generalized Evaluation Guides, Not Rigid Scripts:**
-    *   The bullet points should represent GENERALIZED principles, core concepts, or key thought processes to listen for. They are not a verbatim checklist.
-    *   **Indicative Scoring:** Each bullet point in the model answer must have an indicative point value (e.g., '(~3 points)'). This provides a loose framework for scoring, but is not a rigid calculation. The total of these indicative points should logically sum to 10 for each question.
-    *   **CRITICAL: Note for Interviewer:** Every refined model answer must also guide the interviewer that if a candidate provides a different, but highly relevant and practical answer from their own experience, it should be viewed as a **significant PLUS** and can be awarded points, even if it's not one of the checklist items. The goal is to evaluate real-world problem-solving, not rote memorization.
-*   **"Tell me about yourself" (Exception):** The model answer for this specific question is unique. When refining it, ensure it remains a descriptive guide **FOR THE INTERVIEWER**, not a script for the candidate. It should be framed to help a non-technical recruiter assess the relevance of the candidate's introduction. It should pull specific details from the candidate's profile (Unstop, resume content) and suggest what a strong answer should connect. For example: '*Candidate should connect their project on X to our need for Y...*', '*Listen for how they frame their past experience at Z as preparation for this role...*'. The goal is to equip the interviewer to evaluate how well the candidate can tell their own story and connect it to the job.
-*   **Scoring Rubric:** The rubric criteria must be well-defined, distinct, high-quality, actionable, and measurable. They should focus on assessing clarity, relevance, problem-solving, and the ability to connect past experience (or learning) to the target role's requirements, including accounting for emergent information shared by the candidate. Ensure weights sum to 1.0.
+    *   The bullet points should represent GENERALIZED principles or core concepts to listen for.
+    *   **Indicative Scoring:** Each bullet point must have an indicative point value (e.g., '(~3 points)') that logically sums to 10.
+    *   **CRITICAL Note for Interviewer:** Every refined model answer must also guide the interviewer that if a candidate provides a different, but highly relevant and practical answer from their own experience, it should be viewed as a **significant PLUS** and can be awarded points.
+    *   **Crucially for Career Transitions:** When refining transition-related questions, ensure the model answer guides the interviewer to evaluate **how well the candidate articulates the connection between their past projects/learnings and the requirements of the new role.** The focus is on the logic and persuasiveness of their justification, especially if they have no direct experience in the new field.
+
+*   **"Tell me about yourself" (Exception):** When refining this, ensure it remains a descriptive guide **FOR THE INTERVIEWER**, not a script for the candidate. It should pull specific details from the candidate's profile and suggest what a strong answer should connect, to help a non-technical recruiter assess relevance.
+
+*   **Scoring Rubric:** The rubric criteria must be well-defined, distinct, and actionable. They should focus on assessing clarity, relevance, problem-solving, and the ability to connect past experience to the target role, accounting for emergent information. Ensure weights sum to 1.0.
 
 
 Job Description (Primary Source, for context):
