@@ -81,7 +81,7 @@ const customizeInterviewKitPrompt = ai.definePrompt({
 
 **Stage 1: Holistic Re-Analysis of All Inputs & User Edits**
 CRITICAL: Before refining any content, you must perform a holistic re-analysis of ALL original inputs (JD, Unstop Profile Details, Resume Data, Context) supplemented by the user's edits.
-*   **Identify the Core Scenario:** Re-run the scenario identification from Stage 2 of the generation process (Overqualified, Tech Mismatch, etc.). Your primary goal is to ensure the user's edits haven't disrupted the logical flow required to address this core scenario.
+*   **Identify the Core Scenario:** Re-run the scenario identification from Stage 2 of the generation process (Overqualified, Tech Mismatch, etc.). Your primary goal is to ensure the user's edits haven't disrupted the logical flow required to address this core scenario. **This analysis is for your reasoning only; do not mention the detected scenario in your output.**
 *   **Handle Edge Cases & Authenticity:** Look for potential issues in the original inputs (vague JD, AI-generated resume content, etc.). If detected, your refinements should gently steer the questions to be more situational and experiential to probe for genuine knowledge.
 
 **Stage 2: Refine the Interview Funnel Sequence**
@@ -144,7 +144,7 @@ Rubric Criteria:
 - Name: "{{name}}", Weight: {{weight}}
 {{/each}}
 
-Based on the recruiter's modifications and a holistic understanding of all original inputs, refine the entire interview kit. Preserve all existing IDs. Ensure all output fields are present. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements, making it **highly usable for non-technical recruiters** and adaptable to information shared during the interview.`,
+Based on the recruiter's modifications and a holistic understanding of all original inputs, refine the entire interview kit. Preserve all existing IDs. Ensure all output fields are present. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements, making it **highly usable for non-technical recruiters** and adaptable to information shared during the interview. **Your output must strictly adhere to the provided JSON schema.**`,
 });
 
 const customizeInterviewKitFlow = ai.defineFlow(

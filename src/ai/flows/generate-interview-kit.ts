@@ -79,17 +79,17 @@ First, analyze the provided Job Description, Unstop Profile Details, and Resume 
 *   **Authenticity Flags:** Look for signs of AI-generated content (generic, formulaic prose), buzzword stuffing without substance, or duplicated content across roles. If detected, generate more situational and experiential questions to probe for genuine, hands-on knowledge.
 
 **Stage 2: Candidate-Role Profile Matching & Scenario Identification**
-CRITICAL: Synthesize all information to identify the primary scenario that best describes the candidate's situation relative to the role. This is your most important analytical step. Use your comprehensive knowledge of recruiter scenarios to classify the situation (e.g., Overqualified, Tech Mismatch, Career Gap, Domain Transition, etc.). This will dictate the flow of the interview.
+CRITICAL: Synthesize all information to identify the primary scenario that best describes the candidate's situation relative to the role. This is your most important analytical step. Use your comprehensive knowledge of recruiter scenarios to classify the situation (e.g., Overqualified, Tech Mismatch, Career Gap, Domain Transition, etc.). This analysis should be SILENT. DO NOT mention the detected scenario in your output.
 
 **Stage 3: Generate Questions with a Standard Interview Funnel Sequence**
 Your generated kit MUST follow a logical, real-world interview sequence, adapted to the scenario you identified. The sequence is critical for a natural conversation flow. Place questions into competencies accordingly.
 *   **Step 1: Introduction (The mandatory first question).**
     *   The first question in the entire kit MUST be "Tell me about yourself." It should be in a competency like "Candidate Introduction & Background".
 *   **Step 2: Motivation & Alignment (The next 1-2 questions).**
-    *   Immediately after the introduction, you MUST generate "Transition" and "Core" questions that address the primary scenario identified in Stage 2. This must be a professional, conversational transition, not an accusation. Use the strategies from your knowledge base. For example:
-    *   **For Overqualified:** Transition with "Your experience is very impressive. To ensure we have the perfect alignment, this role is a hands-on contributor position." then ask "Could you share what aspects of being 'in the weeds' again are appealing to you at this point in your career?"
-    *   **For Tech Mismatch:** Transition with "That's a strong background in [Previous Tech]. As you know, this role is heavily focused on [New Tech]." then ask "How would you approach mapping your knowledge and getting up to speed?"
-    *   **For Experience Gap:** Transition neutrally: "As I was looking at your timeline, I noticed a period between [Date] and [Date]." then ask "Could you share how you utilized that time?"
+    *   Immediately after the introduction, you MUST generate questions that address the primary scenario identified in Stage 2. This must be a professional, conversational transition, not an accusation. For example:
+    *   **For Overqualified:** Generate a question like "Your experience is very impressive. To ensure we have the perfect alignment, this role is a hands-on contributor position. Could you share what aspects of being 'in the weeds' again are appealing to you at this stage of your career?"
+    *   **For Tech Mismatch:** Generate a question like "That's a strong background in [Previous Tech]. As you know, this role is heavily focused on [New Tech]. How would you approach mapping your knowledge and getting up to speed?"
+    *   **For Experience Gap:** Generate a question like "As I was looking at your timeline, I noticed a period between [Date] and [Date]. Could you share how you utilized that time?"
 *   **Step 3: Experience Deep Dive (The core of the interview).**
     *   Following the alignment questions, generate questions that are deep dives into their most relevant projects and work experiences from their profile.
 *   **Step 4: Broader Skill Assessment (The final section).**
@@ -130,7 +130,7 @@ Candidate Experience Context (additional notes):
 {{{candidateExperienceContext}}}
 {{/if}}
 
-Based on a holistic, multi-stage deep analysis of ALL available information, generate the interview kit following a REAL INTERVIEW PATTERN. Adhere to all the principles described above. Structure the competencies and questions logically, provide insightful and flexible model answers, and create a practical, context-aware scoring rubric. The final kit must be a comprehensive and effective tool for a recruiter, especially one who is not a domain expert.`,
+Based on a holistic, multi-stage deep analysis of ALL available information, generate the interview kit following a REAL INTERVIEW PATTERN. Adhere to all the principles described above. Structure the competencies and questions logically, provide insightful and flexible model answers, and create a practical, context-aware scoring rubric. The final kit must be a comprehensive and effective tool for a recruiter, especially one who is not a domain expert. **Your output must strictly adhere to the provided JSON schema.**`,
 });
 
 const generateInterviewKitFlow = ai.defineFlow(
