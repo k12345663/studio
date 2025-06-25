@@ -75,47 +75,36 @@ const generateInterviewKitPrompt = ai.definePrompt({
 
 **Stage 1: Input Quality and Integrity Check**
 First, analyze the provided Job Description, Unstop Profile Details, and Resume for completeness, clarity, and potential issues.
-*   **Handle Edge Cases:** If inputs are sparse, generic (e.g., JD is just a title), or conflicting (e.g., profile name mismatch), note this and generate broader, more fundamental questions. If the resume is unparsable (e.g., two-column layout, special fonts), rely on other available information. If inputs are entirely missing, you cannot proceed.
-*   **Authenticity Flags:** Look for signs of AI-generated content, buzzword stuffing without substance (e.g., profile full of buzzwords but no projects), or duplicated content across roles. If detected, generate more situational and experiential questions to probe for genuine, hands-on knowledge.
+*   **Handle Edge Cases:** If inputs are sparse (e.g., JD is just a title), generic, or conflicting, generate broader, more fundamental questions. If the resume is unparsable (e.g., two-column layout, special fonts), rely on other available information. If all inputs are missing or unusable, you must indicate that generation is not possible.
+*   **Authenticity Flags:** Look for signs of AI-generated content (generic, formulaic prose), buzzword stuffing without substance, or duplicated content across roles. If detected, generate more situational and experiential questions to probe for genuine, hands-on knowledge.
 
 **Stage 2: Candidate-Role Profile Matching & Scenario Identification**
-CRITICAL: Synthesize all information to identify the primary scenario that best describes the candidate's situation relative to the role. This is your most important analytical step. Choose one from the list below.
-*   **Standard Role Alignment:** The candidate's profile generally matches the role's requirements in terms of skills, experience level, and domain.
-*   **Fewer Years but Strong Project Leadership:** The candidate has fewer years of formal experience than required, but their profile showcases strong, relevant project leadership or high-impact contributions.
-*   **Overqualified Candidate:** The candidate has significantly more experience than required (e.g., 15 years for a 10-year role) or is applying for a more junior role.
-*   **Technology Mismatch:** The candidate's primary tech stack (e.g., React, AWS) differs from the role's required stack (e.g., Vue, GCP), but the underlying concepts are related.
-*   **Experience Gap / Career Break:** The profile shows unexplained employment gaps of 6+ months or a formal career break (potentially with upskilling).
-*   **Academic-to-Professional Transition:** The candidate is a recent graduate or has a profile dominated by internships, research papers, and academic projects, lacking extensive full-time experience.
-*   **Frequent Job Changer / Freelancer:** The candidate has a history of frequent job switching or primarily freelance work and is now applying for a permanent role.
-*   **Domain Transition:** The candidate is moving from one professional domain to another (e.g., Civil Engineering to a Software role, or Backend to DevOps).
-*   **Ambiguous/Vague Profile:** The profile or JD is sparse on details, uses buzzwords without projects, has unclear role titles, or seems copy-pasted.
+CRITICAL: Synthesize all information to identify the primary scenario that best describes the candidate's situation relative to the role. This is your most important analytical step. Use your comprehensive knowledge of recruiter scenarios to classify the situation (e.g., Overqualified, Tech Mismatch, Career Gap, Domain Transition, etc.). This will dictate the flow of the interview.
 
 **Stage 3: Generate Questions with a Standard Interview Funnel Sequence**
-Your generated kit MUST follow a logical, real-world interview sequence, adapted to the scenario you identified. The sequence is critical for a natural conversation flow.
+Your generated kit MUST follow a logical, real-world interview sequence, adapted to the scenario you identified. The sequence is critical for a natural conversation flow. Place questions into competencies accordingly.
 *   **Step 1: Introduction (The mandatory first question).**
     *   The first question in the entire kit MUST be "Tell me about yourself." It should be in a competency like "Candidate Introduction & Background".
 *   **Step 2: Motivation & Alignment (The next 1-2 questions).**
-    *   Immediately after the introduction, you MUST address the primary scenario identified in Stage 2 with a professional, conversational transition. These questions validate the fit.
-    *   **For Fewer Years/Strong Projects:** Frame it like this: "What really stood out on your profile was your leadership on the [Project Name] initiative. While your overall years of experience are concise, the scale of that project seems significant. Could you describe the scope and the key business goals you were personally responsible for?"
-    *   **For Overqualified:** Be direct and professional: "Your experience is very impressive. To ensure we have the perfect alignment, I want to be transparent that this role is a hands-on contributor position. Could you share what aspects of being 'in the weeds' again are appealing to you at this point in your career?"
-    *   **For Tech Mismatch:** "That's a strong background in [Previous Tech]. As you know, this role is heavily focused on [New Tech]. How would you approach mapping your knowledge and getting up to speed?"
-    *   **For Experience Gap:** Address it neutrally: "As I was looking at your timeline, I noticed there was a period between [Date] and [Date] where you weren't formally employed. Could you share how you utilized that time? Many people use breaks for personal growth or learning."
-    *   **For Academic/Internship Profile:** Validate practical application: "Your final year project on [Project Topic] sounds fascinating. I'd like to understand how you approached it from a more practical standpoint. What were some of the real-world challenges you faced, like messy data or computational limits?"
-    *   **For Job Hopper/Freelancer:** Probe for long-term motivation: "I see you’ve had the opportunity to experience several different environments. Could you help me understand the story behind these transitions and what you've learned about the type of role where you can do your best work and want to stay long-term?"
-    *   **For Domain Transition:** "Your background in [Previous Domain] is interesting. What has sparked your passion for moving into the [New Domain] space, and what have you been doing to get hands-on experience with its core tools?"
+    *   Immediately after the introduction, you MUST generate "Transition" and "Core" questions that address the primary scenario identified in Stage 2. This must be a professional, conversational transition, not an accusation. Use the strategies from your knowledge base. For example:
+    *   **For Overqualified:** Transition with "Your experience is very impressive. To ensure we have the perfect alignment, this role is a hands-on contributor position." then ask "Could you share what aspects of being 'in the weeds' again are appealing to you at this point in your career?"
+    *   **For Tech Mismatch:** Transition with "That's a strong background in [Previous Tech]. As you know, this role is heavily focused on [New Tech]." then ask "How would you approach mapping your knowledge and getting up to speed?"
+    *   **For Experience Gap:** Transition neutrally: "As I was looking at your timeline, I noticed a period between [Date] and [Date]." then ask "Could you share how you utilized that time?"
 *   **Step 3: Experience Deep Dive (The core of the interview).**
-    *   Following the motivation questions, generate questions that are deep dives into their most relevant projects and work experiences from their profile. This is for validating their hands-on experience.
+    *   Following the alignment questions, generate questions that are deep dives into their most relevant projects and work experiences from their profile.
 *   **Step 4: Broader Skill Assessment (The final section).**
-    *   Conclude with more general technical, scenario, or behavioral questions that test core skills from the Job Description but are not tied to a specific project.
+    *   Conclude with more general technical, scenario, or behavioral questions that test core skills from the Job Description.
 
 **Stage 4: Model Answer & Rubric Philosophy**
-Your generated guidance for the interviewer must be practical, generalized, and flexible. Analyze the resume and profile, but do not mention them explicitly in the final output.
+Your generated guidance for the interviewer must be practical, generalized, and flexible.
 *   **Model Answers:** These are generalized evaluation guides for the INTERVIEWER'S EYES ONLY.
     *   **Format:** 3-4 concise bullet points. AVOID long sentences or paragraphs.
     *   **Indicative Scoring:** Each bullet point must have a suggested point value (e.g., '(~3 points)') that logically sums to 10.
-    *   **Note for Interviewer (MANDATORY):** Every model answer must end with a "Note for Interviewer". This note should guide on scoring partial answers and explicitly state that if a candidate provides a different but highly relevant, practical answer from their own experience, it should be viewed as a **significant PLUS**. The goal is to evaluate insight, not rote memorization.
-*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer. **Do not summarize the candidate's resume.** Instead, provide bullet points on what a compelling narrative from a candidate with this background should sound like. For example: '- Listen for how they connect their most significant past experiences to the key requirements of *this* role. (~4 points)', '- Assess if they can articulate how a past accomplishment demonstrates their potential to achieve our company's goals. (~3 points)', '- Check for a clear, concise summary of their background and future career goals. (~3 points)'. The note should emphasize assessing the candidate's storytelling ability.
+    *   **Note for Interviewer (MANDATORY):** Every model answer must end with a "Note for Interviewer". This note should guide on scoring partial answers and explicitly state that if a candidate provides a different but highly relevant, practical answer from their own experience, it should be viewed as a **significant PLUS**.
+*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer, guiding them on what to listen for in a compelling narrative, rather than summarizing the candidate's resume.
 *   **Scoring Rubric:** Rubric criteria must be flexible and context-aware, focusing on assessing clarity, relevance, problem-solving, and adaptability.
+
+**Inputs for Analysis:**
 
 Job Description (Primary Source):
 {{{jobDescription}}}
@@ -271,5 +260,3 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-
-    
