@@ -183,9 +183,14 @@ export default function Home() {
     } catch (error) {
       console.error("Error generating interview kit:", error);
       let description = error instanceof Error ? error.message : "An unknown error occurred.";
-      if (inputForAI?.candidateResumeDataUri && (description.toLowerCase().includes("media") || description.toLowerCase().includes("parse") || description.toLowerCase().includes("content") || description.toLowerCase().includes("file") || description.toLowerCase().includes("request entity") || description.toLowerCase().includes("document has no pages"))) {
+      const lowerCaseDescription = description.toLowerCase();
+
+      if (inputForAI?.candidateResumeDataUri && (lowerCaseDescription.includes("media") || lowerCaseDescription.includes("parse") || lowerCaseDescription.includes("content") || lowerCaseDescription.includes("file") || lowerCaseDescription.includes("request entity") || lowerCaseDescription.includes("document has no pages"))) {
         description = "Error generating kit. The AI couldn't process the resume content. The file might be corrupted, password-protected, or in a very complex format. Please try a different file or generate the kit without a resume.";
+      } else if (lowerCaseDescription.includes("overloaded") || lowerCaseDescription.includes("service unavailable")) {
+        description = "The AI model is currently overloaded. Please wait a moment and try again.";
       }
+
       toast({ variant: "destructive", title: "Error Generating Kit", description });
       setInterviewKit(null);
     } finally {
@@ -208,10 +213,13 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error customizing interview kit:", error);
-      let description = `Failed to update kit. Please try again.`;
-      const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-       if (inputForAI?.candidateResumeDataUri && (errorMessage.includes("media") || errorMessage.includes("parse") || errorMessage.includes("content") || errorMessage.includes("file") || errorMessage.includes("request entity") || errorMessage.includes("document has no pages")) ) {
+      let description = error instanceof Error ? error.message : "An unknown error occurred.";
+      const lowerCaseDescription = description.toLowerCase();
+
+      if (inputForAI?.candidateResumeDataUri && (lowerCaseDescription.includes("media") || lowerCaseDescription.includes("parse") || lowerCaseDescription.includes("content") || lowerCaseDescription.includes("file") || lowerCaseDescription.includes("request entity") || lowerCaseDescription.includes("document has no pages")) ) {
         description = "Error updating kit. The AI couldn't process the resume content. The file might be corrupted, password-protected, or in a very complex format. Please try generating a new kit with a different file or without one.";
+      } else if (lowerCaseDescription.includes("overloaded") || lowerCaseDescription.includes("service unavailable")) {
+        description = "The AI model is currently overloaded. Please wait a moment and try again.";
       }
       toast({ variant: "destructive", title: "Error Updating Kit", description });
     } finally {
