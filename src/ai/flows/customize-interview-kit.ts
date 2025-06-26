@@ -35,7 +35,7 @@ const QuestionSchema = z.object({
   id: z.string().describe('Unique identifier for the question.'),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('Type of question.'),
   category: z.enum(['Technical', 'Non-Technical']).optional().describe("Category of the question ('Technical' or 'Non-Technical'). Preserve or update if changed by user."),
-  text: z.string().describe('The text of the question. **Do not add any prefix like "Question 1:" or "1."**. Ensure it is insightful and specific, considering JD, Unstop Profile Details (pasted text to be analyzed directly), and Candidate Resume File Content (optional input, AI will analyze its content directly if provided via data URI, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context).'),
+  text: z.string().describe('The text of the question. **Do not add any prefix like "Question 1:" or "1."**. Ensure it is insightful, conversational, and specific, based on the deep analysis of the JD and the candidate resume content (if provided).'),
   modelAnswerPoints: z.array(ModelAnswerPointSchema).min(2).max(5).describe("A model answer FOR THE INTERVIEWER'S USE, broken down into 2-5 specific, checkable points. The total `points` for all items in this array should sum to 10. **Every question must also include one point with the text 'Note for Interviewer: ...'** that explains how to evaluate partial answers and that practical, relevant examples from the candidate are a strong positive sign. This 'Note' should have a point value of 0."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).optional().describe("The difficulty level of the question (5-point scale)."),
   estimatedTimeMinutes: z.number().optional().describe('Suitable estimated time in minutes to answer this question.'),
@@ -45,11 +45,11 @@ const CompetencySchema = z.object({
   id: z.string().describe('Unique identifier for the competency.'),
   name: z.string().describe('Name of the competency.'),
   importance: z.enum(['High', 'Medium', 'Low']).optional().describe('The importance of this competency for the role.'),
-  questions: z.array(QuestionSchema).describe('Array of questions for the competency. Ensure questions and answers maintain high quality if modified or regenerated, referencing JD and candidate profile (Unstop Profile Details - pasted text to be analyzed directly, and especially the Resume File Content - optional input, AI will analyze its content directly if provided via data URI, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences). Try to maintain a logical sequence of questions within competencies if edits allow.'),
+  questions: z.array(QuestionSchema).describe('Array of questions for the competency. Ensure questions and answers maintain high quality if modified or regenerated, referencing the original analysis of the JD and candidate resume content (if provided). Try to maintain a logical sequence of questions within competencies if edits allow.'),
 });
 
 const RubricCriterionSchema = z.object({
-  name: z.string().describe("Name of the well-defined, distinct, and high-quality criterion, framed for easy use by a non-technical recruiter. It must be actionable, measurable, and directly relevant to assessing candidate suitability. Focus on parameters like 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering resume file details [AI to analyze if provided] and relevant emergent information shared by candidate)'. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate's Unstop Profile Details/Resume File Content (including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, or past work experiences) where appropriate. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively, understandable by someone not expert in the role's domain. The criteria should reflect your deep analysis. For example, if a key skill from the JD is missing, a criterion could be 'Assessing Transferable Skills for [Missing Skill]'. If a candidate has strong leadership experience, a criterion could be 'Evaluating Project Leadership and Impact'."),
+  name: z.string().describe("Name of the well-defined, distinct, and high-quality criterion, framed for easy use by a non-technical recruiter. It must be actionable, measurable, and directly relevant to assessing candidate suitability based on the original analysis. Example: 'Assessing Transferable Skills for Missing Skill X' or 'Evaluating Project Leadership and Impact from Project Y'."),
   weight: z.number().describe('Weight of the criterion (a value between 0.0 and 1.0, should sum to 1.0 across all criteria).'),
 });
 
@@ -57,10 +57,10 @@ const CustomizeInterviewKitInputSchema = z.object({
   jobDescription: z.string().describe('The job description used to generate the interview kit. This is a primary source material. AI should try to parse meaningful requirements even if it contains HTML/markup or promotional fluff, focusing on core skills and responsibilities.'),
   unstopProfileLink: z.string().optional().describe("The candidate's Unstop profile link (for context only)."),
   unstopProfileDetails: z.string().optional().describe("A block of text pasted from the candidate's Unstop profile. This is a primary source for analysis."),
-  candidateResumeDataUri: z.string().optional().describe("The data URI of the candidate's resume file (PDF or DOCX) that was used. If provided, AI should consider its content for refinements (skills, projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences)."),
+  candidateResumeDataUri: z.string().optional().describe("The data URI of the candidate's resume file (PDF or DOCX) that was used. If provided, AI must consider its content for refinements (skills, projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences)."),
   candidateResumeFileName: z.string().optional().describe("The original file name of the candidate's resume, for context."),
   candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements. This supplements primary sources.'),
-  competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here. May include "Tell me about yourself". Competencies should be informed by the holistic analysis of JD and candidate profile (Unstop Profile details/Resume file content including educational background and academic achievements), and cover core JD skills.'),
+  competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here. May include "Tell me about yourself". Competencies should be informed by the holistic analysis of JD and candidate profile.'),
   rubricCriteria: z.array(RubricCriterionSchema).describe('Array of rubric criteria with weights. User edits are reflected here.'),
 });
 export type CustomizeInterviewKitInput = z.infer<typeof CustomizeInterviewKitInputSchema>;
@@ -103,7 +103,7 @@ Your output MUST adhere strictly to the provided JSON schema.
 - **Preserve IDs:** All existing competency and question IDs must be preserved.
 - **Logical Flow:** Review the user's edits. If a change weakens a crucial line of inquiry (e.g., they delete a question about motivation for an overqualified candidate), you must refine another question or add one back to gently probe that topic, ensuring the overall interview funnel remains strategic.
 - **Refine Content:**
-    - **Competencies & Questions:** Ensure competency names and question texts remain sharp and relevant after user edits. If a user adds a domain-specific question, ensure your refined model answer is practical and shows an understanding of that industry's context.
+    - **Competencies & Questions:** Ensure competency names and question texts remain sharp, conversational, and relevant after user edits.
     - **Model Answers:** All model answers (new or edited) must adhere to the required format: a structured array 'modelAnswerPoints' where each object has 'text' and 'points'. The sum of points must equal 10, and a mandatory "Note for Interviewer" with 0 points must be included.
     - **Scoring Rubric:** Ensure rubric criteria remain flexible, actionable, and focus on assessing clarity, relevance, and problem-solving. The rubric should directly reflect your analysis. For example, if a key skill from the JD is missing, a criterion could be 'Assessing Transferable Skills for [Missing Skill]'.
 
@@ -286,3 +286,5 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+
+    
