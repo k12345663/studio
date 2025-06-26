@@ -102,40 +102,90 @@ Your generated guidance for the interviewer must be practical, generalized, and 
 
 **Knowledge Base: Recruiter Scenarios & Corresponding Actions**
 --- A. Candidate Experience & Profile Nuances ---
-- **Fewer Years but Strong Project Leadership:** JD wants X+ years, resume shows <X years but has "Lead" or "Managed" on a significant project. -> Deprioritize "years." Ask questions to quantify the scope (team size, budget), impact (KPIs), and leadership challenges.
-- **Related Tech (e.g., AWS vs Azure):** JD requires tech stack A, resume shows deep experience in comparable stack B. -> Probe for transferable skills and learning agility. Ask how they would map their knowledge to the new stack.
-- **Overqualified Candidate:** Resume shows senior titles ("Director") applying for a junior role. -> Probe motivation for the "step down." Ask about their excitement for hands-on work and comfort with taking direction.
-- **Gaps in Employment:** Unexplained employment gap of 6+ months. -> Address the gap neutrally. Ask how they utilized the time and if they engaged in skill development.
-- **Non-Traditional Background (e.g., Physics to Data Science):** Degree is in a different but analytically related field. -> Ask them to bridge the gap. Probe for transferable analytical skills and how they've applied them to practical problems.
-- **Lack of Specific Industry Experience (e.g., Gaming to Fintech):** Strong tech experience in Industry A applying for Industry B. -> Assess motivation and learning approach. Ask what they've done to learn the new domain.
-- **Frequent Job Switching:** 3+ jobs in the last 2-3 years. -> Ask for the story behind the transitions and what they seek for long-term commitment.
-- **Shifting to a Related but Different Role (e.g., Backend to DevOps):** Clear career pivot. -> Validate the motivation. Ask what proactive, hands-on steps they've taken to learn the new role's core skills.
-- **Career Break with Upskilling:** Resume explicitly states a career break for learning. -> Probe the depth and discipline of their learning. Ask about a project built from scratch.
-- **Internship-Heavy Profile for Full-Time Role:** Multiple internships but no full-time experience. -> Examine scope and ownership in internships. Ask them to describe a project they personally owned.
-- **Potentially Exaggerated Claims (e.g., "Kafka Expert"):** Use of strong keywords ("Expert") without extensive supporting detail. -> Respectfully pressure-test the claim with deeper architectural or troubleshooting questions.
-- **Ambiguous Role Titles (e.g., "Tech Specialist"):** Vague job titles. -> Seek to clarify their day-to-day. Ask for a percentage breakdown of their time (coding vs. configuration vs. support).
-- **Lists "Team Projects" Only:** Accomplishments attributed to "the team". -> Isolate their personal contribution. Ask "What was your specific role?"
-- **Freelancer Applying for Full-Time Role:** Recent experience is "Freelance." -> Test their mindset shift. Probe their readiness for team collaboration and shared code ownership.
+- **Fewer Years but Strong Project Leadership:**
+  - **Detection:** JD wants X+ years, resume shows <X years but has "Lead" or "Managed" on a significant project.
+  - **Action:** Deprioritize "years." Ask questions to quantify the scope (team size, budget), impact (KPIs), and leadership challenges.
+- **Related Tech (e.g., AWS vs Azure):**
+  - **Detection:** JD requires tech stack A, resume shows deep experience in comparable stack B.
+  - **Action:** Probe for transferable skills and learning agility. Ask how they would map their knowledge to the new stack.
+- **Overqualified Candidate:**
+  - **Detection:** Resume shows senior titles ("Director") applying for a junior role.
+  - **Action:** Probe motivation for the "step down." Ask about their excitement for hands-on work and comfort with taking direction.
+- **Gaps in Employment:**
+  - **Detection:** Unexplained employment gap of 6+ months.
+  - **Action:** Address the gap neutrally. Ask how they utilized the time and if they engaged in skill development.
+- **Non-Traditional Background (e.g., Physics to Data Science):**
+  - **Detection:** Degree is in a different but analytically related field.
+  - **Action:** Ask them to bridge the gap. Probe for transferable analytical skills and how they've applied them to practical problems.
+- **Lack of Specific Industry Experience (e.g., Gaming to Fintech):**
+  - **Detection:** Strong tech experience in Industry A applying for Industry B.
+  - **Action:** Assess motivation and learning approach. Ask what they've done to learn the new domain.
+- **Frequent Job Switching:**
+  - **Detection:** 3+ jobs in the last 2-3 years.
+  - **Action:** Ask for the story behind the transitions and what they seek for long-term commitment.
+- **Shifting to a Related but Different Role (e.g., Backend to DevOps):**
+  - **Detection:** Clear career pivot.
+  - **Action:** Validate the motivation. Ask what proactive, hands-on steps they've taken to learn the new role's core skills.
+- **Career Break with Upskilling:**
+  - **Detection:** Resume explicitly states a career break for learning.
+  - **Action:** Probe the depth and discipline of their learning. Ask about a project built from scratch.
+- **Internship-Heavy Profile for Full-Time Role:**
+  - **Detection:** Multiple internships but no full-time experience.
+  - **Action:** Examine scope and ownership in internships. Ask them to describe a project they personally owned.
+- **Potentially Exaggerated Claims (e.g., "Kafka Expert"):**
+  - **Detection:** Use of strong keywords ("Expert") without extensive supporting detail.
+  - **Action:** Respectfully pressure-test the claim with deeper architectural or troubleshooting questions.
+- **Ambiguous Role Titles (e.g., "Tech Specialist"):**
+  - **Detection:** Vague job titles.
+  - **Action:** Seek to clarify their day-to-day. Ask for a percentage breakdown of their time (coding vs. configuration vs. support).
+- **Lists "Team Projects" Only:**
+  - **Detection:** Accomplishments attributed to "the team".
+  - **Action:** Isolate their personal contribution. Ask "What was your specific role?"
+- **Freelancer Applying for Full-Time Role:**
+  - **Detection:** Recent experience is "Freelance."
+  - **Action:** Test their mindset shift. Probe their readiness for team collaboration and shared code ownership.
 
 --- B. JD & Profile Mismatches ---
-- **Generic JD, Specific Profile:** JD is vague, but resume is highly specific. -> Use the candidate's specific skills to add depth to the vague JD.
-- **Detailed JD, Vague Profile:** JD lists 15+ requirements, resume is a 1-liner. -> Ask broad questions first, then zero in on the top 2-3 most critical skills from the JD.
-- **Significant Experience Gap (Senior vs. Junior):** JD wants 8+ years, resume shows 2. -> Acknowledge the gap transparently. State you're looking for exceptional talent and will ask deeper fundamental questions. This is a qualification call.
-- **Total Tech Stack Mismatch:** JD requires stack A, resume has stack B. -> Focus entirely on transferability and learning curve.
+- **Generic JD, Specific Profile:**
+  - **Detection:** JD is vague, but resume is highly specific.
+  - **Action:** Use the candidate's specific skills to add depth to the vague JD.
+- **Detailed JD, Vague Profile:**
+  - **Detection:** JD lists 15+ requirements, resume is a 1-liner.
+  - **Action:** Ask broad questions first, then zero in on the top 2-3 most critical skills from the JD.
+- **Significant Experience Gap (Senior vs. Junior):**
+  - **Detection:** JD wants 8+ years, resume shows 2.
+  - **Action:** Acknowledge the gap transparently. State you're looking for exceptional talent and will ask deeper fundamental questions. This is a qualification call.
+- **Total Tech Stack Mismatch:**
+  - **Detection:** JD requires stack A, resume has stack B.
+  - **Action:** Focus entirely on transferability and learning curve.
 
 --- C. Profile Quality & Content Issues ---
-- **Profile Full of Buzzwords:** Jargon without concrete examples. -> Challenge the vague claims. Ask for a specific project example and real metrics.
-- **Profile Lists Outdated Tools:** Use of obsolete technologies. -> Filter for relevance. Ask questions testing their knowledge of the modern equivalent tools.
-- **Profile Looks AI-Written:** Generic, formulaic prose. -> Test for authenticity with situational/experiential questions ("Tell me about a time you made a mistake...").
-- **Excessively Long Profile:** Over 5-6 pages long. -> Take control and prioritize. State you will focus on their most recent and relevant experience.
+- **Profile Full of Buzzwords:**
+  - **Detection:** Jargon without concrete examples.
+  - **Action:** Challenge the vague claims. Ask for a specific project example and real metrics.
+- **Profile Lists Outdated Tools:**
+  - **Detection:** Use of obsolete technologies.
+  - **Action:** Filter for relevance. Ask questions testing their knowledge of the modern equivalent tools.
+- **Profile Looks AI-Written:**
+  - **Detection:** Generic, formulaic prose.
+  - **Action:** Test for authenticity with situational/experiential questions ("Tell me about a time you made a mistake...").
+- **Excessively Long Profile:**
+  - **Detection:** Over 5-6 pages long.
+  - **Action:** Take control and prioritize. State you will focus on their most recent and relevant experience.
 
 --- D. Student & Fresher Profiles ---
-- **Final Year Student with One Internship:** -> Focus on internship learnings, not expertise. Ask about specific contributions and challenges.
-- **15+ Certs, No Projects:** -> Test if knowledge is purely theoretical. Ask them to describe a project they would build to demonstrate those skills.
-- **Research Papers, No Industry Exp:** -> Bridge the academic mindset to industry pace. Ask how they feel about "good enough" solutions.
-- **Non-Tech Student for Tech Role:** -> Evaluate motivation and proactive learning. Ask what specific steps they've taken to learn required technical skills.
-- **Bootcamp Grad Only:** -> Test for engineering thinking beyond a curriculum. Ask about self-sufficient problem-solving (debugging) and professional practices (Git).
-- **Top-Tier Institute with Average Profile:** -> Ignore the brand name. Evaluate purely on the merits of their work, communication, and thinking.
+- **Final Year Student with One Internship:**
+  - **Action:** Focus on internship learnings, not expertise. Ask about specific contributions and challenges.
+- **15+ Certs, No Projects:**
+  - **Action:** Test if knowledge is purely theoretical. Ask them to describe a project they would build to demonstrate those skills.
+- **Research Papers, No Industry Exp:**
+  - **Action:** Bridge the academic mindset to industry pace. Ask how they feel about "good enough" solutions.
+- **Non-Tech Student for Tech Role:**
+  - **Action:** Evaluate motivation and proactive learning. Ask what specific steps they've taken to learn required technical skills.
+- **Bootcamp Grad Only:**
+  - **Action:** Test for engineering thinking beyond a curriculum. Ask about self-sufficient problem-solving (debugging) and professional practices (Git).
+- **Top-Tier Institute with Average Profile:**
+  - **Action:** Ignore the brand name. Evaluate purely on the merits of their work, communication, and thinking.
 
 **Inputs for Analysis:**
 
@@ -316,3 +366,5 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
+
+    
