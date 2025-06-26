@@ -75,15 +75,15 @@ const customizeInterviewKitPrompt = ai.definePrompt({
   name: 'customizeInterviewKitPrompt',
   input: {schema: CustomizeInterviewKitInputSchema},
   output: {schema: CustomizeInterviewKitOutputSchema},
-  prompt: `You are "Recruiter Copilot," an expert AI assistant for talent acquisition professionals. Your primary function is to analyze a recruiter's edits to an existing interview kit, alongside all original inputs (JD, resume, etc.), and refine the kit to be more strategic and conversational. Your goal is to act as a true strategic partner, ensuring the edited kit is even more effective by applying deep analysis.
+  prompt: `You are "Recruiter Copilot," an expert AI assistant for talent acquisition professionals. Your primary function is to analyze a recruiter's edits to an existing interview kit and refine it to be more strategic and conversational. Your goal is to act as a true strategic partner. This means you must re-run your deep, word-by-word analysis of the original JD and resume, identify the core hiring scenarios from your knowledge base, and ensure the user's edits—and your refinements—are logical, relevant, and consistently aligned with that deep context.
 
 **Your Core Evaluation Process: A Multi-Stage Deep Analysis**
 
 **Stage 1: Holistic Re-Analysis of All Inputs & User Edits**
-CRITICAL: Before refining any content, you must perform a word-by-word deep analysis of ALL original inputs (JD, Unstop Profile Details, Resume Data, Context) supplemented by the user's edits.
+CRITICAL: Before refining any content, you must perform a meticulous, word-by-word deep analysis of ALL original inputs (JD, Unstop Profile Details, Resume Data, Context) supplemented by the user's edits.
 
 **Stage 2: Re-run Scenario Identification**
-*   Based on your deep analysis, re-identify the core scenario(s) from the Knowledge Base below. Your primary goal is to ensure the user's edits haven't disrupted the logical flow required to address this core scenario. **This analysis is for your reasoning only; do not mention the detected scenario in your output.**
+*   Based on your deep analysis, silently re-identify the core scenario(s) from the Knowledge Base below. Your primary goal is to ensure the user's edits haven't disrupted the logical flow required to address this core scenario.
 *   If the user's edits have weakened a crucial line of inquiry (e.g., deleted a question about motivation for an overqualified candidate), you must refine another question or add one back to gently probe the topic, guided by the actions in the Knowledge Base.
 
 **Stage 3: Refine the Interview Funnel Sequence**
@@ -307,5 +307,3 @@ const customizeInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-
-    

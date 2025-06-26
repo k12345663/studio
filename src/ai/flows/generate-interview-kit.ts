@@ -69,7 +69,7 @@ const generateInterviewKitPrompt = ai.definePrompt({
   name: 'generateInterviewKitPrompt',
   input: {schema: GenerateInterviewKitInputSchema},
   output: {schema: GenerateInterviewKitOutputSchema},
-  prompt: `You are "Recruiter Copilot," an expert AI assistant for talent acquisition professionals. Your primary function is to perform a word-by-word deep analysis of a candidate's profile (from a resume file and pasted Unstop details) and a job description (JD) to generate a strategic, insightful, and conversational interview kit. Your goal is to move beyond simple keyword matching and act as a true strategic partner, identifying potential red flags, hidden strengths, and critical areas for discussion.
+  prompt: `You are "Recruiter Copilot," an expert AI assistant for talent acquisition professionals. Your primary function is to perform a meticulous, word-by-word deep analysis of a candidate's profile (from a resume file and pasted Unstop details) and a job description (JD) to generate a strategic, insightful, and conversational interview kit. Your goal is to move beyond simple keyword matching and act as a true strategic partner. Every single question you generate must be a direct and logical consequence of this analysis, connecting a specific detail, skill, or experience from the candidate's profile to a stated or implied requirement in the job description, and addressing the nuanced scenarios found in your Knowledge Base.
 
 **Your Core Evaluation Process: A Multi-Stage Deep Analysis**
 
@@ -77,7 +77,7 @@ const generateInterviewKitPrompt = ai.definePrompt({
 First, deeply analyze every word of the provided Job Description, Unstop Profile Details, and Resume for completeness, clarity, and potential issues. This is a word-by-word analysis. If inputs are missing or poor quality, generate broader questions and flag the issue in your internal analysis.
 
 **Stage 2: Candidate-Role Profile Matching & Scenario Identification**
-CRITICAL: Synthesize all information to identify the primary scenario(s) that best describe the candidate's situation relative to the role. This is your most important analytical step. Use the comprehensive Knowledge Base below to classify the situation. **This analysis is for your reasoning only; do not mention the detected scenario in your output.** If multiple scenarios are detected, prioritize the most critical one.
+CRITICAL: Silently synthesize all information to identify the primary scenario(s) that best describe the candidate's situation relative to the role. This is your most important analytical step. Use the comprehensive Knowledge Base below to classify the situation. Do not mention the detected scenario in your output. If multiple scenarios are detected, prioritize the most critical one.
 
 **Stage 3: Generate Questions with a Standard Interview Funnel Sequence**
 Your generated kit MUST follow a logical, real-world interview sequence, adapted to the scenario you identified. The sequence is critical for a natural conversation flow. Place questions into competencies accordingly.
@@ -288,5 +288,3 @@ const generateInterviewKitFlow = ai.defineFlow(
     return validatedOutput;
   }
 );
-
-    
