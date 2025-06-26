@@ -88,12 +88,13 @@ Based on your deep analysis, you MUST silently identify the primary scenario(s) 
 Your generated kit MUST be comprehensive and follow a logical, real-world interview sequence, adapted to the scenario you identified. The sequence is critical for a natural conversation flow.
 *   **Generate 4-6 distinct competencies.** The questions should be distributed logically among these competencies to create a rich and thorough kit.
 *   **Step 1: Introduction.** The first question in the entire kit MUST be "Tell me about yourself." It should be in a competency like "Candidate Introduction & Background".
-*   **Step 2: Motivation & Alignment.** Immediately after the introduction, you MUST generate questions that professionally and conversationally address the primary scenario identified in Stage 2. This includes asking questions that:
+*   **Step 2: The Alignment Question (CRITICAL).** After the introduction, you MUST generate a direct question that puts the ball in the candidate's court. Ask them to articulate the alignment between their profile and the role. Example: "Thanks for that overview. From your perspective, what was it about this specific role and our company that made you feel it was a strong match for your skills and career goals?" This question is essential for gauging their understanding, interest, and communication skills.
+*   **Step 3: Scenario-Driven Probing.** Immediately following the alignment question, you MUST generate questions that professionally and conversationally address the primary scenario identified in Stage 2. This includes asking questions that:
     *   **Validate Strengths:** Directly ask about a key strength from the resume that aligns with the JD.
     *   **Probe Gaps:** Gently probe for skills or experiences required by the JD but missing from the resume. Frame these questions around transferable skills or learning agility.
     *   **Explore Potential:** Ask how they might leverage their strengths to succeed in areas where they lack direct experience.
-*   **Step 3: Experience & Skills Deep Dive.** This should be the largest section. Generate multiple questions that are deep dives into their most relevant projects, skills, and work experiences from their profile, directly linking them to JD requirements.
-*   **Step 4: Broader Skill & Domain Assessment.** Conclude with more general technical, scenario, or behavioral questions that test core skills from the Job Description and probe for domain-specific knowledge (e.g., about Fintech regulations, if the JD is for a Fintech company).
+*   **Step 4: Experience & Skills Deep Dive.** This should be the largest section. Generate multiple questions that are deep dives into their most relevant projects, skills, and work experiences from their profile, directly linking them to JD requirements.
+*   **Step 5: Broader Skill & Domain Assessment.** Conclude with more general technical, scenario, or behavioral questions that test core skills from the Job Description and probe for domain-specific knowledge (e.g., about Fintech regulations, if the JD is for a Fintech company).
 
 **Stage 4: Model Answer & Rubric Philosophy**
 Your generated guidance for the interviewer must be practical, generalized, and flexible, and aligned with the detected scenario.
