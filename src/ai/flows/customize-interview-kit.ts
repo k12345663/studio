@@ -49,7 +49,7 @@ const CompetencySchema = z.object({
 });
 
 const RubricCriterionSchema = z.object({
-  name: z.string().describe("Name of the well-defined, distinct, and high-quality criterion, framed for easy use by a non-technical recruiter. It must be actionable, measurable, and directly relevant to assessing candidate suitability. Focus on parameters like 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering resume file details [AI to analyze if provided] and relevant emergent information shared by candidate)'. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate's Unstop Profile Details/Resume File Content (including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, or past work experiences) where appropriate. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively, understandable by someone not expert in the role's domain."),
+  name: z.string().describe("Name of the well-defined, distinct, and high-quality criterion, framed for easy use by a non-technical recruiter. It must be actionable, measurable, and directly relevant to assessing candidate suitability. Focus on parameters like 'Clarity of Explanation', 'Relevance of Answer', 'Depth of Understanding (considering resume file details [AI to analyze if provided] and relevant emergent information shared by candidate)'. Each criterion MUST explicitly mention key phrases, skills, concepts, project types, or relevant academic achievements from the Job Description AND/OR the Candidate's Unstop Profile Details/Resume File Content (including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, or past work experiences) where appropriate. The set of criteria should provide a broad yet deeply contextual basis for evaluating the candidate comprehensively, understandable by someone not expert in the role's domain. The criteria should reflect your deep analysis. For example, if a key skill from the JD is missing, a criterion could be 'Assessing Transferable Skills for [Missing Skill]'. If a candidate has strong leadership experience, a criterion could be 'Evaluating Project Leadership and Impact'."),
   weight: z.number().describe('Weight of the criterion (a value between 0.0 and 1.0, should sum to 1.0 across all criteria).'),
 });
 
@@ -84,21 +84,21 @@ const customizeInterviewKitPrompt = ai.definePrompt({
 **Your Core Evaluation Process: A Multi-Stage Deep Analysis**
 
 **Stage 1: Holistic Word-by-Word Deep Analysis of All Inputs & User Edits**
-CRITICAL: Before refining any content, you must perform a meticulous, word-by-word deep analysis of ALL original inputs (JD, Unstop Profile Details, Resume Data, Context) supplemented by the user's edits.
+CRITICAL: Before refining any content, you must perform a meticulous, word-for-word deep analysis of ALL original inputs (JD, Unstop Profile Details, Resume Data, Context) supplemented by the user's edits.
 
 **Stage 2: Deep Analysis & Scenario Identification**
 *   Based on your deep analysis, you MUST silently identify the primary scenario(s) from the Knowledge Base below that best describe the candidate-role fit. Do not mention the detected scenario in your output.
 *   Your goal is to ensure the user's edits—and your subsequent refinements—are logical, relevant, and consistently aligned with the deep context required by the scenario. If a user's edit weakens a crucial line of inquiry (e.g., they delete a question about motivation for an overqualified candidate), you must refine another question or add one back to gently probe that topic.
 
 **Stage 3: Refine the Interview Funnel Sequence**
-Your refined kit MUST maintain a logical, real-world interview sequence. Review the user's edits and ensure the overall flow remains logical, following a pattern of Opener -> Alignment -> Deep Dive -> Broader Assessment.
+Your refined kit MUST maintain a logical, real-world interview sequence. Review the user's edits and ensure the overall flow remains logical, following a pattern of Opener -> Alignment -> Deep Dive -> Broader Assessment. Your questions should validate strengths, probe gaps identified in your analysis, and explore the candidate's potential to overcome those gaps.
 
 **Stage 4: Refine Model Answers & Rubric with Enhanced Intelligence**
 Your generated guidance for the interviewer must be practical, generalized, and flexible.
 *   **Domain-Specific Refinement:** When refining, ensure that questions testing domain knowledge (e.g., about Fintech regulations, if applicable based on the original JD) are sharp and relevant. If a user adds a domain-specific question, ensure your refined model answer is practical and shows an understanding of that industry's context.
 *   **Model Answers as Points:** All model answers (new or edited) must adhere to the required format: a structured array 'modelAnswerPoints' where each object has 'text' and 'points'. The sum of points must equal 10, and a mandatory "Note for Interviewer" with 0 points must be included.
 *   **"Tell me about yourself" (Unique Instruction):** If this question exists, ensure its model answer points are a guide for the interviewer on what to listen for, not a summary of the candidate's resume.
-*   **Scoring Rubric:** Ensure rubric criteria remain flexible, actionable, and focus on assessing clarity, relevance, and problem-solving.
+*   **Scoring Rubric:** Ensure rubric criteria remain flexible, actionable, and focus on assessing clarity, relevance, and problem-solving. The rubric should directly reflect your analysis. For example, if a key skill from the JD is missing, a criterion could be 'Assessing Transferable Skills for [Missing Skill]'. If a candidate has strong leadership experience, a criterion could be 'Evaluating Project Leadership and Impact'.
 
 **Knowledge Base: Recruiter Scenarios & Corresponding Actions**
 --- A. Candidate Experience & Profile Nuances ---
