@@ -35,7 +35,7 @@ export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInput
 
 const ModelAnswerPointSchema = z.object({
   text: z.string().describe("A single, concise bullet point for the model answer. This is a key talking point the candidate should cover."),
-  points: z.number().int().min(1).max(10).describe("The point value for this specific bullet point. The sum of all points for a single question's model answer should ideally equal 10."),
+  points: z.number().int().min(0).max(10).describe("The point value for this specific bullet point. The sum of all points for a single question's model answer should ideally equal 10. A 'Note for Interviewer' should have 0 points."),
 });
 
 const QuestionAnswerPairSchema = z.object({
@@ -81,8 +81,9 @@ const generateInterviewKitPrompt = ai.definePrompt({
 **Stage 1: Input Quality and Integrity Check & Deep Analysis**
 First, deeply analyze every word of the provided Job Description, Unstop Profile Details, and Resume for completeness, clarity, and potential issues. This is a word-by-word analysis. If inputs are missing or poor quality, generate broader questions and flag the issue in your internal analysis.
 
-**Stage 2: Candidate-Role Profile Matching & Scenario Identification**
-CRITICAL: Silently synthesize all information to identify the primary scenario(s) that best describe the candidate's situation relative to the role. This is your most important analytical step. Use the comprehensive Knowledge Base below to classify the situation. Do not mention the detected scenario in your output. If multiple scenarios are detected, prioritize the most critical one.
+**Stage 2: Deep Analysis & Scenario Identification**
+CRITICAL: Your most important task is to perform a meticulous, word-by-word deep analysis of ALL provided inputs (Job Description, Unstop Profile Details, Resume Data, Context). Compare the candidate's timeline, titles, skills, and project descriptions against the explicit and implicit requirements of the job.
+Based on this deep analysis, you MUST silently identify the primary scenario(s) from the Knowledge Base below that best describe the candidate-role fit. This is not keyword matching; it is a deep, inferential analysis. Do not mention the detected scenario in your output. If multiple scenarios apply, prioritize the most critical one for the initial line of questioning.
 
 **Stage 3: Generate Questions with a Standard Interview Funnel Sequence**
 Your generated kit MUST follow a logical, real-world interview sequence, adapted to the scenario you identified. The sequence is critical for a natural conversation flow. Place questions into competencies accordingly.
