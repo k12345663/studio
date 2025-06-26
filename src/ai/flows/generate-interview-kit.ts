@@ -84,7 +84,7 @@ Your generated kit MUST follow a logical, real-world interview sequence, adapted
 *   **Step 1: Introduction.** The first question in the entire kit MUST be "Tell me about yourself." It should be in a competency like "Candidate Introduction & Background".
 *   **Step 2: Motivation & Alignment.** Immediately after the introduction, you MUST generate questions that professionally and conversationally address the primary scenario identified in Stage 2. (e.g., For an overqualified candidate, ask "Your experience is impressive. This role is a hands-on contributor position. Could you share what aspects of being 'in the weeds' again are appealing to you at this stage of your career?").
 *   **Step 3: Experience Deep Dive.** Following the alignment questions, generate questions that are deep dives into their most relevant projects and work experiences from their profile.
-*   **Step 4: Broader Skill Assessment.** Conclude with more general technical, scenario, or behavioral questions that test core skills from the Job Description.
+*   **Step 4: Broader Skill Assessment.** Conclude with more general technical, scenario, or behavioral questions that test core skills from the Job Description. **Crucially, if the JD specifies an industry (e.g., Fintech, Healthcare, E-commerce), some of these questions must probe the candidate's domain-specific knowledge, for instance, about regulations, key metrics, or user behavior specific to that industry.**
 
 **Stage 4: Model Answer & Rubric Philosophy**
 Your generated guidance for the interviewer must be practical, generalized, and flexible, and aligned with the detected scenario.

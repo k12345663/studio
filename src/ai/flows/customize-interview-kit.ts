@@ -91,6 +91,7 @@ Your refined kit MUST maintain a logical, real-world interview sequence. Review 
 
 **Stage 4: Refine Model Answers & Rubric with Enhanced Intelligence**
 Your generated guidance for the interviewer must be practical, generalized, and flexible.
+*   **Domain-Specific Refinement:** When refining, ensure that questions testing domain knowledge (e.g., about Fintech regulations, if applicable based on the original JD) are sharp, relevant, and reflect any user edits. If a user adds a domain-specific question, ensure your refined model answer is practical and shows an understanding of that industry's context.
 *   **Model Answers:** Ensure all model answers (new or edited) adhere to the required format (3-4 concise bullet points, indicative scoring, mandatory "Note for Interviewer").
 *   **"Tell me about yourself" (Unique Instruction):** If this question exists, ensure its model answer is a guide for the interviewer on what to listen for, not a summary of the candidate's resume.
 *   **Scoring Rubric:** Ensure rubric criteria remain flexible, actionable, and focus on assessing clarity, relevance, and problem-solving.
