@@ -26,13 +26,17 @@ const difficultyTimeMap: Record<QuestionDifficulty, number> = {
   Master: 10,
 };
 
+const ModelAnswerPointSchema = z.object({
+  text: z.string().describe("A single, concise bullet point for the model answer. This is a key talking point the candidate should cover."),
+  points: z.number().int().min(0).max(10).describe("The point value for this specific bullet point. The sum of all points for a single question's model answer should ideally equal 10. A 'Note for Interviewer' should have 0 points."),
+});
 
 const QuestionSchema = z.object({
   id: z.string().describe('Unique identifier for the question.'),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('Type of question.'),
   category: z.enum(['Technical', 'Non-Technical']).optional().describe("Category of the question ('Technical' or 'Non-Technical'). Preserve or update if changed by user."),
   text: z.string().describe('The text of the question. **Do not add any prefix like "Question 1:" or "1."**. Ensure it is insightful and specific, considering JD, Unstop Profile Details (pasted text to be analyzed directly), and Candidate Resume File Content (optional input, AI will analyze its content directly if provided via data URI, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, past work experiences & context).'),
-  modelAnswer: z.string().describe("A model answer FOR THE INTERVIEWER'S USE. **CRITICAL: Format this as 3-4 concise bullet points, not a paragraph.** Each bullet point must suggest an indicative contribution to the question's 10-point score (e.g., 'approx. 2-3 points'). These points are a rapid mental checklist for a non-technical recruiter. **Every model answer must include a 'Note for Interviewer' section** that explains how to evaluate partial answers and explicitly states that if a candidate provides practical, relevant, or original examples not listed, it should be seen as a strong positive sign of depth. The goal is to assess understanding, not just check off points."),
+  modelAnswerPoints: z.array(ModelAnswerPointSchema).min(2).max(5).describe("A model answer FOR THE INTERVIEWER'S USE, broken down into 2-5 specific, checkable points. The total `points` for all items in this array should sum to 10. **Every question must also include one point with the text 'Note for Interviewer: ...'** that explains how to evaluate partial answers and that practical, relevant examples from the candidate are a strong positive sign. This 'Note' should have a point value of 0."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).optional().describe("The difficulty level of the question (5-point scale)."),
   estimatedTimeMinutes: z.number().optional().describe('Suitable estimated time in minutes to answer this question.'),
 });
@@ -62,7 +66,7 @@ const CustomizeInterviewKitInputSchema = z.object({
 export type CustomizeInterviewKitInput = z.infer<typeof CustomizeInterviewKitInputSchema>;
 
 const CustomizeInterviewKitOutputSchema = z.object({
-  competencies: z.array(CompetencySchema).describe("Array of customized core competencies, including importance, and questions with category, difficulty/time. Questions and answers should be high-quality. Model answers should be brief, interviewer-focused checklists presented as concise bullet points. All answers must guide on evaluating relevant details not on the resume and rewarding practical, original insights."),
+  competencies: z.array(CompetencySchema).describe("Array of customized core competencies, including importance, and questions with category, difficulty/time. Questions and answers should be high-quality. Model answers should be a structured array of checkable points. All answers must guide on evaluating relevant details not on the resume and rewarding practical, original insights."),
   rubricCriteria: z.array(RubricCriterionSchema).describe("Array of customized rubric criteria with weights. Ensure weights sum to 1.0 and criteria are well-defined, actionable, measurable, and reference JD/candidate profile for a contextual evaluation usable by non-technical recruiters, accounting for emergent candidate information."),
 });
 export type CustomizeInterviewKitOutput = z.infer<typeof CustomizeInterviewKitOutputSchema>;
@@ -92,8 +96,8 @@ Your refined kit MUST maintain a logical, real-world interview sequence. Review 
 **Stage 4: Refine Model Answers & Rubric with Enhanced Intelligence**
 Your generated guidance for the interviewer must be practical, generalized, and flexible.
 *   **Domain-Specific Refinement:** When refining, ensure that questions testing domain knowledge (e.g., about Fintech regulations, if applicable based on the original JD) are sharp, relevant, and reflect any user edits. If a user adds a domain-specific question, ensure your refined model answer is practical and shows an understanding of that industry's context.
-*   **Model Answers:** Ensure all model answers (new or edited) adhere to the required format (3-4 concise bullet points, indicative scoring, mandatory "Note for Interviewer").
-*   **"Tell me about yourself" (Unique Instruction):** If this question exists, ensure its model answer is a guide for the interviewer on what to listen for, not a summary of the candidate's resume.
+*   **Model Answers as Points:** All model answers (new or edited) must adhere to the required format: a structured array 'modelAnswerPoints' where each object has 'text' and 'points'. The sum of points must equal 10, and a mandatory "Note for Interviewer" with 0 points must be included.
+*   **"Tell me about yourself" (Unique Instruction):** If this question exists, ensure its model answer points are a guide for the interviewer on what to listen for, not a summary of the candidate's resume.
 *   **Scoring Rubric:** Ensure rubric criteria remain flexible, actionable, and focus on assessing clarity, relevance, and problem-solving.
 
 **Knowledge Base: Recruiter Scenarios & Corresponding Actions**
@@ -166,7 +170,11 @@ Competencies and Questions:
   {{#if importance}}Importance: {{importance}}{{/if}}
   Questions:
   {{#each questions}}
-  - Type: {{type}}, Category: {{category}}, Text: "{{text}}", Model Answer: "{{modelAnswer}}" (ID: {{id}})
+  - Type: {{type}}, Category: {{category}}, Text: "{{text}}", (ID: {{id}})
+    Model Answer Points:
+    {{#each modelAnswerPoints}}
+    - Text: "{{text}}", Points: {{points}}
+    {{/each}}
     {{#if difficulty}}Difficulty: {{difficulty}}{{/if}}
     {{#if estimatedTimeMinutes}}Estimated Time: {{estimatedTimeMinutes}} min{{/if}}
   {{/each}}
@@ -202,7 +210,7 @@ const customizeInterviewKitFlow = ai.defineFlow(
           difficulty: q.difficulty || 'Intermediate',
           estimatedTimeMinutes: q.estimatedTimeMinutes || (difficultyTimeMap[q.difficulty || 'Intermediate']),
           text: q.text || "Missing question text. AI should refine this based on JD/Unstop Profile/Resume File Content.",
-          modelAnswer: q.modelAnswer || "Missing model answer. AI should provide guidance from an interviewer's perspective on a few brief keywords/short phrases the candidate should cover, informed by JD/Unstop Profile/Resume File Content/context (and how to evaluate relevant, original details not on resume), making it easy for a non-technical recruiter to judge. For 'Tell me about yourself', it should guide on what a candidate with this specific Unstop/Resume background should cover.",
+          modelAnswerPoints: (q.modelAnswerPoints || [{ text: "Missing model answer points.", points: 0 }]).map(p => ({ text: p.text, points: p.points ?? 0 })),
         })),
       })),
       rubricCriteria: output.rubricCriteria.map(rc => ({

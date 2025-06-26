@@ -1,18 +1,18 @@
 
 "use client";
 
-import type { ClientQuestion, QuestionDifficulty, QuestionCategory } from '@/types/interview-kit';
+import type { ClientQuestion, QuestionDifficulty, QuestionCategory, ModelAnswerPoint } from '@/types/interview-kit';
 import { difficultyTimeMap } from '@/types/interview-kit';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Wrench, Puzzle, Users, HelpCircle, ThermometerSnowflake, Thermometer, Activity, Sparkles, Gem, Clock3, Tag, Type, MessageCircle, Star, Edit3 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Wrench, Puzzle, Users, HelpCircle, ThermometerSnowflake, Thermometer, Activity, Sparkles, Gem, Clock3, Tag, Type, MessageCircle, Star, Edit3, ListChecks, Info } from 'lucide-react';
 import type React from 'react'; 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 
 interface QuestionEditorCardProps {
@@ -59,6 +59,17 @@ export function QuestionEditorCard({
   isLoading = false,
 }: QuestionEditorCardProps) {
   
+  const calculatedScore = useMemo(() => {
+    return question.modelAnswerPoints.reduce((total, point) => {
+      return point.isChecked ? total + point.points : total;
+    }, 0);
+  }, [question.modelAnswerPoints]);
+
+  const totalPossiblePoints = useMemo(() => {
+    return question.modelAnswerPoints.reduce((total, point) => total + point.points, 0);
+  }, [question.modelAnswerPoints]);
+
+
   useEffect(() => {
     const newTime = difficultyTimeMap[question.difficulty];
     const currentMappedTimeForOldDifficulty = Object.values(difficultyTimeMap).includes(question.estimatedTimeMinutes);
@@ -92,6 +103,13 @@ export function QuestionEditorCard({
     } else if (value === "") {
        onQuestionChange({ ...question, estimatedTimeMinutes: 0 });
     }
+  };
+
+  const handlePointCheckedChange = (pointId: string, isChecked: boolean) => {
+    const updatedPoints = question.modelAnswerPoints.map(p => 
+        p.id === pointId ? { ...p, isChecked } : p
+    );
+    onQuestionChange({ ...question, modelAnswerPoints: updatedPoints });
   };
 
 
@@ -137,17 +155,44 @@ export function QuestionEditorCard({
             aria-label={`Question text for question ${questionIndex + 1} of competency ${competencyName}`}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor={`${uniqueIdPrefix}-modelAnswer`} className="font-semibold text-md flex items-center text-foreground">
-             <Type size={16} className="mr-2 text-primary"/> Model Answer (Interviewer's Guide)
-          </Label>
-          <div
-            id={`${uniqueIdPrefix}-modelAnswer`}
-            className="mt-1 text-sm p-3 rounded-lg bg-input/50 shadow-inner border border-border/50 whitespace-pre-wrap min-h-[100px] prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
-            aria-label={`Model answer for question ${questionIndex + 1}`}
-          >
-            {question.modelAnswer}
-          </div>
+        
+        <div className="space-y-3">
+            <Label className="font-semibold text-md flex items-center text-foreground">
+                <ListChecks size={16} className="mr-2 text-primary"/> Model Answer Checklist
+            </Label>
+            <div className="mt-1 p-4 rounded-lg bg-input/50 shadow-inner border border-border/50 space-y-3">
+                {question.modelAnswerPoints.map((point) => {
+                    if(point.text.startsWith('Note for Interviewer:')) {
+                        return (
+                            <div key={point.id} className="flex items-start gap-3 p-2 text-xs text-muted-foreground bg-background rounded-md border border-dashed">
+                                <Info size={16} className="flex-shrink-0 mt-0.5 text-accent"/>
+                                <span>{point.text}</span>
+                            </div>
+                        )
+                    }
+                    return (
+                        <div key={point.id} className="flex items-start space-x-3">
+                            <Checkbox
+                                id={`${uniqueIdPrefix}-point-${point.id}`}
+                                checked={point.isChecked}
+                                onCheckedChange={(checked) => handlePointCheckedChange(point.id, !!checked)}
+                                disabled={isLoading}
+                                className="mt-1"
+                                aria-label={`Checkbox for model answer point: ${point.text}`}
+                            />
+                            <div className="grid gap-1.5 leading-none">
+                                <label
+                                htmlFor={`${uniqueIdPrefix}-point-${point.id}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                >
+                                {point.text}
+                                </label>
+                                <p className="text-xs text-muted-foreground">({point.points} {point.points === 1 ? 'point' : 'points'})</p>
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-5 gap-y-4 items-end pt-2">
@@ -208,41 +253,11 @@ export function QuestionEditorCard({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4 pt-3">
           <div className="space-y-1.5">
-            <Label htmlFor={`${uniqueIdPrefix}-score`} className="font-medium text-sm flex items-center text-foreground">
-              <Star size={14} className="mr-1.5 text-muted-foreground"/>Panelist Score (1-10)
+            <Label className="font-medium text-sm flex items-center text-foreground">
+              <Star size={14} className="mr-1.5 text-muted-foreground"/>Question Score
             </Label>
-            <div className="flex items-center space-x-3 mt-1">
-              <Slider
-                id={`${uniqueIdPrefix}-score`}
-                min={1}
-                max={10}
-                step={1}
-                value={[question.score]}
-                onValueChange={(value) => handleInputChange('score', value[0])}
-                className="w-full"
-                disabled={isLoading}
-                aria-label={`Score for question ${questionIndex + 1}`}
-              />
-              <Input
-                type="number"
-                value={question.score}
-                onChange={(e) => {
-                    const val = parseInt(e.target.value, 10);
-                    if (e.target.value === "") {
-                      handleInputChange('score', 1); 
-                    } else if (!isNaN(val) && val >= 1 && val <=10) {
-                      handleInputChange('score', val);
-                    } else if (!isNaN(val) && val < 1) {
-                      handleInputChange('score', 1);
-                    } else if (!isNaN(val) && val > 10) {
-                      handleInputChange('score', 10);
-                    }
-                }}
-                min={1} max={10}
-                className="w-20 text-center shadow-sm bg-input/80 focus:bg-background rounded-lg"
-                disabled={isLoading}
-                aria-label={`Score input field for question ${questionIndex + 1}`}
-              />
+            <div className="flex items-center space-x-3 mt-1 h-10 px-3 py-2 text-lg font-bold rounded-md bg-input/80 shadow-inner">
+                <span>{calculatedScore} / {totalPossiblePoints}</span>
             </div>
           </div>
           <div className="space-y-1.5">
@@ -265,5 +280,3 @@ export function QuestionEditorCard({
     </Card>
   );
 }
-
-    

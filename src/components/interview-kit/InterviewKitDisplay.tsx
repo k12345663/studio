@@ -28,16 +28,21 @@ export function InterviewKitDisplay({ kit, onKitChange, onCustomizeKit, isLoadin
   };
 
   const calculateOverallScore = (): { score: number | null; totalQuestions: number } => {
-    let totalScore = 0;
+    let totalQuestionsScore = 0;
     let questionCount = 0;
+
     kit.competencies.forEach(comp => {
       comp.questions.forEach(q => {
-        totalScore += q.score;
+        const questionScore = q.modelAnswerPoints.reduce((acc, point) => {
+          return point.isChecked ? acc + point.points : acc;
+        }, 0);
+        totalQuestionsScore += questionScore;
         questionCount++;
       });
     });
+
     if (questionCount === 0) return { score: null, totalQuestions: 0 };
-    return { score: parseFloat((totalScore / questionCount).toFixed(2)), totalQuestions: questionCount };
+    return { score: parseFloat((totalQuestionsScore / questionCount).toFixed(2)), totalQuestions: questionCount };
   };
 
   const { score: overallScore, totalQuestions } = calculateOverallScore();

@@ -4,13 +4,19 @@ export type QuestionDifficulty = 'Naive' | 'Beginner' | 'Intermediate' | 'Expert
 export type CompetencyImportance = 'High' | 'Medium' | 'Low';
 export type QuestionCategory = 'Technical' | 'Non-Technical';
 
+export interface ModelAnswerPoint {
+  id: string;
+  text: string;
+  points: number;
+  isChecked: boolean;
+}
+
 export interface ClientQuestion {
   id: string;
   type: QuestionType;
   category: QuestionCategory;
   text: string;
-  modelAnswer: string;
-  score: number; // Will be 1-10
+  modelAnswerPoints: ModelAnswerPoint[];
   notes: string;
   difficulty: QuestionDifficulty;
   estimatedTimeMinutes: number;

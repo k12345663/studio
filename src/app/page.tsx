@@ -4,7 +4,7 @@
 import { useState, useCallback } from 'react';
 import { generateInterviewKit, type GenerateInterviewKitInput, type GenerateInterviewKitOutput } from '@/ai/flows/generate-interview-kit';
 import { customizeInterviewKit, type CustomizeInterviewKitInput, type CustomizeInterviewKitOutput } from '@/ai/flows/customize-interview-kit';
-import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty, QuestionCategory } from '@/types/interview-kit';
+import type { InterviewKit, ClientCompetency, ClientQuestion, ClientRubricCriterion, QuestionDifficulty, QuestionCategory, ModelAnswerPoint } from '@/types/interview-kit';
 import { generateId, difficultyTimeMap } from '@/types/interview-kit';
 
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -46,10 +46,14 @@ export default function Home() {
           type: q.type,
           category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical') as QuestionCategory,
           text: q.question,
-          modelAnswer: q.answer,
+          modelAnswerPoints: q.modelAnswerPoints.map(p => ({
+            id: generateId('point'),
+            text: p.text,
+            points: p.points,
+            isChecked: false,
+          })),
           difficulty: q.difficulty || 'Intermediate',
           estimatedTimeMinutes: q.estimatedTimeMinutes || difficultyTimeMap[q.difficulty || 'Intermediate'],
-          score: 5,
           notes: '',
         })),
       })),
@@ -78,7 +82,10 @@ export default function Home() {
           type: q.type,
           category: q.category,
           text: q.text,
-          modelAnswer: q.modelAnswer,
+          modelAnswerPoints: q.modelAnswerPoints.map(p => ({
+            text: p.text,
+            points: p.points,
+          })),
           difficulty: q.difficulty,
           estimatedTimeMinutes: q.estimatedTimeMinutes,
         })),
@@ -104,10 +111,18 @@ export default function Home() {
             type: newQ.type,
             category: newQ.category || existingQ?.category || (newQ.type === 'Technical' ? 'Technical' : 'Non-Technical') as QuestionCategory,
             text: newQ.text,
-            modelAnswer: newQ.modelAnswer,
+            modelAnswerPoints: newQ.modelAnswerPoints.map(newP => {
+                // Try to find an existing point with the same text to preserve its checked state
+                const existingPoint = existingQ?.modelAnswerPoints.find(ep => ep.text === newP.text);
+                return {
+                    id: existingPoint?.id || generateId('point'),
+                    text: newP.text,
+                    points: newP.points,
+                    isChecked: existingPoint?.isChecked ?? false,
+                };
+            }),
             difficulty: newQ.difficulty || existingQ?.difficulty || 'Intermediate',
             estimatedTimeMinutes: newQ.estimatedTimeMinutes || existingQ?.estimatedTimeMinutes || difficultyTimeMap[newQ.difficulty || existingQ?.difficulty || 'Intermediate'],
-            score: existingQ?.score ?? 5,
             notes: existingQ?.notes ?? '',
           };
         }),

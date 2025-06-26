@@ -33,9 +33,14 @@ const GenerateInterviewKitInputSchema = z.object({
 });
 export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInputSchema>;
 
+const ModelAnswerPointSchema = z.object({
+  text: z.string().describe("A single, concise bullet point for the model answer. This is a key talking point the candidate should cover."),
+  points: z.number().int().min(1).max(10).describe("The point value for this specific bullet point. The sum of all points for a single question's model answer should ideally equal 10."),
+});
+
 const QuestionAnswerPairSchema = z.object({
   question: z.string().describe('The interview question text only. **Do not add any prefix like "Question 1:" or "1."**. The question should be insightful and highly specific, directly derived from or probing into experiences, skills, projects (including their tech stack, goals, accomplishments, challenges), educational background, academic achievements, and past work experiences, and claims made in the Candidate\'s Unstop Profile Details and/or the content of the provided Resume File (optional input, AI will analyze its content directly if provided via data URI), the Job Description, as well as any Candidate Experience Context. This includes potentially asking "Tell me about yourself".'),
-  answer: z.string().describe("A model answer FOR THE INTERVIEWER'S USE. **CRITICAL: Format this as 3-4 concise bullet points, not a paragraph.** Each bullet point must suggest an indicative contribution to the question's 10-point score (e.g., 'approx. 2-3 points'). These points are a rapid mental checklist for a non-technical recruiter. **Every model answer must include a 'Note for Interviewer' section** that explains how to evaluate partial answers and explicitly states that if a candidate provides practical, relevant, or original examples not listed, it should be seen as a strong positive sign of depth. The goal is to assess understanding, not just check off points."),
+  modelAnswerPoints: z.array(ModelAnswerPointSchema).min(2).max(5).describe("A model answer FOR THE INTERVIEWER'S USE, broken down into 2-5 specific, checkable points. The total `points` for all items in this array should sum to 10. **Every question must also include one point with the text 'Note for Interviewer: ...'** that explains how to evaluate partial answers and that practical, relevant examples from the candidate are a strong positive sign. This 'Note' should have a point value of 0."),
   type: z.enum(['Technical', 'Scenario', 'Behavioral']).describe('The type of question. Technical for skills/tools, Scenario for problem-solving, Behavioral for past actions (STAR method).'),
   category: z.enum(['Technical', 'Non-Technical']).describe("The category of the question. 'Technical' for questions assessing specific hard skills or tool knowledge. 'Non-Technical' for questions assessing problem-solving, behavioral traits, scenarios, or soft skills (like 'Tell me about yourself'). Infer this primarily from the question type and content."),
   difficulty: z.enum(['Naive', 'Beginner', 'Intermediate', 'Expert', 'Master']).describe("The difficulty level of the question, on a 5-point scale: 'Naive', 'Beginner', 'Intermediate', 'Expert', 'Master'. Assign based on JD requirements and candidate's apparent skill level from Unstop profile details/resume file content."),
@@ -88,11 +93,11 @@ Your generated kit MUST follow a logical, real-world interview sequence, adapted
 
 **Stage 4: Model Answer & Rubric Philosophy**
 Your generated guidance for the interviewer must be practical, generalized, and flexible, and aligned with the detected scenario.
-*   **Model Answers:** These are generalized evaluation guides for the INTERVIEWER'S EYES ONLY.
-    *   **Format:** 3-4 concise bullet points. AVOID long sentences or paragraphs.
-    *   **Indicative Scoring:** Each bullet point must have a suggested point value (e.g., '(~3 points)') that logically sums to 10.
-    *   **Note for Interviewer (MANDATORY):** Every model answer must end with a "Note for Interviewer". This note should guide on scoring partial answers and explicitly state that if a candidate provides a different but highly relevant, practical answer from their own experience, it should be viewed as a **significant PLUS**.
-*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of bullet points for the interviewer, guiding them on what to listen for in a compelling narrative, rather than summarizing the candidate's resume.
+*   **Model Answers as Points:** Model answers MUST be generated as an array of structured points ('modelAnswerPoints').
+    *   **Structure:** Each point has a 'text' field and a 'points' field.
+    *   **Scoring:** Generate 2-5 points per question. The sum of 'points' for all points in a question MUST equal 10.
+    *   **Note for Interviewer (MANDATORY):** Every question's 'modelAnswerPoints' array must include one final point object. This object's 'text' field must start with "Note for Interviewer:" and guide on scoring partial answers or rewarding alternative, practical examples. This specific note object MUST have a 'points' value of 0.
+*   **"Tell me about yourself" (Unique Instruction):** This model answer MUST also be a set of structured points for the interviewer, guiding them on what to listen for in a compelling narrative, rather than summarizing the candidate's resume. The points should sum to 10.
 *   **Scoring Rubric:** Rubric criteria must be flexible and context-aware, focusing on assessing clarity, relevance, problem-solving, and adaptability.
 
 **Knowledge Base: Recruiter Scenarios & Corresponding Actions**
@@ -158,7 +163,7 @@ Candidate Experience Context (additional notes):
 {{{candidateExperienceContext}}}
 {{/if}}
 
-Based on a holistic, multi-stage, word-by-word deep analysis of ALL available information, generate the interview kit following a REAL INTERVIEW PATTERN. Adhere to all the principles described above. Structure the competencies and questions logically, provide insightful and flexible model answers, and create a practical, context-aware scoring rubric. The final kit must be a comprehensive and effective tool for a recruiter, especially one who is not a domain expert. **Your output must strictly adhere to the provided JSON schema.**`,
+Based on a holistic, multi-stage, word-by-word deep analysis of ALL available information, generate the interview kit following a REAL INTERVIEW PATTERN. Adhere to all the principles described above. Structure the competencies and questions logically, provide insightful and flexible model answers as a structured array of points, and create a practical, context-aware scoring rubric. The final kit must be a comprehensive and effective tool for a recruiter, especially one who is not a domain expert. **Your output must strictly adhere to the provided JSON schema.**`,
 });
 
 const generateInterviewKitFlow = ai.defineFlow(
@@ -179,7 +184,7 @@ const generateInterviewKitFlow = ai.defineFlow(
         importance: comp.importance || "Medium",
         questions: (comp.questions || []).map(q => ({
           question: q.question || "Missing question text. AI should generate this, derived from JD/Unstop Profile/Resume File Content.",
-          answer: q.answer || "Missing model answer. AI should provide guidance from an interviewer's perspective on a few brief keywords/short phrases the candidate should cover, informed by JD/Unstop Profile/Resume File Content/context (including how to evaluate relevant, original details not on resume), making it easy for a non-technical recruiter to judge. For 'Tell me about yourself', it should guide on what a candidate with this specific Unstop/Resume background should cover.",
+          modelAnswerPoints: (q.modelAnswerPoints || [{ text: "Missing model answer points.", points: 0 }]).map(p => ({ text: p.text, points: p.points ?? 0 })),
           type: q.type || "Behavioral",
           category: q.category || (q.type === 'Technical' ? 'Technical' : 'Non-Technical'),
           difficulty: q.difficulty || "Intermediate",
