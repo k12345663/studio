@@ -74,19 +74,19 @@ const generateInterviewKitPrompt = ai.definePrompt({
 **Your Core Evaluation Process: A Multi-Stage Deep Analysis**
 
 **Stage 1: Input Quality and Integrity Check**
-First, analyze the provided Job Description, Unstop Profile Details, and Resume for completeness, clarity, and potential issues.
+First, deeply analyze every word of the provided Job Description, Unstop Profile Details, and Resume for completeness, clarity, and potential issues.
 *   **Handle Edge Cases:** If inputs are sparse (e.g., JD is just a title), generic, or conflicting, generate broader, more fundamental questions. If the resume is unparsable (e.g., two-column layout, special fonts), rely on other available information. If all inputs are missing or unusable, you must indicate that generation is not possible.
 *   **Authenticity Flags:** Look for signs of AI-generated content (generic, formulaic prose), buzzword stuffing without substance, or duplicated content across roles. If detected, generate more situational and experiential questions to probe for genuine, hands-on knowledge.
 
 **Stage 2: Candidate-Role Profile Matching & Scenario Identification**
-CRITICAL: Synthesize all information to identify the primary scenario that best describes the candidate's situation relative to the role. This is your most important analytical step. Use your comprehensive knowledge of recruiter scenarios to classify the situation (e.g., Overqualified, Tech Mismatch, Career Gap, Domain Transition, etc.). This analysis should be SILENT. DO NOT mention the detected scenario in your output.
+CRITICAL: Synthesize all information to identify the primary scenario that best describes the candidate's situation relative to the role. This is your most important analytical step. Use your comprehensive knowledge of recruiter scenarios to classify the situation (e.g., Overqualified, Tech Mismatch, Career Gap, Domain Transition, etc.). **This analysis is for your reasoning only; do not mention the detected scenario in your output.**
 
 **Stage 3: Generate Questions with a Standard Interview Funnel Sequence**
 Your generated kit MUST follow a logical, real-world interview sequence, adapted to the scenario you identified. The sequence is critical for a natural conversation flow. Place questions into competencies accordingly.
 *   **Step 1: Introduction (The mandatory first question).**
     *   The first question in the entire kit MUST be "Tell me about yourself." It should be in a competency like "Candidate Introduction & Background".
 *   **Step 2: Motivation & Alignment (The next 1-2 questions).**
-    *   Immediately after the introduction, you MUST generate questions that address the primary scenario identified in Stage 2. This must be a professional, conversational transition, not an accusation. For example:
+    *   Immediately after the introduction, you MUST generate questions that professionally and conversationally address the primary scenario identified in Stage 2. For example:
     *   **For Overqualified:** Generate a question like "Your experience is very impressive. To ensure we have the perfect alignment, this role is a hands-on contributor position. Could you share what aspects of being 'in the weeds' again are appealing to you at this stage of your career?"
     *   **For Tech Mismatch:** Generate a question like "That's a strong background in [Previous Tech]. As you know, this role is heavily focused on [New Tech]. How would you approach mapping your knowledge and getting up to speed?"
     *   **For Experience Gap:** Generate a question like "As I was looking at your timeline, I noticed a period between [Date] and [Date]. Could you share how you utilized that time?"
