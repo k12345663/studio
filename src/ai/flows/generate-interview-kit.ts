@@ -91,17 +91,17 @@ Using the structured data, you MUST perform a deep comparison to silently flag a
 - **Authenticity and Depth Analysis:** Scan for buzzwords, potentially exaggerated claims, and unclear individual contributions in projects.
 
 # TASK: GENERATE A RICH & DEEP INTERVIEW KIT
-Based *only* on the scenarios you autonomously detected and the deep analysis of their specific experiences and projects, generate a comprehensive interview kit. The questions must flow logically, addressing the most significant findings first.
+Based *only* on the scenarios you autonomously detected and the deep, word-for-word analysis of their specific experiences and projects, generate a comprehensive interview kit. The questions must flow logically, addressing the most significant findings first.
 
 **OUTPUT REQUIREMENT:**
 Your output MUST adhere strictly to the provided JSON schema.
-- **Competencies:** Generate 4-6 competencies that are directly informed by your analysis. For example, if you detect a 'Tech Stack Mismatch', create a competency like 'Adaptability & Technical Learning'. If you detect a 'Career Gap', create a competency like 'Career Journey & Motivation'.
-- **Questions (Generate More):** For each competency, generate a rich set of 2-4 questions. Every single question MUST be a direct consequence of your deep analysis.
+- **Competencies:** Generate 4-6 competencies that are directly informed by your analysis. Competency names should be specific to your findings, like 'Bridging the Java-to-Python Tech Stack Gap' or 'Validating Project Leadership Claims'.
+- **Questions (Generate More):** For each competency, generate a rich set of 2-4 questions. Every single question MUST be a direct consequence of your deep analysis and explicitly reference a detail from the resume or a requirement from the JD.
     - **Icebreaker & Alignment:** The first competency MUST include "Tell me about yourself" and a direct alignment question like "From your perspective, what about this role seemed like the next logical step in your career?"
-    - **Deep Dives on Experience/Projects:** You MUST generate specific, conversational questions that refer directly to projects or roles mentioned in the resume. For example: "I was interested in your work on 'Project Phoenix' at Acme Corp. Can you tell me about the specific technical challenges you faced there?" or "Your last role was at a large enterprise, and we are a startup. How do you think your approach to development might change in our environment?"
-    - **Probe Transitions:** If a career shift is detected, ask about it directly. Example: "I see you've transitioned from a backend role into DevOps. What motivated that change, and what have you found most challenging or rewarding about it?"
-- **Model Answer Points:** The model answer for each question MUST be a structured array of checkable points. The total points must sum to 10, and you must include a 'Note for Interviewer' with 0 points.
-- **Scoring Rubric:** The rubric criteria must be a high-level summary of the most critical evaluation areas based on your analysis. For example, if you detected a skills gap, a criterion should be 'Assessing Transferable Skills and Learning Agility'.
+    - **Deep Dives on Experience/Projects:** You MUST generate specific, conversational questions that refer directly to projects or roles mentioned in the resume. **Do not be generic.** For example, instead of "Tell me about a technical challenge," ask: "In your 'Phoenix Project' at Acme Corp, you mentioned using microservices. What was the most significant scalability challenge you faced with that architecture, and how did you solve it?"
+    - **Probe Transitions & Gaps:** If a career shift or skill gap is detected, you MUST ask about it directly. Example: "I see you have extensive experience with AWS, whereas this role is heavily Azure-based. Can you walk me through your plan for bridging that gap?"
+- **Model Answer Points:** Model answers MUST be a structured array of checkable points. **Crucially, these points must be tailored to the question.** For a question about a specific project, the points should guide the interviewer to listen for specific technologies, outcomes, or responsibilities mentioned *in the resume for that project*.
+- **Scoring Rubric:** The rubric criteria MUST be a high-level summary of the most critical evaluation areas based on your analysis. **These must be specific and actionable.** Instead of a generic "Technical Skills", a better criterion would be "Demonstrated ability to apply Python skills to a FinTech context (addressing a key JD requirement against a non-FinTech resume)".
 
 **Inputs for Analysis:**
 
