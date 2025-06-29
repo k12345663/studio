@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useCallback } from 'react';
@@ -175,8 +174,8 @@ export default function Home() {
         return;
       }
 
-      setLoadingMessage("Generating your interview kit...");
-      toast({ title: "Generating Kit...", description: "Creating your tailored interview kit." });
+      setLoadingMessage("Analyzing job description and candidate profile...");
+      toast({ title: "Generating Kit...", description: "Creating your tailored interview kit with OpenAI." });
 
       inputForAI = {
         jobDescription: data.jobDescription,
@@ -190,7 +189,7 @@ export default function Home() {
       const output = await generateInterviewKit(inputForAI);
       if (output && output.competencies && output.scoringRubric) {
         setInterviewKit(mapOutputToClientKit(output, data.jobDescription, data.unstopProfileLink, data.unstopProfileDetails, data.candidateResumeDataUri, data.candidateResumeFileName, data.candidateExperienceContext));
-        toast({ title: "Success!", description: "Interview kit generated." });
+        toast({ title: "Success!", description: "Interview kit generated with comprehensive analysis." });
         setShowInputs(false);
       } else {
         throw new Error("AI response was empty or malformed.");
@@ -200,10 +199,12 @@ export default function Home() {
       let description = error instanceof Error ? error.message : "An unknown error occurred.";
       const lowerCaseDescription = description.toLowerCase();
 
-      if (inputForAI?.candidateResumeDataUri && (lowerCaseDescription.includes("media") || lowerCaseDescription.includes("parse") || lowerCaseDescription.includes("content") || lowerCaseDescription.includes("file") || lowerCaseDescription.includes("request entity") || lowerCaseDescription.includes("document has no pages"))) {
+      if (inputForAI?.candidateResumeDataUri && (lowerCaseDescription.includes("image") || lowerCaseDescription.includes("parse") || lowerCaseDescription.includes("content") || lowerCaseDescription.includes("file") || lowerCaseDescription.includes("request entity") || lowerCaseDescription.includes("document has no pages"))) {
         description = "Error generating kit. The AI couldn't process the resume content. The file might be corrupted, password-protected, or in a very complex format. Please try a different file or generate the kit without a resume.";
-      } else if (lowerCaseDescription.includes("overloaded") || lowerCaseDescription.includes("service unavailable")) {
-        description = "The AI model is currently overloaded. Please wait a moment and try again.";
+      } else if (lowerCaseDescription.includes("overloaded") || lowerCaseDescription.includes("service unavailable") || lowerCaseDescription.includes("rate limit")) {
+        description = "The OpenAI API is currently overloaded or rate limited. Please wait a moment and try again.";
+      } else if (lowerCaseDescription.includes("api key") || lowerCaseDescription.includes("authentication")) {
+        description = "OpenAI API authentication failed. Please check your API key configuration.";
       }
 
       toast({ variant: "destructive", title: "Error Generating Kit", description });
@@ -222,7 +223,7 @@ export default function Home() {
       const output = await customizeInterviewKit(inputForAI);
        if (output && output.competencies && output.rubricCriteria) {
         setInterviewKit(mapCustomizeOutputToClientKit(output, interviewKit));
-        toast({ title: "Success!", description: "Interview kit updated." });
+        toast({ title: "Success!", description: "Interview kit updated with OpenAI analysis." });
       } else {
         throw new Error("AI customization response was empty or malformed.");
       }
@@ -231,10 +232,12 @@ export default function Home() {
       let description = error instanceof Error ? error.message : "An unknown error occurred.";
       const lowerCaseDescription = description.toLowerCase();
 
-      if (inputForAI?.candidateResumeDataUri && (lowerCaseDescription.includes("media") || lowerCaseDescription.includes("parse") || lowerCaseDescription.includes("content") || lowerCaseDescription.includes("file") || lowerCaseDescription.includes("request entity") || lowerCaseDescription.includes("document has no pages")) ) {
+      if (inputForAI?.candidateResumeDataUri && (lowerCaseDescription.includes("image") || lowerCaseDescription.includes("parse") || lowerCaseDescription.includes("content") || lowerCaseDescription.includes("file") || lowerCaseDescription.includes("request entity") || lowerCaseDescription.includes("document has no pages")) ) {
         description = "Error updating kit. The AI couldn't process the resume content. The file might be corrupted, password-protected, or in a very complex format. Please try generating a new kit with a different file or without one.";
-      } else if (lowerCaseDescription.includes("overloaded") || lowerCaseDescription.includes("service unavailable")) {
-        description = "The AI model is currently overloaded. Please wait a moment and try again.";
+      } else if (lowerCaseDescription.includes("overloaded") || lowerCaseDescription.includes("service unavailable") || lowerCaseDescription.includes("rate limit")) {
+        description = "The OpenAI API is currently overloaded or rate limited. Please wait a moment and try again.";
+      } else if (lowerCaseDescription.includes("api key") || lowerCaseDescription.includes("authentication")) {
+        description = "OpenAI API authentication failed. Please check your API key configuration.";
       }
       toast({ variant: "destructive", title: "Error Updating Kit", description });
     } finally {
@@ -317,7 +320,7 @@ export default function Home() {
                       <FileCheck size={16} className="mr-2 text-green-600"/> Candidate Resume File:
                     </h3>
                     <p className="text-muted-foreground p-3 border rounded-lg bg-input/50 shadow-inner">
-                      {candidateResumeFileName} (Content was sent for AI analysis)
+                      {candidateResumeFileName} (Content analyzed by OpenAI with vision capabilities)
                     </p>
                   </div>
                 )}
@@ -361,12 +364,12 @@ export default function Home() {
                  <Zap className="mr-3 h-8 w-8 text-primary/90" /> Welcome to RecruTake
                 </CardTitle>
                  <CardDescription className="text-lg text-muted-foreground max-w-xl mx-auto mt-2">
-                 Your AI-powered interview assistant.
+                 Your AI-powered interview assistant with OpenAI.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pb-8 pt-2">
                 <p className="text-base text-foreground/80 max-w-2xl mx-auto mb-6">
-                 Paste a job description, provide the candidate's Unstop profile link, and optionally attach their resume. RecruTake will automatically fetch profile data and instantly generate a tailored interview kit.
+                 Paste a job description, provide the candidate's Unstop profile link, and optionally attach their resume. RecruTake will use OpenAI's advanced analysis to instantly generate a tailored interview kit.
                 </p>
                  <div className="flex items-center justify-center text-sm text-muted-foreground bg-accent/10 p-3 rounded-lg max-w-md mx-auto">
                     <Info size={18} className="mr-2 text-accent" />
