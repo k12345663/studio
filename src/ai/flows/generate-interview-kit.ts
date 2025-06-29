@@ -28,7 +28,7 @@ const GenerateInterviewKitInputSchema = z.object({
   unstopProfileDetails: z.string().optional().describe("A block of text pasted from the candidate's Unstop profile (e.g., skills, experience, projects). This is a primary source material for direct analysis."),
   candidateResumeDataUri: z.string().optional().describe("A data URI (e.g., 'data:application/pdf;base64,...') of the candidate's resume file (PDF or DOCX). If provided, AI must perform a deep, word-for-word analysis of the content of this file (skills, projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences). This is a critical primary source."),
   candidateResumeFileName: z.string().optional().describe("The original file name of the candidate's resume (e.g., 'resume.pdf'). For AI context if resume is provided."),
-  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate's experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience." This supplements primary data sources.'),
+  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate\'s experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React\" or "Senior architect, 10+ years, extensive AWS and microservices experience.\" This supplements primary data sources.'),
 });
 export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInputSchema>;
 
