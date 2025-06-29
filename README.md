@@ -1,4 +1,3 @@
-
 # RecruTake: AI-Powered Interview Kit Generator
 
 RecruTake is a Next.js web application designed to assist recruiters and hiring managers—especially those who **may not be technical experts** in the role's domain—by leveraging AI to generate and customize comprehensive interview kits. The AI acts as an experienced **recruiter companion (25+ years experience)**, guiding the interviewer. Users input a job description (pasted text), a **compulsory Unstop Profile Link (conceptually treated as a live data source for AI analysis)**, and can **optionally provide a candidate resume file (PDF/DOCX). The content of this resume file is converted to a data URI client-side and sent to the AI for direct analysis**, including details like projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences. The AI then produces a structured set of competencies and interview questions, generated in a logical sequence (general intro, academics, experience, then project-specifics and other technicals).
@@ -7,15 +6,13 @@ Questions are categorized as Technical or Non-Technical, and directly derived fr
 
 The kit includes a 5-level difficulty rating ('Naive' to 'Master'), estimated answering times, and a weighted scoring rubric. Rubric criteria are designed for **non-technical evaluators** (focusing on clarity, relevance, depth), contextually derived from JD & Unstop profile/**resume file content (if provided, AI analyzes it directly via data URI)**, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and adaptable to emergent candidate information, with weights summing to 1.0. Users can edit this kit and have the AI refine their changes. Panelists use a 1-10 score slider for individual questions. An "Overall Interview Score" (average of question scores) is also displayed.
 
-**Future Considerations**: The project envisions future support for more robust server-side resume handling if client-side limits are encountered and direct Unstop profile API integration. Currently, AI directly analyzes the content of client-uploaded resume files.
-
 ## Tech Stack
 
 *   **Frontend Framework**: Next.js 15 (App Router)
 *   **Language**: TypeScript
 *   **UI Components**: ShadCN UI
 *   **Styling**: Tailwind CSS (`src/app/globals.css` for theme)
-*   **AI Integration**: Genkit (Google's Gemini models). Prompts are designed for:
+*   **AI Integration**: OpenAI API (GPT-4o). Prompts are designed for:
     *   Embodying an experienced recruiter persona (25+ years), acting as a **recruiter companion** capable of assisting **non-technical evaluation**.
     *   Critically analyzing Job Description (primary source), Unstop Profile Link (compulsory primary source, **conceptually treated as live profile analysis**), **Candidate Resume File (optional primary source, provided as data URI for direct AI analysis of its content**, including projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences), and Candidate Experience Context.
     *   Generating questions in a logical sequence.
@@ -31,11 +28,11 @@ The kit includes a 5-level difficulty rating ('Naive' to 'Master'), estimated an
 .
 ├── public/
 ├── src/
-│   ├── ai/ (Genkit flows, initialization)
+│   ├── ai/ (OpenAI flows and utilities)
 │   ├── app/ (Pages, layouts, global CSS)
 │   ├── components/ (UI components, including interview kit specific ones)
 │   ├── hooks/
-│   ├── lib/
+│   ├── lib/ (OpenAI client and utilities)
 │   ├── types/ (TypeScript definitions: unstopProfileLink, candidateResumeDataUri, candidateResumeFileName)
 ...
 ```
@@ -43,21 +40,42 @@ The kit includes a 5-level difficulty rating ('Naive' to 'Master'), estimated an
 **Key Files & Features:**
 
 *   **`src/app/page.tsx`**: Manages main state (JD, Unstop link, **candidateResumeDataUri, candidateResumeFileName** including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences from the file, context), calls AI flows.
-*   **`src/ai/flows/`**: Genkit flows for generation and customization, with prompts emphasizing **recruiter-centric companion AI for non-technical evaluators**, deep analysis of JD, Unstop Profile link (compulsory, **conceptually treated as live profile analysis**), and **resume file (optional, if provided as data URI, AI directly analyzes its content including projects, tech stack, education, academic achievements, experience)**, logical question sequencing, and model answers guiding on key points to cover (basic, clear, easy to judge with indicative mark contributions, allowing some general questions to focus on fundamental principles), including guidance for evaluating emergent candidate information. "Tell me about yourself" model answers help non-technical recruiters assess relevance based on the candidate's actual profile (work history, projects, education, academic achievements from Unstop and **resume file content**).
+*   **`src/ai/flows/`**: OpenAI-based flows for generation and customization, with prompts emphasizing **recruiter-centric companion AI for non-technical evaluators**, deep analysis of JD, Unstop Profile link (compulsory, **conceptually treated as live profile analysis**), and **resume file (optional, if provided as data URI, AI directly analyzes its content including projects, tech stack, education, academic achievements, experience)**, logical question sequencing, and model answers guiding on key points to cover (basic, clear, easy to judge with indicative mark contributions, allowing some general questions to focus on fundamental principles), including guidance for evaluating emergent candidate information. "Tell me about yourself" model answers help non-technical recruiters assess relevance based on the candidate's actual profile (work history, projects, education, academic achievements from Unstop and **resume file content**).
+*   **`src/lib/openai.ts`**: OpenAI client configuration and utility functions for API calls.
 *   **`src/components/interview-kit/JobDescriptionForm.tsx`**: Text input for JD, **compulsory Unstop Profile Link**, optional resume file upload (PDF/DOCX, **converted client-side to data URI for direct AI analysis of its content**, prompting for details like projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences from the file), and additional context.
 *   **`src/components/interview-kit/InterviewKitDisplay.tsx`**: Renders kit, displays "Overall Interview Score."
 *   **`src/components/interview-kit/CompetencyAccordion.tsx`**: Groups questions by "Technical" and "Non-Technical".
 *   **`src/components/interview-kit/QuestionEditorCard.tsx`**: UI for editing questions, model answers, category, difficulty, time, and 1-10 panelist score.
 *   **`src/components/interview-kit/RubricEditor.tsx`**: UI for editing rubric criteria (designed for **non-technical evaluation**, context from JD & Unstop/**resume file content (if provided, AI analyzes it directly via data URI)**, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences, adaptable to new candidate info) and weights. Textarea used for longer criterion names.
 
+## Environment Setup
+
+1. **Install Dependencies**: `npm install`
+2. **Environment Variables**: Create a `.env.local` file with:
+   ```
+   OPENAI_API_KEY=your_openai_api_key_here
+   OPENAI_MODEL=gpt-4o  # Optional, defaults to gpt-4o
+   OPENAI_ORGANIZATION=your_org_id_here  # Optional
+   ```
+3. **Run Next.js Dev Server**: `npm run dev` (App on `http://localhost:9002`)
+
+## OpenAI API Configuration
+
+The application uses OpenAI's GPT-4o model by default, which provides excellent performance for:
+- Resume analysis and content extraction
+- Job description parsing
+- Interview question generation
+- Model answer creation
+- Scoring rubric development
+
+The AI is specifically trained to act as an experienced recruiter companion, making it suitable for non-technical evaluators while maintaining depth and accuracy in technical assessments.
+
 ## Getting Started
 
-1.  **Install Dependencies**: `npm install`
-2.  **Environment Variables**: Configure if needed.
-3.  **Run Next.js Dev Server**: `npm run dev` (App on `http://localhost:9002`)
-4.  **Run Genkit Dev Server** (optional): `npm run genkit:dev` (Genkit UI `http://localhost:4000`)
+1. **Get OpenAI API Key**: Sign up at [OpenAI](https://platform.openai.com/) and create an API key
+2. **Install Dependencies**: `npm install`
+3. **Configure Environment**: Copy `.env.example` to `.env.local` and add your OpenAI API key
+4. **Run Development Server**: `npm run dev`
+5. **Access Application**: Open `http://localhost:9002` in your browser
 
-Refer to `PROJECT_REPORT.md` for a more detailed breakdown.
-    
-
-    
+Refer to `PROJECT_REPORT.md` for a more detailed breakdown of the application architecture and features.

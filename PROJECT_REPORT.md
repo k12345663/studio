@@ -1,4 +1,3 @@
-
 # RecruTake: Project Report
 
 ## 1. Overview
@@ -15,18 +14,13 @@ The kit includes a 5-level difficulty rating ('Naive', 'Beginner', 'Intermediate
 
 Users can then edit this kit, including question category, difficulty, time, and content, and have the AI refine their changes. Panelists can use a 1-10 score slider for each question. An "Overall Interview Score" (average of question scores) is displayed.
 
-**Future Considerations (Beyond Current Scope of XML-based Edits):**
-*   Full backend implementation for PDF/DOC resume upload and potentially more robust server-side parsing/analysis if client-side limits are hit for very large files, and storage.
-*   Direct API integration for automatic fetching and parsing of candidate data from live Unstop profiles.
-*   Enhanced UI for explicit partial marking or bonus point systems.
-
 ## 2. Tech Stack
 
 *   **Frontend Framework**: Next.js 15 (App Router)
 *   **Language**: TypeScript
 *   **UI Components**: ShadCN UI
 *   **Styling**: Tailwind CSS (`src/app/globals.css` for theme)
-*   **AI Integration**: Genkit (Google's Gemini models). AI Prompts are meticulously crafted to:
+*   **AI Integration**: OpenAI API (GPT-4o). AI Prompts are meticulously crafted to:
     *   Embody a highly experienced recruiter persona (25+ years), acting as a **recruiter companion**, adept at evaluation **even without deep domain expertise**, specifically to assist **non-technical recruiters**.
     *   Critically analyze and synthesize Job Description (primary source), Unstop Profile Link (compulsory primary source, **conceptually treated as live profile analysis**), **Candidate Resume File (optional primary source, provided as a data URI for direct AI analysis of its content**, including specific projects, their tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and Candidate Experience Context.
     *   Generate questions in a logical sequence.
@@ -42,10 +36,9 @@ Users can then edit this kit, including question category, difficulty, time, and
 ├── public/                     # Static assets
 ├── src/
 │   ├── ai/                     # AI-related logic
-│   │   ├── flows/              # Genkit flows
-│   │   │   ├── customize-interview-kit.ts
-│   │   │   └── generate-interview-kit.ts
-│   │   └── genkit.ts           # Genkit initialization
+│   │   └── flows/              # OpenAI flows
+│   │       ├── customize-interview-kit.ts
+│   │       └── generate-interview-kit.ts
 │   ├── app/                    # Next.js App Router (pages, layouts)
 │   │   ├── page.tsx            # Main application page component
 │   │   ├── layout.tsx          # Root layout component
@@ -56,10 +49,12 @@ Users can then edit this kit, including question category, difficulty, time, and
 │   │   ├── layout/             # Layout components (e.g., AppHeader)
 │   │   └── ui/                 # ShadCN UI components
 │   ├── hooks/                  # Custom React hooks (e.g., useToast)
-│   ├── lib/                    # Utility functions (e.g., cn for Tailwind)
+│   ├── lib/                    # Utility functions
+│   │   ├── utils.ts            # General utilities (e.g., cn for Tailwind)
+│   │   └── openai.ts           # OpenAI client and API utilities
 │   ├── types/                  # TypeScript type definitions
 │   │   └── interview-kit.ts    # Core data structures for the app
-├── .env                        # Environment variables (empty by default)
+├── .env.example                # Environment variables template
 ├── .gitignore
 ├── components.json             # ShadCN UI configuration
 ├── next.config.ts              # Next.js configuration
@@ -72,9 +67,9 @@ Users can then edit this kit, including question category, difficulty, time, and
 **Key Directories & Files:**
 
 *   **`src/app/page.tsx`**: Main UI, state management for inputs (JD, Unstop link, **candidateResumeDataUri, candidateResumeFileName**, context), orchestrates AI calls.
-*   **`src/ai/flows/generate-interview-kit.ts`**: Defines the AI flow for initial kit generation. The prompt instructs the AI (as an experienced **recruiter companion for non-technical evaluators**) to deeply analyze JD, Unstop Profile link (compulsory, **conceptually treated as live profile analysis**), and **candidate resume file (optional, if provided as a data URI, AI directly analyzes its content including projects, tech stack, goals, accomplishments, challenges, education, academic achievements, experience)** as primary sources. Generates questions logically (intro, academic, experience, project deep-dives, technical/scenario/behavioral). Model answers are from an interviewer's perspective, guiding on key points to cover (e.g., OOP pillars for a generic OOP question, clearly listing them), with indicative mark contributions, are **basic, clear, and easy for non-technical recruiters to judge** (allowing some general questions to focus on fundamental principles rather than strict JD mapping for every point), and include notes on evaluating real-life examples and emergent relevant information. Rubrics are designed for **non-technical evaluation** (clarity, relevance, depth), contextually tied to JD & Unstop profile/**resume file content (if provided, AI analyzes it directly via data URI**, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and adaptable to new candidate-shared details. "Tell me about yourself" model answer is an interviewer-focused guide based on the Unstop profile/**resume file content (if provided)** (candidate's work history, projects, education, academic achievements), aimed at helping **non-technical recruiters** assess relevance.
-*   **`src/ai/flows/customize-interview-kit.ts`**: AI flow for refining kits, maintaining the **recruiter-centric, non-technical companion** philosophy, using Unstop profile link (**conceptually treated as live profile analysis**) and **resume file (if `candidateResumeDataUri` was provided, AI uses its content)** as key references, and ensuring adaptability to emergent candidate information and ease of use for non-technical evaluators. Model answers allow for some general questions to focus on fundamental principles.
-*   **`src/ai/genkit.ts`**: Genkit setup.
+*   **`src/ai/flows/generate-interview-kit.ts`**: Defines the OpenAI flow for initial kit generation. The prompt instructs the AI (as an experienced **recruiter companion for non-technical evaluators**) to deeply analyze JD, Unstop Profile link (compulsory, **conceptually treated as live profile analysis**), and **candidate resume file (optional, if provided as a data URI, AI directly analyzes its content including projects, tech stack, goals, accomplishments, challenges, education, academic achievements, experience)** as primary sources. Generates questions logically (intro, academic, experience, project deep-dives, technical/scenario/behavioral). Model answers are from an interviewer's perspective, guiding on key points to cover (e.g., OOP pillars for a generic OOP question, clearly listing them), with indicative mark contributions, are **basic, clear, and easy for non-technical recruiters to judge** (allowing some general questions to focus on fundamental principles rather than strict JD mapping for every point), and include notes on evaluating real-life examples and emergent relevant information. Rubrics are designed for **non-technical evaluation** (clarity, relevance, depth), contextually tied to JD & Unstop profile/**resume file content (if provided, AI analyzes it directly via data URI**, including projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and adaptable to new candidate-shared details. "Tell me about yourself" model answer is an interviewer-focused guide based on the Unstop profile/**resume file content (if provided)** (candidate's work history, projects, education, academic achievements), aimed at helping **non-technical recruiters** assess relevance.
+*   **`src/ai/flows/customize-interview-kit.ts`**: OpenAI flow for refining kits, maintaining the **recruiter-centric, non-technical companion** philosophy, using Unstop profile link (**conceptually treated as live profile analysis**) and **resume file (if `candidateResumeDataUri` was provided, AI uses its content)** as key references, and ensuring adaptability to emergent candidate information and ease of use for non-technical evaluators. Model answers allow for some general questions to focus on fundamental principles.
+*   **`src/lib/openai.ts`**: OpenAI client setup and utility functions for API calls.
 *   **`src/components/interview-kit/JobDescriptionForm.tsx`**: User input for JD (text), **Unstop Profile Link (compulsory text URL)**, and **optional Candidate Resume File (PDF/DOCX, selected by user, converted to data URI client-side for direct AI analysis of its content)**.
 *   **`src/components/interview-kit/InterviewKitDisplay.tsx`**: Renders the kit, calculates and displays "Overall Interview Score."
 *   **`src/components/interview-kit/CompetencyAccordion.tsx`**: Displays competencies; questions grouped by "Technical" and "Non-Technical" categories.
@@ -84,7 +79,7 @@ Users can then edit this kit, including question category, difficulty, time, and
 
 ## 4. AI Integration
 
-*   **Genkit Setup (`src/ai/genkit.ts`)**: Uses `googleai/gemini-2.0-flash`.
+*   **OpenAI Setup (`src/lib/openai.ts`)**: Uses OpenAI API with GPT-4o model.
 *   **Core AI Flows (`src/ai/flows/`)**:
     A critical instruction in both flows is for the AI to embody an experienced recruiter (25+ years), acting as a **recruiter companion**, capable of assisting evaluators **even without deep technical expertise in the role's domain**. The AI must *first thoroughly analyze and synthesize ALL provided user details (Job Description, Unstop Profile Link [compulsory, **conceptually treated as live profile analysis**], **Candidate Resume File [optional, if `candidateResumeDataUri` is provided, AI directly analyzes the content of this file** for projects, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences], and Candidate Experience Context) before generating or refining any content. The Unstop Profile Link and Candidate Resume File (if provided), along with the Job Description, serve as primary source materials.* Model answers and rubrics are designed to also help evaluate relevant information shared by the candidate during the interview that might not have been on the resume, focusing on ease of use for **non-technical recruiters**.
 
@@ -108,10 +103,24 @@ Users can then edit this kit, including question category, difficulty, time, and
 ## 6. Running the Application
 
 1.  **Install Dependencies**: `npm install`
-2.  **Run Development Server**: `npm run dev` (Next.js on `http://localhost:9002`)
-3.  **Run Genkit Server** (optional): `npm run genkit:dev` (Genkit UI on `http://localhost:4000`)
+2.  **Environment Setup**: Create `.env.local` with OpenAI API key
+3.  **Run Development Server**: `npm run dev` (Next.js on `http://localhost:9002`)
 
-## 7. Potential Future Enhancements (Identified, beyond current direct implementation scope)
+## 7. OpenAI API Configuration
+
+The application uses OpenAI's GPT-4o model, which provides:
+- Advanced resume analysis capabilities with vision support for PDF/image content
+- Sophisticated job description parsing and requirement extraction
+- Context-aware interview question generation
+- Intelligent model answer creation with scoring guidance
+- Adaptive scoring rubric development
+
+Environment variables required:
+- `OPENAI_API_KEY`: Your OpenAI API key (required)
+- `OPENAI_MODEL`: Model to use (optional, defaults to gpt-4o)
+- `OPENAI_ORGANIZATION`: Organization ID (optional)
+
+## 8. Potential Future Enhancements
 
 *   Backend PDF/DOC resume parsing (if needed beyond current client-side data URI conversion for AI analysis) and storage.
 *   Automated candidate data fetching and parsing from live Unstop profiles via API integration.
@@ -119,10 +128,6 @@ Users can then edit this kit, including question category, difficulty, time, and
 *   User Authentication & Database Integration.
 *   Export Options (PDF, DOCX).
 *   More granular AI regeneration (e.g., single question).
+*   Integration with other AI providers for redundancy and cost optimization.
 
-This report reflects the application's design, emphasizing a recruiter-centric companion approach suitable for **non-technical evaluators**, with input methods for compulsory Unstop profiles (conceptually treated as live data) and optional resume files (PDF/DOCX, with **their content directly analyzed by AI via data URI**, including project details, tech stack, goals, accomplishments, challenges, educational background, academic achievements, and past work experiences), and guidance on evaluating emergent candidate information.
-The model answers are designed to be general examples from an interviewer's perspective, highlighting key points to cover (with indicative mark contributions), ensuring they are basic, clear, and easy for a non-technical recruiter to evaluate (allowing some general questions to focus on fundamental principles rather than strict JD mapping for every point).
-The "Tell me about yourself" model answer is specifically tailored to guide non-technical recruiters in assessing the relevance of a candidate's introduction based on their specific **resume file content (if provided)** and profile (including work history, projects, education, and academic achievements).
-    
-
-    
+This report reflects the application's migration to OpenAI API while maintaining its design emphasis on a recruiter-centric companion approach suitable for **non-technical evaluators**, with comprehensive analysis capabilities for job descriptions and candidate profiles.

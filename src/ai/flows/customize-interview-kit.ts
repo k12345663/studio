@@ -1,8 +1,7 @@
-
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow for customizing an interview kit.
+ * @fileOverview This file defines an OpenAI-based flow for customizing an interview kit.
  *
  * It allows recruiters to tweak question wording, re-weight scoring criteria, and regenerate questions.
  * It emphasizes a recruiter-centric approach, especially for non-technical evaluators,
@@ -14,8 +13,8 @@
  * - CustomizeInterviewKitOutput - The return type for the customizeInterviewKit function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z}from 'genkit';
+import { createChatCompletion, createSystemMessage, createUserMessage, createUserMessageWithImage, type OpenAIMessage } from '@/lib/openai';
+import { z } from 'zod';
 import type { QuestionDifficulty } from '@/types/interview-kit';
 
 const difficultyTimeMap: Record<QuestionDifficulty, number> = {
@@ -59,7 +58,7 @@ const CustomizeInterviewKitInputSchema = z.object({
   unstopProfileDetails: z.string().optional().describe("A block of text pasted from the candidate's Unstop profile. This is a primary source for analysis."),
   candidateResumeDataUri: z.string().optional().describe("The data URI of the candidate's resume file (PDF or DOCX) that was used. If provided, AI must consider its content for refinements (skills, projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences)."),
   candidateResumeFileName: z.string().optional().describe("The original file name of the candidate's resume, for context."),
-  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience that was used and should be considered for refinements. This supplements primary sources.'),
+  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate's experience that was used and should be considered for refinements. This supplements primary sources.'),
   competencies: z.array(CompetencySchema).describe('Array of core competencies, potentially with importance, questions with category, difficulty/time. User edits are reflected here. May include "Tell me about yourself". Competencies should be informed by the holistic analysis of JD and candidate profile.'),
   rubricCriteria: z.array(RubricCriterionSchema).describe('Array of rubric criteria with weights. User edits are reflected here.'),
 });
@@ -71,15 +70,7 @@ const CustomizeInterviewKitOutputSchema = z.object({
 });
 export type CustomizeInterviewKitOutput = z.infer<typeof CustomizeInterviewKitOutputSchema>;
 
-export async function customizeInterviewKit(input: CustomizeInterviewKitInput): Promise<CustomizeInterviewKitOutput> {
-  return customizeInterviewKitFlow(input);
-}
-
-const customizeInterviewKitPrompt = ai.definePrompt({
-  name: 'customizeInterviewKitPrompt',
-  input: {schema: CustomizeInterviewKitInputSchema},
-  output: {schema: CustomizeInterviewKitOutputSchema},
-  prompt: `You are "Insight-Pro," an expert AI Recruitment Analyst. Your primary function is to refine an existing, user-edited interview kit. Your goal is to ensure the user's edits are logically consistent with the deep context of the candidate's profile versus the job description, and to enhance the kit's strategic value by ensuring every component remains sharp and strategically targeted.
+const SYSTEM_PROMPT = `You are "Insight-Pro," an expert AI Recruitment Analyst. Your primary function is to refine an existing, user-edited interview kit. Your goal is to ensure the user's edits are logically consistent with the deep context of the candidate's profile versus the job description, and to enhance the kit's strategic value by ensuring every component remains sharp and strategically targeted.
 
 # CORE MANDATE: THE INFERENCE ENGINE
 Before refining any content, you MUST silently re-run your deep analysis based on the original inputs. This is your core operational logic.
@@ -106,71 +97,110 @@ Your output MUST adhere strictly to the provided JSON schema.
     - **Model Answers:** All model answers (new or edited) must adhere to the structured format. The points within must remain context-specific, guiding the interviewer on what to listen for based on the candidate's actual profile.
     - **Scoring Rubric:** Ensure rubric criteria remain flexible, actionable, and directly reflect your deep analysis. For example, if a key skill from the JD is missing, a criterion must be specific, like 'Assessing Transferable Skills for [Missing Skill]'. Do not accept generic criteria.
 
-**Inputs for Analysis:**
+You must respond with a valid JSON object that matches the required schema. Do not include any text outside the JSON response.`;
+
+function buildUserPrompt(input: CustomizeInterviewKitInput): string {
+  let prompt = `**Inputs for Analysis:**
 
 Job Description (Primary Source, for context):
-{{{jobDescription}}}
+${input.jobDescription}
 
 Unstop Profile Link (for context only):
-{{{unstopProfileLink}}}
+${input.unstopProfileLink || 'Not provided'}`;
 
-{{#if unstopProfileDetails}}
-Unstop Profile Details (Primary Source for Analysis):
-{{{unstopProfileDetails}}}
-{{/if}}
+  if (input.unstopProfileDetails) {
+    prompt += `\n\nUnstop Profile Details (Primary Source for Analysis):
+${input.unstopProfileDetails}`;
+  }
 
-{{#if candidateResumeDataUri}}
-Candidate Resume File ({{{candidateResumeFileName}}}):
-{{media url=candidateResumeDataUri}}
-(AI: You must perform a word-for-word deep analysis of this resume content to inform your refinements.)
-{{else}}
-No candidate resume file was provided for initial generation.
-{{/if}}
+  if (input.candidateResumeDataUri) {
+    prompt += `\n\nCandidate Resume File (${input.candidateResumeFileName}):
+The resume content will be provided as an image. You must perform a word-for-word deep analysis of this resume content to inform your refinements.`;
+  } else {
+    prompt += `\n\nNo candidate resume file was provided for initial generation.`;
+  }
 
-{{#if candidateExperienceContext}}
-Candidate Experience Context (additional notes on candidate's background):
-{{{candidateExperienceContext}}}
-{{/if}}
+  if (input.candidateExperienceContext) {
+    prompt += `\n\nCandidate Experience Context (additional notes on candidate's background):
+${input.candidateExperienceContext}`;
+  }
 
-Recruiter's Edited Interview Kit:
-Competencies and Questions:
-{{#each competencies}}
-- Competency Name: "{{name}}" (ID: {{id}})
-  {{#if importance}}Importance: {{importance}}{{/if}}
-  Questions:
-  {{#each questions}}
-  - Type: {{type}}, Category: {{category}}, Text: "{{text}}", (ID: {{id}})
-    Model Answer Points:
-    {{#each modelAnswerPoints}}
-    - Text: "{{text}}", Points: {{points}}
-    {{/each}}
-    {{#if difficulty}}Difficulty: {{difficulty}}{{/if}}
-    {{#if estimatedTimeMinutes}}Estimated Time: {{estimatedTimeMinutes}} min{{/if}}
-  {{/each}}
-{{/each}}
+  prompt += `\n\nRecruiter's Edited Interview Kit:
+Competencies and Questions:`;
 
-Rubric Criteria:
-{{#each rubricCriteria}}
-- Name: "{{name}}", Weight: {{weight}}
-{{/each}}
-
-Based on the recruiter's modifications and a holistic, word-for-word deep analysis of all original inputs, refine the entire interview kit. Preserve all existing IDs. Ensure all output fields are present. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements, making it **highly usable for non-technical recruiters** and adaptable to information shared during the interview. **Your output must strictly adhere to the provided JSON schema.**`,
-});
-
-const customizeInterviewKitFlow = ai.defineFlow(
-  {
-    name: 'customizeInterviewKitFlow',
-    inputSchema: CustomizeInterviewKitInputSchema,
-    outputSchema: CustomizeInterviewKitOutputSchema,
-  },
-  async input => {
-    const {output} = await customizeInterviewKitPrompt(input);
-    if (!output) {
-      throw new Error("AI failed to customize interview kit content.");
+  input.competencies.forEach((comp, index) => {
+    prompt += `\n- Competency Name: "${comp.name}" (ID: ${comp.id})`;
+    if (comp.importance) {
+      prompt += `\n  Importance: ${comp.importance}`;
     }
-    const validatedOutput = {
-      ...output,
-      competencies: output.competencies.map(comp => ({
+    prompt += `\n  Questions:`;
+    comp.questions.forEach((q, qIndex) => {
+      prompt += `\n  - Type: ${q.type}, Category: ${q.category}, Text: "${q.text}", (ID: ${q.id})`;
+      prompt += `\n    Model Answer Points:`;
+      q.modelAnswerPoints.forEach((point, pIndex) => {
+        prompt += `\n    - Text: "${point.text}", Points: ${point.points}`;
+      });
+      if (q.difficulty) {
+        prompt += `\n    Difficulty: ${q.difficulty}`;
+      }
+      if (q.estimatedTimeMinutes) {
+        prompt += `\n    Estimated Time: ${q.estimatedTimeMinutes} min`;
+      }
+    });
+  });
+
+  prompt += `\n\nRubric Criteria:`;
+  input.rubricCriteria.forEach((crit, index) => {
+    prompt += `\n- Name: "${crit.name}", Weight: ${crit.weight}`;
+  });
+
+  prompt += `\n\nBased on the recruiter's modifications and a holistic, word-for-word deep analysis of all original inputs, refine the entire interview kit. Preserve all existing IDs. Ensure all output fields are present. The goal is a polished, consistent, and high-quality interview kit that intelligently incorporates the recruiter's edits and adheres to all formatting and contextual requirements, making it **highly usable for non-technical recruiters** and adaptable to information shared during the interview.
+
+Respond with a valid JSON object that matches the required schema.`;
+
+  return prompt;
+}
+
+export async function customizeInterviewKit(input: CustomizeInterviewKitInput): Promise<CustomizeInterviewKitOutput> {
+  try {
+    const messages: OpenAIMessage[] = [
+      createSystemMessage(SYSTEM_PROMPT),
+    ];
+
+    const userPrompt = buildUserPrompt(input);
+
+    if (input.candidateResumeDataUri) {
+      // Include resume image in the message
+      messages.push(createUserMessageWithImage(userPrompt, input.candidateResumeDataUri));
+    } else {
+      messages.push(createUserMessage(userPrompt));
+    }
+
+    const response = await createChatCompletion(messages, {
+      temperature: 0.7,
+      maxTokens: 4000,
+      responseFormat: { type: 'json_object' },
+    });
+
+    if (!response) {
+      throw new Error("OpenAI API returned empty response");
+    }
+
+    let parsedOutput;
+    try {
+      parsedOutput = JSON.parse(response);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response as JSON:', response);
+      throw new Error("OpenAI API returned invalid JSON");
+    }
+
+    // Validate the output against our schema
+    const validatedOutput = CustomizeInterviewKitOutputSchema.parse(parsedOutput);
+
+    // Apply post-processing similar to the original implementation
+    const processedOutput = {
+      ...validatedOutput,
+      competencies: validatedOutput.competencies.map(comp => ({
         ...comp,
         importance: comp.importance || 'Medium',
         questions: comp.questions.map(q => ({
@@ -182,106 +212,53 @@ const customizeInterviewKitFlow = ai.defineFlow(
           modelAnswerPoints: (q.modelAnswerPoints || [{ text: "Missing model answer points.", points: 0 }]).map(p => ({ text: p.text, points: p.points ?? 0 })),
         })),
       })),
-      rubricCriteria: output.rubricCriteria.map(rc => ({
-          ...rc,
-          name: rc.name || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, contextually reference JD/Unstop Profile/Resume File Content, considering emergent details, for comprehensive evaluation by a non-technical recruiter). AI should refine this.",
-          weight: typeof rc.weight === 'number' ? Math.max(0, Math.min(1, rc.weight)) : 0.2,
+      rubricCriteria: validatedOutput.rubricCriteria.map(rc => ({
+        ...rc,
+        name: rc.name || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, contextually reference JD/Unstop Profile/Resume File Content, considering emergent details, for comprehensive evaluation by a non-technical recruiter). AI should refine this.",
+        weight: typeof rc.weight === 'number' ? Math.max(0, Math.min(1, rc.weight)) : 0.2,
       }))
     };
 
-    let totalWeight = validatedOutput.rubricCriteria.reduce((sum, crit) => sum + crit.weight, 0);
-    if (validatedOutput.rubricCriteria.length > 0) {
-        if (totalWeight === 0 && validatedOutput.rubricCriteria.length > 0) {
-            const equalWeight = parseFloat((1.0 / validatedOutput.rubricCriteria.length).toFixed(2));
-            let sum = 0;
-            validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
-                if(index < arr.length -1) {
-                    crit.weight = equalWeight;
-                    sum += equalWeight;
-                } else {
-                    crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
-                }
-            });
-             totalWeight = validatedOutput.rubricCriteria.reduce((s, c) => s + c.weight, 0); // Recalculate
-        }
-        if (Math.abs(totalWeight - 1.0) > 0.001) { // Allow for small floating point inaccuracies
-            const factor = 1.0 / totalWeight;
-            let sumOfNormalizedWeights = 0;
-            validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
-                if (index < arr.length -1) {
-                    const normalized = Math.max(0, crit.weight * factor); // Ensure not negative before rounding
-                    crit.weight = parseFloat(normalized.toFixed(2));
-                    sumOfNormalizedWeights += crit.weight;
-                } else {
-                     // Last element gets the remainder to ensure sum is 1.0
-                    crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
-                }
-            });
-            // Final check because rounding can still cause slight deviations
-            totalWeight = validatedOutput.rubricCriteria.reduce((s, c) => s + c.weight, 0);
-            if (Math.abs(totalWeight - 1.0) > 0.001 && validatedOutput.rubricCriteria.length > 0) {
-                const diff = 1.0 - totalWeight;
-                const lastCritWeight = validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length -1].weight;
+    // Normalize rubric weights to sum to 1.0
+    normalizeRubricWeights(processedOutput.rubricCriteria);
 
-                validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length -1].weight =
-                    parseFloat(Math.max(0, lastCritWeight + diff).toFixed(2));
-            }
-        }
-    }
-
-    // Ensure no individual weight is negative after all adjustments and that the sum is truly 1.0
-    // And handle the case where all weights became zero due to aggressive rounding or tiny initial values
-    let finalSum = validatedOutput.rubricCriteria.reduce((sum, crit) => {
-        crit.weight = Math.max(0, crit.weight); // Ensure no negative weights
-        return sum + crit.weight;
-    },0);
-    
-
-    if (validatedOutput.rubricCriteria.length > 0 && Math.abs(finalSum - 1.0) > 0.001) {
-        // If sum is zero but items exist, distribute equally.
-        if (finalSum === 0) {
-            const equalWeight = parseFloat((1.0 / validatedOutput.rubricCriteria.length).toFixed(2));
-            let currentSum = 0;
-            validatedOutput.rubricCriteria.forEach((crit, index, arr) => {
-                 if(index < arr.length -1) {
-                    crit.weight = equalWeight;
-                    currentSum += equalWeight;
-                } else { // Last element takes remainder
-                    crit.weight = parseFloat(Math.max(0,(1.0 - currentSum)).toFixed(2));
-                }
-            });
-        } else { // If sum is not 1.0 and not 0, redistribute proportionally
-            const scaleFactor = 1.0 / finalSum;
-            let cumulativeWeight = 0;
-            for (let i = 0; i < validatedOutput.rubricCriteria.length - 1; i++) {
-                const normalized = (validatedOutput.rubricCriteria[i].weight * scaleFactor);
-                validatedOutput.rubricCriteria[i].weight = parseFloat(normalized.toFixed(2));
-                cumulativeWeight += validatedOutput.rubricCriteria[i].weight;
-            }
-             // Last element takes the remainder to ensure sum is exactly 1.0
-            const lastWeight = 1.0 - cumulativeWeight;
-            if (validatedOutput.rubricCriteria.length > 0) {
-                validatedOutput.rubricCriteria[validatedOutput.rubricCriteria.length - 1].weight = parseFloat(Math.max(0, lastWeight).toFixed(2));
-            }
-        }
-    }
-     // Final pass to ensure the last element adjustment for sum to 1.0 didn't make other weights sum > 1
-    // This typically occurs if all weights were tiny and normalized to 0.00, then the last one got 1.00
-    if (validatedOutput.rubricCriteria.length > 1) {
-        let checkSum = 0;
-        validatedOutput.rubricCriteria.forEach(c => checkSum += c.weight);
-        if (Math.abs(checkSum - 1.0) > 0.001) { // If still off, likely due to rounding small numbers
-           const lastIdx = validatedOutput.rubricCriteria.length - 1;
-           let sumExceptLast = 0;
-           for(let i=0; i < lastIdx; i++) {
-               sumExceptLast += validatedOutput.rubricCriteria[i].weight;
-           }
-           validatedOutput.rubricCriteria[lastIdx].weight = parseFloat(Math.max(0, 1.0 - sumExceptLast).toFixed(2));
-        }
-    } else if (validatedOutput.rubricCriteria.length === 1) {
-        validatedOutput.rubricCriteria[0].weight = 1.0; // If only one criterion, it must be 1.0
-    }
-
-    return validatedOutput;
+    return processedOutput;
+  } catch (error) {
+    console.error("Error customizing interview kit:", error);
+    throw new Error(`Failed to customize interview kit: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-);
+}
+
+function normalizeRubricWeights(rubric: Array<{ weight: number }>) {
+  if (rubric.length === 0) return;
+
+  let totalWeight = rubric.reduce((sum, crit) => sum + crit.weight, 0);
+  
+  if (totalWeight === 0) {
+    // If all weights are 0, distribute equally
+    const equalWeight = parseFloat((1.0 / rubric.length).toFixed(2));
+    let sum = 0;
+    rubric.forEach((crit, index, arr) => {
+      if (index < arr.length - 1) {
+        crit.weight = equalWeight;
+        sum += equalWeight;
+      } else {
+        crit.weight = parseFloat(Math.max(0, (1.0 - sum)).toFixed(2));
+      }
+    });
+  } else if (Math.abs(totalWeight - 1.0) > 0.001) {
+    // Normalize weights to sum to 1.0
+    const factor = 1.0 / totalWeight;
+    let sumOfNormalizedWeights = 0;
+    rubric.forEach((crit, index, arr) => {
+      if (index < arr.length - 1) {
+        const normalized = Math.max(0, crit.weight * factor);
+        crit.weight = parseFloat(normalized.toFixed(2));
+        sumOfNormalizedWeights += crit.weight;
+      } else {
+        // Last element gets the remainder to ensure sum is exactly 1.0
+        crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
+      }
+    });
+  }
+}

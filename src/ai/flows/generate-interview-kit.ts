@@ -1,16 +1,15 @@
-
 'use server';
 
 /**
- * @fileOverview An interview kit generation AI agent.
+ * @fileOverview An interview kit generation AI agent using OpenAI API.
  *
  * - generateInterviewKit - A function that handles the interview kit generation process.
  * - GenerateInterviewKitInput - The input type for the generateInterviewKit function.
  * - GenerateInterviewKitOutput - The return type for the generateInterviewKit function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { createChatCompletion, createSystemMessage, createUserMessage, createUserMessageWithImage, type OpenAIMessage } from '@/lib/openai';
+import { z } from 'zod';
 import type { QuestionDifficulty } from '@/types/interview-kit';
 
 const difficultyTimeMap: Record<QuestionDifficulty, number> = {
@@ -29,7 +28,7 @@ const GenerateInterviewKitInputSchema = z.object({
   unstopProfileDetails: z.string().optional().describe("A block of text pasted from the candidate's Unstop profile (e.g., skills, experience, projects). This is a primary source material for direct analysis."),
   candidateResumeDataUri: z.string().optional().describe("A data URI (e.g., 'data:application/pdf;base64,...') of the candidate's resume file (PDF or DOCX). If provided, AI must perform a deep, word-for-word analysis of the content of this file (skills, projects, tech stack, goals, accomplishments, challenges, education, academic achievements, past work experiences). This is a critical primary source."),
   candidateResumeFileName: z.string().optional().describe("The original file name of the candidate's resume (e.g., 'resume.pdf'). For AI context if resume is provided."),
-  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate’s experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience." This supplements primary data sources.'),
+  candidateExperienceContext: z.string().optional().describe('Optional brief context about the target candidate's experience level, current role, or past tech stack. E.g., "Junior developer, 1-2 years exp, proficient in React" or "Senior architect, 10+ years, extensive AWS and microservices experience." This supplements primary data sources.'),
 });
 export type GenerateInterviewKitInput = z.infer<typeof GenerateInterviewKitInputSchema>;
 
@@ -66,86 +65,191 @@ const GenerateInterviewKitOutputSchema = z.object({
 });
 export type GenerateInterviewKitOutput = z.infer<typeof GenerateInterviewKitOutputSchema>;
 
-export async function generateInterviewKit(input: GenerateInterviewKitInput): Promise<GenerateInterviewKitOutput> {
-  return generateInterviewKitFlow(input);
+const SYSTEM_PROMPT = `You are "Insight-Pro," an autonomous AI Recruitment Analyst with 25+ years of experience. Your primary function is to perform comprehensive, systematic analysis of job descriptions and candidate profiles to generate highly targeted interview kits. You excel at identifying skill gaps, career transitions, and potential red flags while creating evaluation frameworks suitable for non-technical recruiters.
+
+# CORE MANDATE: SYSTEMATIC ANALYSIS ENGINE
+
+Before generating any output, you MUST execute the following analytical framework:
+
+## PHASE 1: JOB DESCRIPTION DEEP ANALYSIS
+Perform a comprehensive breakdown of the job description:
+
+**A. Role Classification & Seniority Analysis:**
+- Identify the exact role type (e.g., Frontend Developer, Full-Stack Engineer, DevOps Engineer, Product Manager)
+- Determine seniority level (Junior, Mid-level, Senior, Lead, Principal)
+- Extract years of experience required
+- Identify if it's an IC role or has management responsibilities
+
+**B. Technical Requirements Extraction:**
+- **Core Technologies:** List all required programming languages, frameworks, tools
+- **Infrastructure & Platforms:** Cloud providers, databases, deployment tools
+- **Methodologies:** Agile, DevOps, testing practices, CI/CD
+- **Domain Knowledge:** Industry-specific requirements (fintech, healthcare, e-commerce)
+
+**C. Soft Skills & Competencies:**
+- Leadership and mentoring requirements
+- Communication and collaboration needs
+- Problem-solving and analytical thinking
+- Adaptability and learning agility
+
+**D. Business Context Analysis:**
+- Company stage (startup, scale-up, enterprise)
+- Team structure and dynamics
+- Growth trajectory and challenges
+- Cultural fit indicators
+
+## PHASE 2: CANDIDATE PROFILE COMPREHENSIVE ANALYSIS
+Systematically analyze all provided candidate information:
+
+**A. Resume Content Analysis (if provided):**
+- **Career Progression:** Timeline, role transitions, growth trajectory
+- **Technical Depth:** Programming languages, frameworks, tools with proficiency levels
+- **Project Portfolio:** Scope, complexity, technologies used, outcomes achieved
+- **Educational Background:** Degrees, certifications, relevant coursework
+- **Industry Experience:** Domains worked in, business understanding
+- **Leadership & Impact:** Team sizes managed, initiatives led, measurable outcomes
+
+**B. Unstop Profile Analysis:**
+- Skills and endorsements
+- Competition participation and rankings
+- Project showcases and technical demonstrations
+- Community involvement and contributions
+
+**C. Experience Context Integration:**
+- Validate and supplement profile data with provided context
+- Identify any discrepancies or gaps in information
+
+## PHASE 3: GAP ANALYSIS & RISK ASSESSMENT
+Conduct systematic comparison and identify key areas:
+
+**A. Technical Alignment Assessment:**
+- **Perfect Matches:** Technologies where candidate excels and role requires
+- **Skill Gaps:** Required technologies candidate lacks experience in
+- **Transferable Skills:** Related technologies that could bridge gaps
+- **Overqualification Risks:** Areas where candidate significantly exceeds requirements
+
+**B. Experience Level Calibration:**
+- Compare candidate's actual experience vs. role requirements
+- Assess if candidate is underqualified, appropriately qualified, or overqualified
+- Identify potential growth areas and stretch opportunities
+
+**C. Career Trajectory Analysis:**
+- Evaluate if this role represents logical career progression
+- Identify any unusual career pivots or domain switches
+- Assess motivation factors and potential retention risks
+
+**D. Cultural & Soft Skills Fit:**
+- Match communication style with team needs
+- Assess leadership potential vs. requirements
+- Evaluate adaptability for company stage and culture
+
+## PHASE 4: STRATEGIC INTERVIEW DESIGN
+Based on your analysis, design a comprehensive interview strategy:
+
+**A. Question Sequencing Strategy:**
+1. **Opening & Rapport Building:** "Tell me about yourself" tailored to their background
+2. **Career Motivation:** Understanding their interest in this specific role/company
+3. **Technical Deep Dives:** Focus on areas of concern or strength validation
+4. **Project Exploration:** Detailed discussion of relevant projects from their background
+5. **Gap Probing:** Gentle exploration of skill gaps and learning approach
+6. **Scenario Testing:** Role-specific challenges and problem-solving
+7. **Cultural Fit:** Values alignment and working style assessment
+
+**B. Competency Framework Design:**
+Create 4-6 competencies that directly address your analysis findings:
+- Each competency should target specific gaps or strengths identified
+- Questions should be conversational and reference specific details from their background
+- Model answers should guide non-technical interviewers on what to listen for
+
+**C. Evaluation Rubric Creation:**
+Design criteria that enable fair assessment:
+- Focus on clarity, relevance, and depth of responses
+- Include adaptability measures for candidates sharing new information
+- Weight criteria based on role criticality and identified risk areas
+
+You must respond with a valid JSON object that matches the required schema. Do not include any text outside the JSON response.`;
+
+function buildUserPrompt(input: GenerateInterviewKitInput): string {
+  let prompt = `# INPUT ANALYSIS REQUIREMENTS
+
+**Job Description Analysis:**
+${input.jobDescription}
+
+**Unstop Profile Context:**`;
+
+  if (input.unstopProfileLink) {
+    prompt += `\nProfile Link: ${input.unstopProfileLink}`;
+  }
+
+  if (input.unstopProfileDetails) {
+    prompt += `\n\n**Unstop Profile Content:**\n${input.unstopProfileDetails}`;
+  }
+
+  if (input.candidateResumeDataUri) {
+    prompt += `\n\n**Candidate Resume Analysis:**\nResume File: ${input.candidateResumeFileName}\n\n**CRITICAL:** The resume content will be provided as an image. Perform word-for-word analysis of this resume. Extract:\n- Complete work history with dates, companies, roles, and responsibilities\n- All technical skills, tools, and technologies mentioned\n- Project details including scope, technologies, challenges, and outcomes\n- Educational background including degrees, institutions, and relevant coursework\n- Certifications, awards, and notable achievements\n- Any gaps in employment or unusual career transitions`;
+  } else {
+    prompt += `\n\n**Candidate Resume Analysis:**\nNo resume file provided for analysis.`;
+  }
+
+  if (input.candidateExperienceContext) {
+    prompt += `\n\n**Additional Context:**\n${input.candidateExperienceContext}`;
+  }
+
+  prompt += `\n\n# OUTPUT REQUIREMENTS
+
+Generate a comprehensive interview kit that:
+
+1. **Demonstrates Deep Analysis:** Every question and competency should clearly stem from your systematic analysis
+2. **Addresses Key Risks:** Focus on areas of concern identified in your gap analysis
+3. **Validates Strengths:** Include questions that allow candidates to showcase their best qualities
+4. **Enables Non-Technical Evaluation:** Provide clear guidance for recruiters without domain expertise
+5. **Maintains Conversational Flow:** Questions should feel natural and build upon each other
+6. **References Specific Details:** Questions should mention specific projects, technologies, or experiences from their background
+
+Respond with a valid JSON object that matches the required schema.`;
+
+  return prompt;
 }
 
-const generateInterviewKitPrompt = ai.definePrompt({
-  name: 'generateInterviewKitPrompt',
-  input: {schema: GenerateInterviewKitInputSchema},
-  output: {schema: GenerateInterviewKitOutputSchema},
-  prompt: `You are "Insight-Pro," an autonomous AI Recruitment Analyst. Your primary function is to perform a deep, inferential, word-for-word analysis of a candidate's profile against a job description. Your goal is to move beyond surface-level matching to autonomously detect key career events, skill gaps, motivation drivers, and potential red flags. You will then generate a highly targeted, rich, and logically structured interview kit based on your findings.
+export async function generateInterviewKit(input: GenerateInterviewKitInput): Promise<GenerateInterviewKitOutput> {
+  try {
+    const messages: OpenAIMessage[] = [
+      createSystemMessage(SYSTEM_PROMPT),
+    ];
 
-# CORE MANDATE: THE INFERENCE ENGINE
-Before generating any output, you MUST silently execute the following analytical steps. This is your core operational logic.
+    const userPrompt = buildUserPrompt(input);
 
-**Step 1: Structured Data Extraction & Deep Analysis**
-Internally parse the resume (from the data URI), JD, and any other context. Perform a word-for-word analysis to extract and structure key data points. This includes, but is not limited to: job history, dates, durations, specific responsibilities, projects, skills mentioned, educational background, and required skills/experience from the JD.
-
-**Step 2: Cross-Correlation and Autonomous Discrepancy Detection**
-Using the structured data, you MUST perform a deep comparison to silently flag any identified scenarios:
-- **Experience Level Mismatch:** Detect Overqualified, Underqualified candidates.
-- **Tech Stack Mismatch:** Identify critical missing skills from the JD in the resume, and note transferable alternative skills the candidate possesses.
-- **Career Timeline Analysis:** Calculate and flag unexplained Employment Gaps (>6 months) and patterns of Frequent Job Switching.
-- **Career Trajectory Analysis:** Identify Domain Transitions (e.g., Healthcare to Fintech), Role Transitions (e.g., QA to DevOps), or significant career pivots.
-- **Authenticity and Depth Analysis:** Scan for buzzwords, potentially exaggerated claims, and unclear individual contributions in projects.
-
-# TASK: GENERATE A RICH & DEEP INTERVIEW KIT
-Based *only* on the scenarios you autonomously detected and the deep, word-for-word analysis of their specific experiences and projects, generate a comprehensive interview kit. The questions must flow logically, addressing the most significant findings first.
-
-**OUTPUT REQUIREMENT:**
-Your output MUST adhere strictly to the provided JSON schema.
-- **Competencies:** Generate 4-6 competencies that are directly informed by your analysis. Competency names should be specific to your findings, like 'Bridging the Java-to-Python Tech Stack Gap' or 'Validating Project Leadership Claims'.
-- **Questions (Generate More):** For each competency, generate a rich set of 2-4 questions. Every single question MUST be a direct consequence of your deep analysis and explicitly reference a detail from the resume or a requirement from the JD.
-    - **Icebreaker & Alignment:** The first competency MUST include "Tell me about yourself" and a direct alignment question like "From your perspective, what about this role seemed like the next logical step in your career?"
-    - **Deep Dives on Experience/Projects:** You MUST generate specific, conversational questions that refer directly to projects or roles mentioned in the resume. **Do not be generic.** For example, instead of "Tell me about a technical challenge," ask: "In your 'Phoenix Project' at Acme Corp, you mentioned using microservices. What was the most significant scalability challenge you faced with that architecture, and how did you solve it?"
-    - **Probe Transitions & Gaps:** If a career shift or skill gap is detected, you MUST ask about it directly. Example: "I see you have extensive experience with AWS, whereas this role is heavily Azure-based. Can you walk me through your plan for bridging that gap?"
-- **Model Answer Points:** Model answers MUST be a structured array of checkable points. **Crucially, these points must be tailored to the question.** For a question about a specific project, the points should guide the interviewer to listen for specific technologies, outcomes, or responsibilities mentioned *in the resume for that project*.
-- **Scoring Rubric:** The rubric criteria MUST be a high-level summary of the most critical evaluation areas based on your analysis. **These must be specific and actionable.** Instead of a generic "Technical Skills", a better criterion would be "Demonstrated ability to apply Python skills to a FinTech context (addressing a key JD requirement against a non-FinTech resume)".
-
-**Inputs for Analysis:**
-
-Job Description (Primary Source):
-{{{jobDescription}}}
-
-Unstop Profile Link (for context only):
-{{{unstopProfileLink}}}
-
-{{#if unstopProfileDetails}}
-Unstop Profile Details (Primary Source for Analysis):
-{{{unstopProfileDetails}}}
-{{/if}}
-
-{{#if candidateResumeDataUri}}
-Candidate Resume File ({{{candidateResumeFileName}}}):
-{{media url=candidateResumeDataUri}}
-(AI: You must perform a word-for-word deep analysis of this resume content, focusing on specific projects, roles, and skills mentioned.)
-{{else}}
-No candidate resume file was provided.
-{{/if}}
-
-{{#if candidateExperienceContext}}
-Candidate Experience Context (additional notes):
-{{{candidateExperienceContext}}}
-{{/if}}
-
-Based on a holistic, multi-stage, word-for-word deep analysis of ALL available information, generate a comprehensive interview kit. The kit must contain 4-6 competencies with a rich set of 2-4 questions each that follow a REAL INTERVIEW PATTERN. Adhere to all the principles described above. The final kit must be a comprehensive and effective tool for a recruiter, especially one who is not a domain expert. **Your output must strictly adhere to the provided JSON schema.**`,
-});
-
-const generateInterviewKitFlow = ai.defineFlow(
-  {
-    name: 'generateInterviewKitFlow',
-    inputSchema: GenerateInterviewKitInputSchema,
-    outputSchema: GenerateInterviewKitOutputSchema,
-  },
-  async input => {
-    const {output} = await generateInterviewKitPrompt(input);
-    if (!output) {
-      throw new Error("AI failed to generate interview kit content.");
+    if (input.candidateResumeDataUri) {
+      // Include resume image in the message
+      messages.push(createUserMessageWithImage(userPrompt, input.candidateResumeDataUri));
+    } else {
+      messages.push(createUserMessage(userPrompt));
     }
-     // Basic validation and default-filling for robustness
-    const validatedOutput: GenerateInterviewKitOutput = {
-      competencies: (output.competencies || []).map(comp => ({
+
+    const response = await createChatCompletion(messages, {
+      temperature: 0.7,
+      maxTokens: 4000,
+      responseFormat: { type: 'json_object' },
+    });
+
+    if (!response) {
+      throw new Error("OpenAI API returned empty response");
+    }
+
+    let parsedOutput;
+    try {
+      parsedOutput = JSON.parse(response);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response as JSON:', response);
+      throw new Error("OpenAI API returned invalid JSON");
+    }
+
+    // Validate the output against our schema
+    const validatedOutput = GenerateInterviewKitOutputSchema.parse(parsedOutput);
+
+    // Apply post-processing similar to the original implementation
+    const processedOutput: GenerateInterviewKitOutput = {
+      competencies: (validatedOutput.competencies || []).map(comp => ({
         name: comp.name || "Unnamed Competency",
         importance: comp.importance || "Medium",
         questions: (comp.questions || []).map(q => ({
@@ -157,105 +261,52 @@ const generateInterviewKitFlow = ai.defineFlow(
           estimatedTimeMinutes: q.estimatedTimeMinutes || (difficultyTimeMap[q.difficulty || "Intermediate"]),
         })),
       })),
-      scoringRubric: (output.scoringRubric || []).map(crit => ({
+      scoringRubric: (validatedOutput.scoringRubric || []).map(crit => ({
         criterion: crit.criterion || "Unnamed Criterion (must be well-defined, distinct, high-quality, actionable, measurable, contextually reference JD/Unstop Profile/Resume File Content and account for emergent relevant details for comprehensive evaluation by a non-technical recruiter). AI should refine this.",
         weight: typeof crit.weight === 'number' ? Math.max(0, Math.min(1, crit.weight)) : 0.2,
       })),
     };
-     // Ensure rubric weights sum to 1.0
-    let totalWeight = validatedOutput.scoringRubric.reduce((sum, crit) => sum + crit.weight, 0);
-    if (validatedOutput.scoringRubric.length > 0) {
-        if (totalWeight === 0 && validatedOutput.scoringRubric.length > 0) {
-            const equalWeight = parseFloat((1.0 / validatedOutput.scoringRubric.length).toFixed(2));
-            let sum = 0;
-            validatedOutput.scoringRubric.forEach((crit, index, arr) => {
-                if(index < arr.length -1) {
-                    crit.weight = equalWeight;
-                    sum += equalWeight;
-                } else {
-                    crit.weight = parseFloat(Math.max(0,(1.0 - sum)).toFixed(2));
-                }
-            });
-             totalWeight = validatedOutput.scoringRubric.reduce((s, c) => s + c.weight, 0); // Recalculate
-        }
-        if (Math.abs(totalWeight - 1.0) > 0.001) { // Allow for small floating point inaccuracies
-            const factor = 1.0 / totalWeight;
-            let sumOfNormalizedWeights = 0;
-            validatedOutput.scoringRubric.forEach((crit, index, arr) => {
-                if (index < arr.length -1) {
-                    const normalized = Math.max(0, crit.weight * factor); // Ensure not negative before rounding
-                    crit.weight = parseFloat(normalized.toFixed(2));
-                    sumOfNormalizedWeights += crit.weight;
-                } else {
-                     // Last element gets the remainder to ensure sum is 1.0
-                    crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
-                }
-            });
-            // Final check because rounding can still cause slight deviations
-            totalWeight = validatedOutput.scoringRubric.reduce((s, c) => s + c.weight, 0);
-            if (Math.abs(totalWeight - 1.0) > 0.001 && validatedOutput.scoringRubric.length > 0) {
-                const diff = 1.0 - totalWeight;
-                const lastCritWeight = validatedOutput.scoringRubric[validatedOutput.scoringRubric.length -1].weight;
-                validatedOutput.scoringRubric[validatedOutput.scoringRubric.length -1].weight = 
-                    parseFloat(Math.max(0, lastCritWeight + diff).toFixed(2));
-            }
-        }
-    }
 
-    // Ensure no individual weight is negative after all adjustments and that the sum is truly 1.0
-    // And handle the case where all weights became zero due to aggressive rounding or tiny initial values
-    let finalSum = validatedOutput.scoringRubric.reduce((sum, crit) => {
-        crit.weight = Math.max(0, crit.weight); // Ensure no negative weights
-        return sum + crit.weight;
-    },0);
-    
+    // Normalize rubric weights to sum to 1.0
+    normalizeRubricWeights(processedOutput.scoringRubric);
 
-    if (validatedOutput.scoringRubric.length > 0 && Math.abs(finalSum - 1.0) > 0.001) {
-        // If sum is zero but items exist, distribute equally.
-        if (finalSum === 0) {
-            const equalWeight = parseFloat((1.0 / validatedOutput.scoringRubric.length).toFixed(2));
-            let currentSum = 0;
-            validatedOutput.scoringRubric.forEach((crit, index, arr) => {
-                 if(index < arr.length -1) {
-                    crit.weight = equalWeight;
-                    currentSum += equalWeight;
-                } else { // Last element takes remainder
-                    crit.weight = parseFloat(Math.max(0,(1.0 - currentSum)).toFixed(2));
-                }
-            });
-        } else { // If sum is not 1.0 and not 0, redistribute proportionally
-            const scaleFactor = 1.0 / finalSum;
-            let cumulativeWeight = 0;
-            for (let i = 0; i < validatedOutput.scoringRubric.length - 1; i++) {
-                const normalized = (validatedOutput.scoringRubric[i].weight * scaleFactor);
-                validatedOutput.scoringRubric[i].weight = parseFloat(normalized.toFixed(2));
-                cumulativeWeight += validatedOutput.scoringRubric[i].weight;
-            }
-             // Last element takes the remainder to ensure sum is exactly 1.0
-            const lastWeight = 1.0 - cumulativeWeight;
-            if (validatedOutput.scoringRubric.length > 0) {
-              validatedOutput.scoringRubric[validatedOutput.scoringRubric.length - 1].weight = parseFloat(Math.max(0, lastWeight).toFixed(2));
-            }
-        }
-    }
-    // Final pass to ensure the last element adjustment for sum to 1.0 didn't make other weights sum > 1
-    // This typically occurs if all weights were tiny and normalized to 0.00, then the last one got 1.00
-    if (validatedOutput.scoringRubric.length > 1) {
-        let checkSum = 0;
-        validatedOutput.scoringRubric.forEach(c => checkSum += c.weight);
-        if (Math.abs(checkSum - 1.0) > 0.001) { // If still off, likely due to rounding small numbers
-           const lastIdx = validatedOutput.scoringRubric.length - 1;
-           let sumExceptLast = 0;
-           for(let i=0; i < lastIdx; i++) {
-               sumExceptLast += validatedOutput.scoringRubric[i].weight;
-           }
-           validatedOutput.scoringRubric[lastIdx].weight = parseFloat(Math.max(0, 1.0 - sumExceptLast).toFixed(2));
-        }
-    } else if (validatedOutput.scoringRubric.length === 1) {
-        validatedOutput.scoringRubric[0].weight = 1.0; // If only one criterion, it must be 1.0
-    }
-
-
-    return validatedOutput;
+    return processedOutput;
+  } catch (error) {
+    console.error("Error generating interview kit:", error);
+    throw new Error(`Failed to generate interview kit: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-);
+}
+
+function normalizeRubricWeights(rubric: Array<{ weight: number }>) {
+  if (rubric.length === 0) return;
+
+  let totalWeight = rubric.reduce((sum, crit) => sum + crit.weight, 0);
+  
+  if (totalWeight === 0) {
+    // If all weights are 0, distribute equally
+    const equalWeight = parseFloat((1.0 / rubric.length).toFixed(2));
+    let sum = 0;
+    rubric.forEach((crit, index, arr) => {
+      if (index < arr.length - 1) {
+        crit.weight = equalWeight;
+        sum += equalWeight;
+      } else {
+        crit.weight = parseFloat(Math.max(0, (1.0 - sum)).toFixed(2));
+      }
+    });
+  } else if (Math.abs(totalWeight - 1.0) > 0.001) {
+    // Normalize weights to sum to 1.0
+    const factor = 1.0 / totalWeight;
+    let sumOfNormalizedWeights = 0;
+    rubric.forEach((crit, index, arr) => {
+      if (index < arr.length - 1) {
+        const normalized = Math.max(0, crit.weight * factor);
+        crit.weight = parseFloat(normalized.toFixed(2));
+        sumOfNormalizedWeights += crit.weight;
+      } else {
+        // Last element gets the remainder to ensure sum is exactly 1.0
+        crit.weight = parseFloat(Math.max(0, (1.0 - sumOfNormalizedWeights)).toFixed(2));
+      }
+    });
+  }
+}
